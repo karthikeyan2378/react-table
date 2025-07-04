@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -35,6 +36,9 @@ import {
   MoreHorizontal,
   Pause,
   Play,
+  Plus,
+  RefreshCw,
+  Trash2,
 } from "lucide-react";
 
 import type { Person } from "@/lib/data";
@@ -218,6 +222,26 @@ export function DataTable() {
   const columnOrderIds = React.useMemo(() => columns.map(c => c.id!), [columns])
   const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(columnOrderIds);
 
+  const addRow = (newRows: Person[]) => {
+    setData(oldData => [...newRows, ...oldData]);
+    toast({ title: "Row added", description: `Added row ID ${newRows[0].id}.` });
+  };
+
+  const updateRow = (updatedRows: Person[]) => {
+    setData(oldData =>
+      oldData.map(row => {
+        const updatedRow = updatedRows.find(ur => ur.id === row.id);
+        return updatedRow ? { ...row, ...updatedRow } : row;
+      })
+    );
+  };
+
+  const deleteRow = (rowIdsToDelete: number[]) => {
+    setData(oldData =>
+      oldData.filter(row => !rowIdsToDelete.includes(row.id))
+    );
+  };
+
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isStreaming) {
@@ -272,7 +296,7 @@ export function DataTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 flex-wrap">
         <Button onClick={() => setIsStreaming((prev) => !prev)} variant="outline" className="w-40">
           {isStreaming ? (
             <>
@@ -284,7 +308,50 @@ export function DataTable() {
             </>
           )}
         </Button>
-        <div className="text-sm text-muted-foreground">
+        <Button onClick={() => addRow(makeData(1))} variant="outline">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Row
+        </Button>
+        <Button
+          onClick={() => {
+            if (data.length === 0) {
+              toast({ variant: "destructive", title: "Cannot update", description: "Table is empty." });
+              return;
+            }
+            const randomIndex = Math.floor(Math.random() * data.length);
+            const rowToUpdate = data[randomIndex];
+            if (!rowToUpdate) return;
+            const updatedRow = {
+              ...rowToUpdate,
+              visits: rowToUpdate.visits + 100,
+              progress: Math.min(100, rowToUpdate.progress + 10),
+            };
+            updateRow([updatedRow]);
+            toast({ title: "Row updated", description: `Updated row ID ${updatedRow.id}.` });
+          }}
+          variant="outline"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Update Random
+        </Button>
+        <Button
+          onClick={() => {
+            if (data.length === 0) {
+              toast({ variant: "destructive", title: "Cannot delete", description: "Table is empty." });
+              return;
+            }
+            const randomIndex = Math.floor(Math.random() * data.length);
+            const rowToDelete = data[randomIndex];
+            if (!rowToDelete) return;
+            deleteRow([rowToDelete.id]);
+            toast({ title: "Row deleted", description: `Deleted row ID ${rowToDelete.id}.` });
+          }}
+          variant="outline"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Delete Random
+        </Button>
+        <div className="text-sm text-muted-foreground ml-auto">
           <span className="font-bold text-foreground">{data.length.toLocaleString()}</span> rows
         </div>
       </div>
