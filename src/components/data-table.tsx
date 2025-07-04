@@ -204,9 +204,8 @@ function DataTableFacetedFilter<TData, TValue>({
                     key={option.value}
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      e.stopPropagation();
                     }}
-                    onSelect={() => {
+                    onClick={() => {
                       if (isSelected) {
                         selectedValues.delete(option.value);
                       } else {
