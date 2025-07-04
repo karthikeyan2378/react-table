@@ -13,19 +13,44 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
+  AreaChart,
   Play,
   Plus,
   RefreshCw,
   Square,
   Trash2,
 } from 'lucide-react';
-import { StatusChart } from '@/components/status-chart';
+import { ColumnChart } from '@/components/status-chart';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function Home() {
   const { toast } = useToast();
   const [data, setData] = React.useState(() => makeData(1000));
   const [isStreaming, setIsStreaming] = React.useState(false);
   const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
+  const [activeCharts, setActiveCharts] = React.useState<Array<keyof Person>>(['status']);
+
+  const chartableColumns: Array<{ id: keyof Person; name: string }> = [
+    { id: 'status', name: 'Status' },
+    { id: 'age', name: 'Age' },
+    { id: 'visits', name: 'Visits' },
+    { id: 'progress', name: 'Profile Progress' },
+  ];
+
+  const addChart = (columnId: keyof Person) => {
+    if (!activeCharts.includes(columnId)) {
+      setActiveCharts((prev) => [...prev, columnId]);
+    }
+  };
+
+  const removeChart = (columnId: keyof Person) => {
+    setActiveCharts((prev) => prev.filter((id) => id !== columnId));
+  };
 
   const addRow = React.useCallback((newRows: Person[]) => {
     setData((oldData) => [...newRows, ...oldData]);
@@ -150,11 +175,47 @@ export default function Home() {
             <Trash2 className="mr-2 h-4 w-4" />
             Delete Selected
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <AreaChart className="mr-2 h-4 w-4" />
+                Add Chart
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {chartableColumns.map((col) => (
+                <DropdownMenuItem
+                  key={col.id}
+                  disabled={activeCharts.includes(col.id)}
+                  onSelect={() => addChart(col.id)}
+                >
+                  {col.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4">
-          <aside className="lg:w-1/3 xl:w-1/4">
-            <StatusChart data={data} />
+          <aside className="lg:w-1/3 xl:w-1/4 flex flex-col gap-4">
+            {activeCharts.length > 0 ? (
+              activeCharts.map((columnId) => (
+                <ColumnChart
+                  key={columnId}
+                  data={data}
+                  columnId={columnId}
+                  onRemove={removeChart}
+                />
+              ))
+            ) : (
+              <Card className="flex h-48 items-center justify-center">
+                <CardContent className="pt-6">
+                  <p className="text-muted-foreground text-center">
+                    Select a column from the &quot;Add Chart&quot; dropdown to display a chart.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </aside>
           <div className="lg:w-2/3 xl:w-3/4">
             <Card className="shadow-2xl shadow-primary/10 h-full">
