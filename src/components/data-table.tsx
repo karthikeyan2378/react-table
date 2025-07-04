@@ -180,6 +180,7 @@ function DataTableFacetedFilter<TData, TValue>({
             <DropdownMenuCheckboxItem
               key={option.value}
               checked={isSelected}
+              onSelect={(e) => e.preventDefault()} // Prevent closing on select
               onCheckedChange={(checked) => {
                 if (checked) {
                   selectedValues.add(option.value);
@@ -309,9 +310,6 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
                   onChange={(event) => {
                     const value = event.target.value;
                     table.getColumn(col.id)?.setFilterValue(value || undefined);
-                    if (!value) {
-                      handleFilterToggle(col.id, true);
-                    }
                   }}
                   className="h-8 w-[150px] lg:w-[250px]"
                 />
@@ -648,7 +646,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         ),
       },
     ],
-    [toast, deleteRow]
+    []
   );
 
   const columnOrderIds = React.useMemo(() => columns.map((c) => c.id!).filter(id => id !== 'actions'), [
@@ -793,9 +791,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody
-                onMouseLeave={() => setOpenActionMenu(null)}
-              >
+              <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <DropdownMenu

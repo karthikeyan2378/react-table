@@ -180,9 +180,13 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
         </div>
         <div className="flex items-center gap-2">
            <Select value={chartType} onValueChange={(value) => setChartType(value as 'pie' | 'bar')}>
-            <SelectTrigger className="h-8 w-auto shrink-0 gap-2 px-2">
-              {chartType === 'pie' ? <PieChartIcon className="h-4 w-4" /> : <BarChart3 className="h-4 w-4" />}
-              <SelectValue placeholder="Chart Type" />
+            <SelectTrigger className="h-8 w-8 shrink-0 p-0 justify-center [&>span]:hidden">
+              <span className="sr-only">Select chart type</span>
+              {chartType === 'pie' ? (
+                <PieChartIcon className="h-4 w-4" />
+              ) : (
+                <BarChart3 className="h-4 w-4" />
+              )}
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="pie">
