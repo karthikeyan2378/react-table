@@ -1,7 +1,7 @@
 
 import type {Metadata} from 'next';
 import './globals.css';
-import { Toaster } from '@/FMComponents/ui/toaster';
+import { LayoutComponent } from './layout-component';
 
 export const metadata: Metadata = {
   title: 'React Data Stream Table',
@@ -18,8 +18,7 @@ export default function RootLayout({
       <head>
       </head>
       <body className="antialiased">
-        {children}
-        <Toaster />
+        <LayoutComponent>{children}</LayoutComponent>
       </body>
     </html>
   );
