@@ -4,27 +4,27 @@ import * as React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { makeData } from '@/lib/data';
 import { type Alarm, alarmConfig } from '@/config/alarm-config';
-import { DataTable } from '@/components/data-table';
-import { ColumnChart } from '@/components/status-chart';
+import { DataTable } from '@/FMComponents/data-table';
+import { ColumnChart } from '@/FMComponents/status-chart';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+} from '@/FMComponents/ui/card';
+import { Button } from '@/FMComponents/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/FMComponents/ui/dropdown-menu';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from '@/components/ui/resizable';
+} from '@/FMComponents/ui/resizable';
 import {
   Play,
   Plus,
@@ -33,7 +33,7 @@ import {
   Trash2,
   BarChart,
 } from 'lucide-react';
-import { Icons } from '@/components/icons';
+import { Icons } from '@/FMComponents/icons';
 
 type ChartConfig = {
   columnId: keyof typeof alarmConfig.fields;

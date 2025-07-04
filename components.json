@@ -11,9 +11,9 @@
     "prefix": ""
   },
   "aliases": {
-    "components": "@/components",
+    "components": "@/FMComponents",
     "utils": "@/lib/utils",
-    "ui": "@/components/ui",
+    "ui": "@/FMComponents/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
