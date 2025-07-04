@@ -43,10 +43,8 @@ import {
   ChevronsLeft,
   ChevronsRight,
   GripVertical,
-  MoreHorizontal,
   PlusCircle,
   SlidersHorizontal,
-  Trash2,
   X,
   Filter,
 } from "lucide-react";
@@ -64,6 +62,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -500,6 +504,16 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
+        cell: ({ getValue }) => (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block truncate">{getValue<number>()}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{getValue<number>()}</p>
+            </TooltipContent>
+          </Tooltip>
+        ),
         size: 80,
       },
       {
@@ -510,6 +524,16 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
+        cell: ({ getValue }) => (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block truncate">{getValue<string>()}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{getValue<string>()}</p>
+            </TooltipContent>
+          </Tooltip>
+        ),
       },
       {
         accessorKey: "lastName",
@@ -518,6 +542,16 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             <span className="text-blue-500">Last Name</span>
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
+        ),
+        cell: ({ getValue }) => (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block truncate">{getValue<string>()}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{getValue<string>()}</p>
+            </TooltipContent>
+          </Tooltip>
         ),
       },
       {
@@ -528,6 +562,16 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
+        cell: ({ getValue }) => (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block truncate">{getValue<number>()}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{getValue<number>()}</p>
+            </TooltipContent>
+          </Tooltip>
+        ),
         size: 80,
       },
       {
@@ -537,6 +581,16 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             <span className="text-blue-500">Visits</span>
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
+        ),
+        cell: ({ getValue }) => (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block truncate">{getValue<number>()}</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{getValue<number>()}</p>
+            </TooltipContent>
+          </Tooltip>
         ),
         size: 80,
       },
@@ -549,18 +603,25 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         cell: ({ row }) => {
           const status = row.original.status;
           return (
-            <Badge
-              variant={
-                status === "complicated"
-                  ? "destructive"
-                  : status === "relationship"
-                  ? "default"
-                  : "secondary"
-              }
-              className="capitalize"
-            >
-              {status}
-            </Badge>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge
+                  variant={
+                    status === "complicated"
+                      ? "destructive"
+                      : status === "relationship"
+                      ? "default"
+                      : "secondary"
+                  }
+                  className="capitalize"
+                >
+                  {status}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Status: {status}</p>
+              </TooltipContent>
+            </Tooltip>
           );
         },
       },
@@ -573,62 +634,24 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
           </>
         ),
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Progress value={row.original.progress} className="w-24" />
-            <span>{row.original.progress}%</span>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-2">
+                <Progress value={row.original.progress} className="w-24" />
+                <span>{row.original.progress}%</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Profile Progress: {row.original.progress}%</p>
+            </TooltipContent>
+          </Tooltip>
         ),
-      },
-      {
-        id: "actions",
-        cell: ({ row }) => (
-          <DropdownMenu
-            open={openActionMenu === String(row.original.id)}
-            onOpenChange={(isOpen) =>
-              setOpenActionMenu(isOpen ? String(row.original.id) : null)
-            }
-          >
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => {
-                  navigator.clipboard.writeText(String(row.original.id));
-                  toast({
-                    title: "Copied!",
-                    description: `Row ID ${row.original.id} copied to clipboard.`,
-                  });
-                }}
-              >
-                Copy row ID
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setDialogRow(row.original)}>
-                View details
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => deleteRow([row.original.id])}
-                className="text-red-600"
-              >
-                Delete row
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
-        size: 50,
-        enableSorting: false,
-        enableHiding: false,
       },
     ],
-    [toast, openActionMenu, deleteRow]
+    [toast, deleteRow]
   );
 
-  const columnOrderIds = React.useMemo(() => columns.map((c) => c.id!), [
+  const columnOrderIds = React.useMemo(() => columns.map((c) => c.id!).filter(id => id !== 'actions'), [
     columns,
   ]);
   const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(
@@ -701,212 +724,246 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
   );
 
   return (
-    <div className="space-y-4">
-      <DataTableToolbar table={table} />
+    <TooltipProvider>
+      <div className="space-y-4">
+        <DataTableToolbar table={table} />
 
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="sorting-enable"
-            checked={sortingEnabled}
-            onCheckedChange={(enabled) => {
-              if (!enabled) {
-                setSorting([]);
-              }
-              setSortingEnabled(enabled);
-            }}
-          />
-          <Label htmlFor="sorting-enable">Enable Sorting</Label>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="sorting-enable"
+              checked={sortingEnabled}
+              onCheckedChange={(enabled) => {
+                if (!enabled) {
+                  setSorting([]);
+                }
+                setSortingEnabled(enabled);
+              }}
+            />
+            <Label htmlFor="sorting-enable">Enable Sorting</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="pagination-enable"
+              checked={paginationEnabled}
+              onCheckedChange={setPaginationEnabled}
+            />
+            <Label htmlFor="pagination-enable">Enable Pagination</Label>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="pagination-enable"
-            checked={paginationEnabled}
-            onCheckedChange={setPaginationEnabled}
-          />
-          <Label htmlFor="pagination-enable">Enable Pagination</Label>
-        </div>
-      </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-sm text-muted-foreground ml-auto">
-          <span className="font-bold text-foreground">
-            {table.getFilteredRowModel().rows.length.toLocaleString()}
-          </span>{" "}
-          of{" "}
-          <span className="font-bold text-foreground">
-            {data.length.toLocaleString()}
-          </span>{" "}
-          rows
+        <div className="flex items-center gap-2 flex-wrap">
+            <div className="text-sm text-muted-foreground ml-auto">
+            <span className="font-bold text-foreground">
+              {table.getFilteredRowModel().rows.length.toLocaleString()}
+            </span>{" "}
+            of{" "}
+            <span className="font-bold text-foreground">
+              {data.length.toLocaleString()}
+            </span>{" "}
+            rows
+          </div>
         </div>
-      </div>
 
-      <div className="rounded-md border">
-        <DndContext
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-          sensors={sensors}
-        >
-          <Table style={{ width: table.getCenterTotalSize() }}>
-            <TableHeader className="sticky top-0 z-10 bg-card">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  <SortableContext
-                    items={columnOrder}
-                    strategy={horizontalListSortingStrategy}
-                  >
-                    {headerGroup.headers.map((header) => (
-                      <DraggableColumnHeader key={header.id} header={header}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </DraggableColumnHeader>
-                    ))}
-                  </SortableContext>
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody
-              onMouseLeave={() => setOpenActionMenu(null)}
-            >
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    onDoubleClick={() => setDialogRow(row.original)}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      setOpenActionMenu(String(row.original.id));
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        style={{ width: cell.column.getSize() }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
+        <div className="rounded-md border">
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+            sensors={sensors}
+          >
+            <Table style={{ width: table.getCenterTotalSize() }}>
+              <TableHeader className="sticky top-0 z-10 bg-card">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    <SortableContext
+                      items={columnOrder}
+                      strategy={horizontalListSortingStrategy}
+                    >
+                      {headerGroup.headers.map((header) => (
+                        <DraggableColumnHeader key={header.id} header={header}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </DraggableColumnHeader>
+                      ))}
+                    </SortableContext>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </DndContext>
-      </div>
-      {paginationEnabled && (
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="flex items-center space-x-6 lg:space-x-8">
-            <div className="flex items-center space-x-2">
-              <p className="text-sm font-medium">Rows per page</p>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
+                ))}
+              </TableHeader>
+              <TableBody
+                onMouseLeave={() => setOpenActionMenu(null)}
               >
-                <SelectTrigger className="h-8 w-[70px]">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 50, 100, 500, 1000].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to first page</span>
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-8 w-8 p-0"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to previous page</span>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-8 w-8 p-0"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to next page</span>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to last page</span>
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <DropdownMenu
+                      key={`menu-${row.id}`}
+                      open={openActionMenu === String(row.original.id)}
+                      onOpenChange={(isOpen) => setOpenActionMenu(isOpen ? String(row.original.id) : null) }
+                    >
+                      <DropdownMenuTrigger asChild>
+                        <TableRow
+                          key={row.id}
+                          data-state={row.getIsSelected() && "selected"}
+                          onDoubleClick={() => setDialogRow(row.original)}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            setOpenActionMenu(String(row.original.id));
+                          }}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell
+                              key={cell.id}
+                              style={{ width: cell.column.getSize() }}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            navigator.clipboard.writeText(String(row.original.id));
+                            toast({
+                              title: "Copied!",
+                              description: `Row ID ${row.original.id} copied to clipboard.`,
+                            });
+                          }}
+                        >
+                          Copy row ID
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => setDialogRow(row.original)}>
+                          View details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => deleteRow([row.original.id])}
+                          className="text-red-600"
+                        >
+                          Delete row
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </DndContext>
         </div>
-      )}
-      <AlertDialog
-        open={!!dialogRow}
-        onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Row Details</AlertDialogTitle>
-            <AlertDialogDescription>
-              Viewing full data for row ID: {dialogRow?.id}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="max-h-96 overflow-y-auto rounded-md border bg-muted p-4">
-            <pre>
-              <code>{JSON.stringify(dialogRow, null, 2)}</code>
-            </pre>
+        {paginationEnabled && (
+          <div className="flex items-center justify-between py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+            <div className="flex items-center space-x-6 lg:space-x-8">
+              <div className="flex items-center space-x-2">
+                <p className="text-sm font-medium">Rows per page</p>
+                <Select
+                  value={`${table.getState().pagination.pageSize}`}
+                  onValueChange={(value) => {
+                    table.setPageSize(Number(value));
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue
+                      placeholder={table.getState().pagination.pageSize}
+                    />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {[10, 20, 50, 100, 500, 1000].map((pageSize) => (
+                      <SelectItem key={pageSize} value={`${pageSize}`}>
+                        {pageSize}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount()}
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  <span className="sr-only">Go to first page</span>
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-8 w-8 p-0"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  <span className="sr-only">Go to previous page</span>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-8 w-8 p-0"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  <span className="sr-only">Go to next page</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                  disabled={!table.getCanNextPage()}
+                >
+                  <span className="sr-only">Go to last page</span>
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDialogRow(null)}>
-              Close
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        )}
+        <AlertDialog
+          open={!!dialogRow}
+          onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Row Details</AlertDialogTitle>
+              <AlertDialogDescription>
+                Viewing full data for row ID: {dialogRow?.id}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="max-h-96 overflow-y-auto rounded-md border bg-muted p-4">
+              <pre>
+                <code>{JSON.stringify(dialogRow, null, 2)}</code>
+              </pre>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setDialogRow(null)}>
+                Close
+              </AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </TooltipProvider>
   );
 }
