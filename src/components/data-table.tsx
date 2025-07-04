@@ -383,6 +383,11 @@ const DraggableColumnHeader = ({
     disabled: ["select", "actions", "drag-handle"].includes(header.column.id),
   });
 
+  const [isMounted, setIsMounted] = React.useState(false);
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
@@ -396,6 +401,11 @@ const DraggableColumnHeader = ({
       {children}
     </div>
   );
+
+  const finalAttributes = { ...attributes };
+  if (!isMounted) {
+    delete finalAttributes['aria-describedby'];
+  }
 
   return (
     <TableHead
@@ -411,13 +421,13 @@ const DraggableColumnHeader = ({
             onClick={header.column.getToggleSortingHandler()}
             className="w-full h-full p-0 m-0 justify-start"
             disabled={!header.column.getCanSort()}
-            {...attributes}
+            {...finalAttributes}
             {...listeners}
           >
             {headerContent}
           </Button>
         ) : (
-          <div {...attributes} {...listeners} className="cursor-grab h-full">
+          <div {...finalAttributes} {...listeners} className="cursor-grab h-full">
             {headerContent}
           </div>
         )}
@@ -770,7 +780,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             sensors={sensors}
           >
             <Table style={{ width: table.getCenterTotalSize() }}>
-              <TableHeader className="sticky top-0 z-20 bg-card">
+              <TableHeader className="sticky top-0 z-30 bg-card">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     <SortableContext
@@ -791,7 +801,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody>
+              <TableBody onMouseLeave={() => setOpenActionMenu(null)}>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <DropdownMenu
