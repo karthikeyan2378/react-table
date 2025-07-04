@@ -3,16 +3,22 @@
 
 import * as React from "react";
 import {
+  Column,
   ColumnDef,
+  ColumnFiltersState,
   ColumnOrderState,
   flexRender,
   getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   Header,
   SortingState,
+  Table as ReactTable,
   useReactTable,
-  getSortedRowModel,
-  getFilteredRowModel,
+  VisibilityState,
 } from "@tanstack/react-table";
 import {
   DndContext,
@@ -33,22 +39,46 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowUpDown,
-  GripVertical,
-  MoreHorizontal,
-  Plus,
-  RefreshCw,
-  Trash2,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  GripVertical,
+  MoreHorizontal,
   Play,
+  Plus,
+  PlusCircle,
+  RefreshCw,
+  SlidersHorizontal,
   Square,
+  Trash2,
+  X,
+  Check,
 } from "lucide-react";
 
 import type { Person } from "@/lib/data";
 import { makeData } from "@/lib/data";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -57,24 +87,232 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import { Separator } from "./ui/separator";
+
+const statuses = [
+  { value: "single", label: "Single" },
+  { value: "complicated", label: "Complicated" },
+  { value: "relationship", label: "Relationship" },
+];
+
+interface DataTableFacetedFilterProps<TData, TValue> {
+  column?: Column<TData, TValue>;
+  title?: string;
+  options: {
+    label: string;
+    value: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }[];
+}
+
+function DataTableFacetedFilter<TData, TValue>({
+  column,
+  title,
+  options,
+}: DataTableFacetedFilterProps<TData, TValue>) {
+  const facets = column?.getFacetedUniqueValues();
+  const selectedValues = new Set(column?.getFilterValue() as string[]);
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 border-dashed">
+          <PlusCircle className="mr-2 h-4 w-4" />
+          {title}
+          {selectedValues?.size > 0 && (
+            <>
+              <Separator orientation="vertical" className="mx-2 h-4" />
+              <Badge
+                variant="secondary"
+                className="rounded-sm px-1 font-normal lg:hidden"
+              >
+                {selectedValues.size}
+              </Badge>
+              <div className="hidden space-x-1 lg:flex">
+                {selectedValues.size > 2 ? (
+                  <Badge
+                    variant="secondary"
+                    className="rounded-sm px-1 font-normal"
+                  >
+                    {selectedValues.size} selected
+                  </Badge>
+                ) : (
+                  options
+                    .filter((option) => selectedValues.has(option.value))
+                    .map((option) => (
+                      <Badge
+                        variant="secondary"
+                        key={option.value}
+                        className="rounded-sm px-1 font-normal"
+                      >
+                        {option.label}
+                      </Badge>
+                    ))
+                )}
+              </div>
+            </>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder={title} />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => {
+                const isSelected = selectedValues.has(option.value);
+                return (
+                  <CommandItem
+                    key={option.value}
+                    onSelect={() => {
+                      if (isSelected) {
+                        selectedValues.delete(option.value);
+                      } else {
+                        selectedValues.add(option.value);
+                      }
+                      const filterValues = Array.from(selectedValues);
+                      column?.setFilterValue(
+                        filterValues.length ? filterValues : undefined
+                      );
+                    }}
+                  >
+                    <div
+                      className={cn(
+                        "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                        isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "opacity-50 [&_svg]:invisible"
+                      )}
+                    >
+                      <Check className={cn("h-4 w-4")} />
+                    </div>
+                    {option.icon && (
+                      <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span>{option.label}</span>
+                    {facets?.get(option.value) && (
+                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+                        {facets.get(option.value)}
+                      </span>
+                    )}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+            {selectedValues.size > 0 && (
+              <>
+                <CommandSeparator />
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() => column?.setFilterValue(undefined)}
+                    className="justify-center text-center"
+                  >
+                    Clear filters
+                  </CommandItem>
+                </CommandGroup>
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function DataTableViewOptions<TData>({
+  table,
+}: {
+  table: ReactTable<TData>;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="ml-auto hidden h-8 lg:flex">
+          <SlidersHorizontal className="mr-2 h-4 w-4" />
+          View
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[150px]">
+        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {table
+          .getAllColumns()
+          .filter(
+            (column) =>
+              typeof column.accessorFn !== "undefined" && column.getCanHide()
+          )
+          .map((column) => {
+            return (
+              <DropdownMenuCheckboxItem
+                key={column.id}
+                className="capitalize"
+                checked={column.getIsVisible()}
+                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+              >
+                {column.id}
+              </DropdownMenuCheckboxItem>
+            );
+          })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
+  const isFiltered = table.getState().columnFilters.length > 0;
+
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex flex-1 items-center space-x-2">
+        <Input
+          placeholder="Filter first names..."
+          value={
+            (table.getColumn("firstName")?.getFilterValue() as string) ?? ""
+          }
+          onChange={(event) =>
+            table.getColumn("firstName")?.setFilterValue(event.target.value)
+          }
+          className="h-8 w-[150px] lg:w-[250px]"
+        />
+        {table.getColumn("status") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("status")}
+            title="Status"
+            options={statuses}
+          />
+        )}
+        {isFiltered && (
+          <Button
+            variant="ghost"
+            onClick={() => table.resetColumnFilters()}
+            className="h-8 px-2 lg:px-3"
+          >
+            Reset
+            <X className="ml-2 h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <DataTableViewOptions table={table} />
+    </div>
+  );
+}
 
 const DraggableColumnHeader = ({
   header,
@@ -92,6 +330,7 @@ const DraggableColumnHeader = ({
     isDragging,
   } = useSortable({
     id: header.column.id,
+    disabled: ["select", "actions", "drag-handle"].includes(header.column.id),
   });
 
   const style: React.CSSProperties = {
@@ -110,7 +349,11 @@ const DraggableColumnHeader = ({
       className="p-0"
     >
       <div className="flex items-center h-full">
-        <div {...attributes} {...listeners} className="flex-1 flex items-center gap-2 pl-4 pr-2 py-3.5 h-full cursor-grab">
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex-1 flex items-center gap-2 pl-4 pr-2 py-3.5 h-full cursor-grab"
+        >
           {children}
         </div>
         <div
@@ -127,30 +370,35 @@ const DraggableColumnHeader = ({
   );
 };
 
-
 export function DataTable() {
   const { toast } = useToast();
   const [data, setData] = React.useState(() => makeData(1000));
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
   const [isStreaming, setIsStreaming] = React.useState(false);
 
   const addRow = React.useCallback((newRows: Person[]) => {
-    setData(oldData => [...newRows, ...oldData]);
+    setData((oldData) => [...newRows, ...oldData]);
   }, []);
 
   const updateRow = React.useCallback((updatedRows: Person[]) => {
-    setData(oldData =>
-      oldData.map(row => {
-        const updatedRow = updatedRows.find(ur => ur.id === row.id);
+    setData((oldData) =>
+      oldData.map((row) => {
+        const updatedRow = updatedRows.find((ur) => ur.id === row.id);
         return updatedRow ? { ...row, ...updatedRow } : row;
       })
     );
   }, []);
 
   const deleteRow = React.useCallback((rowIdsToDelete: number[]) => {
-    setData(oldData =>
-      oldData.filter(row => !rowIdsToDelete.includes(row.id))
+    setData((oldData) =>
+      oldData.filter((row) => !rowIdsToDelete.includes(row.id))
     );
   }, []);
 
@@ -164,13 +412,39 @@ export function DataTable() {
     return () => clearInterval(interval);
   }, [isStreaming, addRow]);
 
-
   const columns = React.useMemo<ColumnDef<Person>[]>(
     () => [
       {
-        id: 'drag-handle',
+        id: "drag-handle",
         header: () => <GripVertical className="h-4 w-4" />,
         cell: () => <GripVertical className="h-4 w-4 text-muted-foreground" />,
+        size: 40,
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
         size: 40,
       },
       {
@@ -244,6 +518,9 @@ export function DataTable() {
       {
         accessorKey: "status",
         header: "Status",
+        filterFn: (row, id, value) => {
+          return value.includes(row.getValue(id));
+        },
         cell: ({ row }) => {
           const status = row.original.status;
           return (
@@ -265,15 +542,17 @@ export function DataTable() {
       {
         accessorKey: "progress",
         header: ({ column }) => (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              className="w-full justify-start"
-            >
-              Profile Progress
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          ),
+          <Button
+            variant="ghost"
+            onClick={() =>
+              column.toggleSorting(column.getIsSorted() === "asc")
+            }
+            className="w-full justify-start"
+          >
+            Profile Progress
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <Progress value={row.original.progress} className="w-24" />
@@ -295,7 +574,10 @@ export function DataTable() {
               <DropdownMenuItem
                 onClick={() => {
                   navigator.clipboard.writeText(String(row.original.id));
-                  toast({ title: "Copied!", description: `Row ID ${row.original.id} copied to clipboard.` });
+                  toast({
+                    title: "Copied!",
+                    description: `Row ID ${row.original.id} copied to clipboard.`,
+                  });
                 }}
               >
                 Copy row ID
@@ -304,13 +586,19 @@ export function DataTable() {
           </DropdownMenu>
         ),
         size: 50,
+        enableSorting: false,
+        enableHiding: false,
       },
     ],
     [toast]
   );
-  
-  const columnOrderIds = React.useMemo(() => columns.map(c => c.id!), [columns])
-  const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(columnOrderIds);
+
+  const columnOrderIds = React.useMemo(() => columns.map((c) => c.id!), [
+    columns,
+  ]);
+  const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(
+    columnOrderIds
+  );
 
   const table = useReactTable({
     data,
@@ -318,21 +606,27 @@ export function DataTable() {
     state: {
       sorting,
       columnOrder,
-      globalFilter,
+      columnVisibility,
+      rowSelection,
+      columnFilters,
     },
     onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     onColumnOrderChange: setColumnOrder,
-    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     columnResizeMode: "onChange",
     initialState: {
-        pagination: {
-            pageSize: 20,
-        },
-    }
+      pagination: {
+        pageSize: 20,
+      },
+    },
   });
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -355,36 +649,43 @@ export function DataTable() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
-        <Input
-          placeholder="Search all columns..."
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="h-9 max-w-xs"
-        />
-        <Button onClick={() => {
-          const newRows = makeData(1);
-          addRow(newRows);
-          toast({ title: "Row added", description: `Added row ID ${newRows[0].id}.` });
-        }} variant="outline">
+        <DataTableToolbar table={table} />
+      </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button
+          onClick={() => {
+            const newRows = makeData(1);
+            addRow(newRows);
+            toast({
+              title: "Row added",
+              description: `Added row ID ${newRows[0].id}.`,
+            });
+          }}
+          variant="outline"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Add Row
         </Button>
         <Button
-            onClick={() => setIsStreaming((prev) => !prev)}
-            variant="outline"
-            className="w-[180px]"
+          onClick={() => setIsStreaming((prev) => !prev)}
+          variant="outline"
+          className="w-[180px]"
         >
-            {isStreaming ? (
-                <Square className="mr-2 h-4 w-4" />
-            ) : (
-                <Play className="mr-2 h-4 w-4" />
-            )}
-            {isStreaming ? "Stop Streaming" : "Start Streaming"}
+          {isStreaming ? (
+            <Square className="mr-2 h-4 w-4" />
+          ) : (
+            <Play className="mr-2 h-4 w-4" />
+          )}
+          {isStreaming ? "Stop Streaming" : "Start Streaming"}
         </Button>
         <Button
           onClick={() => {
             if (data.length === 0) {
-              toast({ variant: "destructive", title: "Cannot update", description: "Table is empty." });
+              toast({
+                variant: "destructive",
+                title: "Cannot update",
+                description: "Table is empty.",
+              });
               return;
             }
             const randomIndex = Math.floor(Math.random() * data.length);
@@ -396,7 +697,10 @@ export function DataTable() {
               progress: Math.min(100, rowToUpdate.progress + 10),
             };
             updateRow([updatedRow]);
-            toast({ title: "Row updated", description: `Updated row ID ${updatedRow.id}.` });
+            toast({
+              title: "Row updated",
+              description: `Updated row ID ${updatedRow.id}.`,
+            });
           }}
           variant="outline"
         >
@@ -406,14 +710,21 @@ export function DataTable() {
         <Button
           onClick={() => {
             if (data.length === 0) {
-              toast({ variant: "destructive", title: "Cannot delete", description: "Table is empty." });
+              toast({
+                variant: "destructive",
+                title: "Cannot delete",
+                description: "Table is empty.",
+              });
               return;
             }
             const randomIndex = Math.floor(Math.random() * data.length);
             const rowToDelete = data[randomIndex];
             if (!rowToDelete) return;
             deleteRow([rowToDelete.id]);
-            toast({ title: "Row deleted", description: `Deleted row ID ${rowToDelete.id}.` });
+            toast({
+              title: "Row deleted",
+              description: `Deleted row ID ${rowToDelete.id}.`,
+            });
           }}
           variant="outline"
         >
@@ -421,12 +732,13 @@ export function DataTable() {
           Delete Random
         </Button>
         <div className="text-sm text-muted-foreground ml-auto">
-          <span className="font-bold text-foreground">{data.length.toLocaleString()}</span> rows
+          <span className="font-bold text-foreground">
+            {table.getFilteredRowModel().rows.length.toLocaleString()}
+          </span>{" "}
+          of <span className="font-bold text-foreground">{data.length.toLocaleString()}</span> rows
         </div>
       </div>
-      <div
-        className="rounded-md border"
-      >
+      <div className="rounded-md border">
         <DndContext
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
@@ -456,12 +768,12 @@ export function DataTable() {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map(row => (
+                table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                   >
-                    {row.getVisibleCells().map(cell => (
+                    {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
                         style={{ width: cell.column.getSize() }}
@@ -476,7 +788,10 @@ export function DataTable() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
                     No results.
                   </TableCell>
                 </TableRow>
@@ -487,72 +802,76 @@ export function DataTable() {
       </div>
       <div className="flex items-center justify-between py-4">
         <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
         <div className="flex items-center space-x-6 lg:space-x-8">
-            <div className="flex items-center space-x-2">
-                <p className="text-sm font-medium">Rows per page</p>
-                <Select
-                    value={`${table.getState().pagination.pageSize}`}
-                    onValueChange={(value) => {
-                        table.setPageSize(Number(value))
-                    }}
-                >
-                    <SelectTrigger className="h-8 w-[70px]">
-                        <SelectValue placeholder={table.getState().pagination.pageSize} />
-                    </SelectTrigger>
-                    <SelectContent side="top">
-                        {[10, 20, 50, 100].map((pageSize) => (
-                            <SelectItem key={pageSize} value={`${pageSize}`}>
-                                {pageSize}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
-            </div>
-            <div className="flex items-center space-x-2">
-                <Button
-                    variant="outline"
-                    className="hidden h-8 w-8 p-0 lg:flex"
-                    onClick={() => table.setPageIndex(0)}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    <span className="sr-only">Go to first page</span>
-                    <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    <span className="sr-only">Go to previous page</span>
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    className="h-8 w-8 p-0"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    <span className="sr-only">Go to next page</span>
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="outline"
-                    className="hidden h-8 w-8 p-0 lg:flex"
-                    onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                    disabled={!table.getCanNextPage()}
-                >
-                    <span className="sr-only">Go to last page</span>
-                    <ChevronsRight className="h-4 w-4" />
-                </Button>
-            </div>
+          <div className="flex items-center space-x-2">
+            <p className="text-sm font-medium">Rows per page</p>
+            <Select
+              value={`${table.getState().pagination.pageSize}`}
+              onValueChange={(value) => {
+                table.setPageSize(Number(value));
+              }}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue
+                  placeholder={table.getState().pagination.pageSize}
+                />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 50, 100].map((pageSize) => (
+                  <SelectItem key={pageSize} value={`${pageSize}`}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              className="hidden h-8 w-8 p-0 lg:flex"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <span className="sr-only">Go to first page</span>
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="h-8 w-8 p-0"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <span className="sr-only">Go to previous page</span>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="h-8 w-8 p-0"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <span className="sr-only">Go to next page</span>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              className="hidden h-8 w-8 p-0 lg:flex"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+            >
+              <span className="sr-only">Go to last page</span>
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-    </div>
+      </div>
     </div>
   );
 }
