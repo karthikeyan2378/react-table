@@ -313,8 +313,10 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
       setActiveFilters((prev) => [...prev, columnId]);
     }
   };
-  
-  const textFilterColumns = filterableColumns.filter(col => col.id !== 'status');
+
+  const textFilterColumns = filterableColumns.filter(
+    (col) => col.id !== "status"
+  );
 
   return (
     <div className="flex items-center justify-between">
@@ -344,28 +346,49 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
         {textFilterColumns.map((col) => {
           if (activeFilters.includes(col.id)) {
             return (
-              <Input
-                key={col.id}
-                placeholder={`Filter ${col.name.toLowerCase()}...`}
-                value={
-                  (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
-                }
-                onChange={(event) =>
-                  table.getColumn(col.id)?.setFilterValue(event.target.value)
-                }
-                className="h-8 w-[150px] lg:w-[250px]"
-              />
-            )
+              <div key={col.id} className="flex items-center gap-1">
+                <Input
+                  placeholder={`Filter ${col.name.toLowerCase()}...`}
+                  value={
+                    (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
+                  }
+                  onChange={(event) =>
+                    table
+                      .getColumn(col.id)
+                      ?.setFilterValue(event.target.value || undefined)
+                  }
+                  className="h-8 w-[150px] lg:w-[250px]"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => handleFilterToggle(col.id)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            );
           }
-          return null
+          return null;
         })}
-        
+
         {activeFilters.includes("status") && table.getColumn("status") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("status")}
-            title="Status"
-            options={statuses}
-          />
+          <div className="flex items-center gap-1">
+            <DataTableFacetedFilter
+              column={table.getColumn("status")}
+              title="Status"
+              options={statuses}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => handleFilterToggle("status")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         )}
 
         {isFiltered && (
@@ -414,6 +437,12 @@ const DraggableColumnHeader = ({
     position: "relative",
   };
 
+  const headerContent = (
+    <div className="flex-1 flex items-center gap-2 pl-4 pr-2 py-3.5 h-full">
+      {children}
+    </div>
+  );
+
   return (
     <TableHead
       ref={setNodeRef}
@@ -422,13 +451,23 @@ const DraggableColumnHeader = ({
       className="p-0"
     >
       <div className="flex items-center h-full">
-        <div
-          {...attributes}
-          {...listeners}
-          className="flex-1 flex items-center gap-2 pl-4 pr-2 py-3.5 h-full cursor-grab"
-        >
-          {children}
-        </div>
+        {header.column.getCanSort() ? (
+          <Button
+            variant="ghost"
+            onClick={header.column.getToggleSortingHandler()}
+            className="w-full h-full p-0 m-0 justify-start"
+            disabled={!header.column.getCanSort()}
+            {...attributes}
+            {...listeners}
+          >
+            {headerContent}
+          </Button>
+        ) : (
+          <div {...attributes} {...listeners} className="cursor-grab h-full">
+            {headerContent}
+          </div>
+        )}
+
         <div
           onMouseDown={header.getResizeHandler()}
           onTouchStart={header.getResizeHandler()}
@@ -529,73 +568,48 @@ export function DataTable() {
       {
         accessorKey: "id",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="w-full justify-start"
-            disabled={!sortingEnabled}
-          >
+          <>
             ID
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </>
         ),
         size: 80,
       },
       {
         accessorKey: "firstName",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="w-full justify-start"
-            disabled={!sortingEnabled}
-          >
+          <>
             First Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </>
         ),
       },
       {
         accessorKey: "lastName",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="w-full justify-start"
-            disabled={!sortingEnabled}
-          >
+          <>
             Last Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </>
         ),
       },
       {
         accessorKey: "age",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="w-full justify-start"
-            disabled={!sortingEnabled}
-          >
+          <>
             Age
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </>
         ),
         size: 80,
       },
       {
         accessorKey: "visits",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="w-full justify-start"
-            disabled={!sortingEnabled}
-          >
+          <>
             Visits
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </>
         ),
         size: 80,
       },
@@ -626,17 +640,10 @@ export function DataTable() {
       {
         accessorKey: "progress",
         header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() =>
-              column.toggleSorting(column.getIsSorted() === "asc")
-            }
-            className="w-full justify-start"
-            disabled={!sortingEnabled}
-          >
+          <>
             Profile Progress
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
+          </>
         ),
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
@@ -691,7 +698,7 @@ export function DataTable() {
         enableHiding: false,
       },
     ],
-    [toast, sortingEnabled, openActionMenu, deleteRow]
+    [toast, openActionMenu, deleteRow]
   );
 
   const columnOrderIds = React.useMemo(() => columns.map((c) => c.id!), [
@@ -717,7 +724,7 @@ export function DataTable() {
     onRowSelectionChange: setRowSelection,
     onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: sortingEnabled ? getSortedRowModel() : undefined,
+    getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: paginationEnabled
       ? getPaginationRowModel()
