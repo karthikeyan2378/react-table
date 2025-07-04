@@ -346,7 +346,7 @@ const DataTableHeader = ({
     <TableHead
       colSpan={header.colSpan}
       style={{ width: header.getSize() }}
-      className="p-0 sticky top-0 bg-card z-20"
+      className="p-0 sticky top-0 bg-card z-30"
     >
       <div className="flex items-center h-full">
         {header.column.getCanSort() ? (
@@ -423,10 +423,10 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
       }
     };
     if (contextMenu.visible) {
-      document.addEventListener("mousedown", handleOutsideClick);
+      document.addEventListener("click", handleOutsideClick);
     }
     return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("click", handleOutsideClick);
     };
   }, [contextMenu.visible]);
   

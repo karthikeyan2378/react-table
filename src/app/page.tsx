@@ -3,8 +3,9 @@
 import * as React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { makeData } from '@/lib/data';
-import { type Alarm } from '@/config/alarm-config';
+import { type Alarm, alarmConfig } from '@/config/alarm-config';
 import { DataTable } from '@/components/data-table';
+import { ColumnChart } from '@/components/status-chart';
 import {
   Card,
   CardContent,
@@ -14,21 +15,42 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable';
+import {
   Play,
   Plus,
   RefreshCw,
   Square,
   Trash2,
+  BarChart,
 } from 'lucide-react';
+import { Icons } from '@/components/icons';
+
+type ChartConfig = {
+  columnId: keyof typeof alarmConfig.fields;
+  chartType: 'pie' | 'bar' | 'doughnut';
+};
 
 export default function Home() {
   const { toast } = useToast();
   const [data, setData] = React.useState<Alarm[]>([]);
   const [isStreaming, setIsStreaming] = React.useState(false);
   const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([]);
+  const [activeCharts, setActiveCharts] = React.useState<ChartConfig[]>([]);
+  const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
     setData(makeData(1000));
+    setIsClient(true);
   }, []);
 
   const addRow = React.useCallback((newRows: Alarm[]) => {
@@ -110,6 +132,41 @@ export default function Home() {
     });
   };
 
+  const summarizableColumns = React.useMemo(() => {
+    return Object.entries(alarmConfig.fields)
+      .filter(([, config]) => config.isSummarizedColumn)
+      .map(([id, config]) => ({
+        id: id as keyof typeof alarmConfig.fields,
+        label: config.label,
+      }));
+  }, []);
+
+  const addChart = (columnId: keyof typeof alarmConfig.fields) => {
+    if (!activeCharts.some((c) => c.columnId === columnId)) {
+      setActiveCharts((prev) => [
+        ...prev,
+        { columnId, chartType: 'pie' },
+      ]);
+    }
+  };
+
+  const removeChart = (columnId: keyof typeof alarmConfig.fields) => {
+    setActiveCharts((prev) => prev.filter((c) => c.columnId !== columnId));
+  };
+
+  const updateChartType = (
+    columnId: keyof typeof alarmConfig.fields,
+    chartType: 'pie' | 'bar' | 'doughnut'
+  ) => {
+    setActiveCharts((prev) =>
+      prev.map((c) => (c.columnId === columnId ? { ...c, chartType } : c))
+    );
+  };
+  
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
@@ -153,23 +210,67 @@ export default function Home() {
             <Trash2 className="mr-2 h-4 w-4" />
             Delete Selected
           </Button>
+           <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <BarChart className="mr-2 h-4 w-4" />
+                Add Chart
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {summarizableColumns.map((col) => (
+                <DropdownMenuItem
+                  key={col.id}
+                  onClick={() => addChart(col.id)}
+                  disabled={activeCharts.some((c) => c.columnId === col.id)}
+                >
+                  <Icons.alarm className="mr-2 h-4 w-4" />
+                  <span>{col.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        <Card className="shadow-2xl shadow-primary/10">
-          <CardHeader>
-            <CardTitle>Live Alarm Feed</CardTitle>
-            <CardDescription>
-              This table is driven by a central configuration and supports dynamic filtering, sorting, and column reordering.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DataTable
-              data={data}
-              deleteRow={deleteRow}
-              onSelectedRowsChange={setSelectedRowIds}
-            />
-          </CardContent>
-        </Card>
+        <ResizablePanelGroup direction="horizontal" className="rounded-lg border">
+          {activeCharts.length > 0 && (
+            <>
+              <ResizablePanel defaultSize={25} minSize={20}>
+                <div className="p-4 space-y-4 h-full overflow-auto">
+                  {activeCharts.map((chart) => (
+                    <ColumnChart
+                      key={chart.columnId}
+                      columnId={chart.columnId}
+                      label={alarmConfig.fields[chart.columnId].label}
+                      data={data}
+                      onRemove={removeChart}
+                      onUpdateChartType={updateChartType}
+                      initialChartType={chart.chartType}
+                    />
+                  ))}
+                </div>
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+            </>
+          )}
+          <ResizablePanel defaultSize={activeCharts.length > 0 ? 75 : 100}>
+            <Card className="shadow-2xl shadow-primary/10 h-full">
+              <CardHeader>
+                <CardTitle>Live Alarm Feed</CardTitle>
+                <CardDescription>
+                  This table is driven by a central configuration and supports dynamic filtering, sorting, and column reordering.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DataTable
+                  data={data}
+                  deleteRow={deleteRow}
+                  onSelectedRowsChange={setSelectedRowIds}
+                />
+              </CardContent>
+            </Card>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </main>
     </div>
   );
