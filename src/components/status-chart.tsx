@@ -1,7 +1,17 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, CartesianGrid, Pie, PieChart as RechartsPie, Sector, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell as RechartsCell,
+  Pie,
+  PieChart as RechartsPie,
+  Sector,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import {
   Card,
@@ -22,8 +32,13 @@ import type { Person } from '@/lib/data';
 import { Button } from './ui/button';
 import { BarChart3, PieChart as PieChartIcon, X } from 'lucide-react';
 import { useMemo } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 interface ColumnChartProps {
   data: Person[];
@@ -56,9 +71,10 @@ const getBinnedData = (
     });
 };
 
-
 export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
-  const [activeIndex, setActiveIndex] = React.useState<number | undefined>(undefined);
+  const [activeIndex, setActiveIndex] = React.useState<number | undefined>(
+    undefined
+  );
   const [chartType, setChartType] = React.useState<'pie' | 'bar'>('pie');
 
   const { chartData, chartConfig, title, description } = useMemo(() => {
@@ -66,7 +82,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
     let description = '';
     let chartData: any[] = [];
     let chartConfig: ChartConfig = {
-      count: { label: 'Count' }
+      count: { label: 'Count' },
     };
 
     switch (columnId) {
@@ -76,7 +92,10 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
         const statusConfig: ChartConfig = {
           single: { label: 'Single', color: 'hsl(var(--chart-1))' },
           complicated: { label: 'Complicated', color: 'hsl(var(--chart-2))' },
-          relationship: { label: 'Relationship', color: 'hsl(var(--chart-3))' },
+          relationship: {
+            label: 'Relationship',
+            color: 'hsl(var(--chart-3))',
+          },
         };
         Object.assign(chartConfig, statusConfig);
 
@@ -93,7 +112,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
           fill: `var(--color-${status.toLowerCase()})`,
         }));
         break;
-      
+
       case 'age':
         title = 'Age Distribution';
         description = 'A breakdown of age groups.';
@@ -107,7 +126,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
         chartData = getBinnedData(data, 'visits', 100);
         chartConfig.count.color = 'hsl(var(--chart-2))';
         break;
-      
+
       case 'progress':
         title = 'Progress Distribution';
         description = 'A breakdown of profile progress.';
@@ -132,7 +151,10 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
     if (chartType === 'pie') {
       return (
         <RechartsPie>
-          <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+          <ChartTooltip
+            cursor={false}
+            content={<ChartTooltipContent hideLabel />}
+          />
           <Pie
             data={chartData}
             dataKey="count"
@@ -148,6 +170,13 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
             onMouseLeave={() => setActiveIndex(undefined)}
             onMouseEnter={(_, index) => setActiveIndex(index)}
           >
+            {chartData.map((entry, index) => (
+              <RechartsCell
+                key={`cell-${index}`}
+                fill={entry.fill}
+                className="stroke-background"
+              />
+            ))}
           </Pie>
           <ChartLegend content={<ChartLegendContent nameKey="name" />} />
         </RechartsPie>
@@ -155,7 +184,10 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
     }
 
     return (
-      <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+      <BarChart
+        data={chartData}
+        margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
+      >
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="name"
@@ -169,17 +201,20 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
         <Bar dataKey="count" radius={4} />
       </BarChart>
     );
-  }
+  };
 
   return (
     <Card className="flex flex-col border shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-        <div className='space-y-1'>
-          <CardTitle className='text-base font-medium'>{title}</CardTitle>
+        <div className="space-y-1">
+          <CardTitle className="text-base font-medium">{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </div>
         <div className="flex items-center gap-2">
-           <Select value={chartType} onValueChange={(value) => setChartType(value as 'pie' | 'bar')}>
+          <Select
+            value={chartType}
+            onValueChange={(value) => setChartType(value as 'pie' | 'bar')}
+          >
             <SelectTrigger className="h-8 w-8 shrink-0 p-0 justify-center [&>span]:hidden">
               <span className="sr-only">Select chart type</span>
               {chartType === 'pie' ? (
@@ -190,7 +225,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="pie">
-                 <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <PieChartIcon className="h-4 w-4" />
                   <span>Pie Chart</span>
                 </div>
@@ -203,7 +238,12 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
               </SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => onRemove(columnId)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => onRemove(columnId)}
+          >
             <X className="h-4 w-4" />
             <span className="sr-only">Remove chart</span>
           </Button>
@@ -214,7 +254,15 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
           config={chartConfig}
           className="mx-auto aspect-video max-h-[300px]"
         >
-          {chartData.length > 0 ? renderChart() : <div className='flex items-center justify-center h-full'><p className='text-muted-foreground'>Not enough data to display chart.</p></div>}
+          {chartData.length > 0 ? (
+            renderChart()
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground">
+                Not enough data to display chart.
+              </p>
+            </div>
+          )}
         </ChartContainer>
       </CardContent>
     </Card>
