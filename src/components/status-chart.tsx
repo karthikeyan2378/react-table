@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/chart';
 import type { Person } from '@/lib/data';
 import { Button } from './ui/button';
-import { BarChart3, PieChart as PieChartIcon, X } from 'lucide-react';
+import { BarChart3, PieChart as PieChartIcon, X, Donut } from 'lucide-react';
 import { useMemo } from 'react';
 import {
   Select,
@@ -71,7 +71,7 @@ const getBinnedData = (
 };
 
 export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
-  const [chartType, setChartType] = React.useState<'pie' | 'bar'>('pie');
+  const [chartType, setChartType] = React.useState<'pie' | 'bar' | 'doughnut'>('pie');
 
   const { chartData, chartConfig, title, description } = useMemo(() => {
     let title = '';
@@ -144,7 +144,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
   }, [data, columnId]);
 
   const renderChart = () => {
-    if (chartType === 'pie') {
+    if (chartType === 'pie' || chartType === 'doughnut') {
       return (
         <RechartsPie>
           <ChartTooltip
@@ -155,7 +155,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
             data={chartData}
             dataKey="count"
             nameKey="name"
-            innerRadius={60}
+            innerRadius={chartType === 'doughnut' ? 60 : 0}
             strokeWidth={5}
           >
             {chartData.map((entry, index) => (
@@ -201,12 +201,14 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
         <div className="flex items-center gap-2">
           <Select
             value={chartType}
-            onValueChange={(value) => setChartType(value as 'pie' | 'bar')}
+            onValueChange={(value) => setChartType(value as 'pie' | 'bar' | 'doughnut')}
           >
             <SelectTrigger className="h-8 w-8 shrink-0 p-0 justify-center [&>span]:hidden">
               <span className="sr-only">Select chart type</span>
               {chartType === 'pie' ? (
                 <PieChartIcon className="h-4 w-4" />
+              ) : chartType === 'doughnut' ? (
+                <Donut className="h-4 w-4" />
               ) : (
                 <BarChart3 className="h-4 w-4" />
               )}
@@ -216,6 +218,12 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
                 <div className="flex items-center gap-2">
                   <PieChartIcon className="h-4 w-4" />
                   <span>Pie Chart</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="doughnut">
+                <div className="flex items-center gap-2">
+                  <Donut className="h-4 w-4" />
+                  <span>Doughnut Chart</span>
                 </div>
               </SelectItem>
               <SelectItem value="bar">
@@ -240,7 +248,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-video max-h-[300px]"
+          className="mx-auto aspect-video"
         >
           {chartData.length > 0 ? (
             renderChart()

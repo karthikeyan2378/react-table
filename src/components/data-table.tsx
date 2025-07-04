@@ -798,7 +798,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             sensors={sensors}
           >
             <Table style={{ width: table.getCenterTotalSize() }}>
-              <TableHeader className="sticky top-0 z-30 bg-card">
+              <TableHeader className="sticky top-0 z-40 bg-card">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     <SortableContext
