@@ -54,6 +54,7 @@ import {
   Trash2,
   X,
   Check,
+  Filter,
 } from "lucide-react";
 
 import type { Person } from "@/lib/data";
@@ -104,11 +105,31 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Separator } from "./ui/separator";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 const statuses = [
   { value: "single", label: "Single" },
   { value: "complicated", label: "Complicated" },
   { value: "relationship", label: "Relationship" },
+];
+
+const filterableColumns = [
+  { id: "firstName", name: "First Name" },
+  { id: "lastName", name: "Last Name" },
+  { id: "age", name: "Age" },
+  { id: "visits", name: "Visits" },
+  { id: "status", name: "Status" },
+  { id: "progress", name: "Progress" },
 ];
 
 interface DataTableFacetedFilterProps<TData, TValue> {
@@ -244,7 +265,11 @@ function DataTableViewOptions<TData>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="ml-auto hidden h-8 lg:flex">
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto hidden h-8 lg:flex"
+        >
           <SlidersHorizontal className="mr-2 h-4 w-4" />
           View
         </Button>
@@ -277,27 +302,78 @@ function DataTableViewOptions<TData>({
 
 function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
   const isFiltered = table.getState().columnFilters.length > 0;
+  const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
+
+  const handleFilterToggle = (columnId: string) => {
+    setActiveFilters((prev) =>
+      prev.includes(columnId)
+        ? prev.filter((id) => id !== columnId)
+        : [...prev, columnId]
+    );
+    // Clear filter value when hiding filter
+    if (activeFilters.includes(columnId)) {
+      table.getColumn(columnId)?.setFilterValue(undefined);
+    }
+  };
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
-        <Input
-          placeholder="Filter first names..."
-          value={
-            (table.getColumn("firstName")?.getFilterValue() as string) ?? ""
-          }
-          onChange={(event) =>
-            table.getColumn("firstName")?.setFilterValue(event.target.value)
-          }
-          className="h-8 w-[150px] lg:w-[250px]"
-        />
-        {table.getColumn("status") && (
+      <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              <Filter className="mr-2 h-4 w-4" />
+              Add Filter
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {filterableColumns.map((col) => (
+              <DropdownMenuCheckboxItem
+                key={col.id}
+                checked={activeFilters.includes(col.id)}
+                onCheckedChange={() => handleFilterToggle(col.id)}
+              >
+                {col.name}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {activeFilters.includes("firstName") && (
+          <Input
+            placeholder="Filter first names..."
+            value={
+              (table.getColumn("firstName")?.getFilterValue() as string) ?? ""
+            }
+            onChange={(event) =>
+              table.getColumn("firstName")?.setFilterValue(event.target.value)
+            }
+            className="h-8 w-[150px] lg:w-[250px]"
+          />
+        )}
+        {activeFilters.includes("lastName") && (
+          <Input
+            placeholder="Filter last names..."
+            value={
+              (table.getColumn("lastName")?.getFilterValue() as string) ?? ""
+            }
+            onChange={(event) =>
+              table.getColumn("lastName")?.setFilterValue(event.target.value)
+            }
+            className="h-8 w-[150px] lg:w-[250px]"
+          />
+        )}
+        {activeFilters.includes("status") && table.getColumn("status") && (
           <DataTableFacetedFilter
             column={table.getColumn("status")}
             title="Status"
             options={statuses}
           />
         )}
+        {/* Add more dynamic filters here based on `activeFilters` */}
+
         {isFiltered && (
           <Button
             variant="ghost"
@@ -380,8 +456,14 @@ export function DataTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-
   const [isStreaming, setIsStreaming] = React.useState(false);
+  const [openActionMenu, setOpenActionMenu] = React.useState<string | null>(
+    null
+  );
+  const [dialogRow, setDialogRow] = React.useState<Person | null>(null);
+
+  const [paginationEnabled, setPaginationEnabled] = React.useState(true);
+  const [sortingEnabled, setSortingEnabled] = React.useState(true);
 
   const addRow = React.useCallback((newRows: Person[]) => {
     setData((oldData) => [...newRows, ...oldData]);
@@ -454,6 +536,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="w-full justify-start"
+            disabled={!sortingEnabled}
           >
             ID
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -468,6 +551,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="w-full justify-start"
+            disabled={!sortingEnabled}
           >
             First Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -481,6 +565,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="w-full justify-start"
+            disabled={!sortingEnabled}
           >
             Last Name
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -494,6 +579,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="w-full justify-start"
+            disabled={!sortingEnabled}
           >
             Age
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -508,6 +594,7 @@ export function DataTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="w-full justify-start"
+            disabled={!sortingEnabled}
           >
             Visits
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -548,6 +635,7 @@ export function DataTable() {
               column.toggleSorting(column.getIsSorted() === "asc")
             }
             className="w-full justify-start"
+            disabled={!sortingEnabled}
           >
             Profile Progress
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -563,7 +651,12 @@ export function DataTable() {
       {
         id: "actions",
         cell: ({ row }) => (
-          <DropdownMenu>
+          <DropdownMenu
+            open={openActionMenu === String(row.original.id)}
+            onOpenChange={(isOpen) =>
+              setOpenActionMenu(isOpen ? String(row.original.id) : null)
+            }
+          >
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
                 <span className="sr-only">Open menu</span>
@@ -571,6 +664,7 @@ export function DataTable() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
                   navigator.clipboard.writeText(String(row.original.id));
@@ -582,6 +676,16 @@ export function DataTable() {
               >
                 Copy row ID
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setDialogRow(row.original)}>
+                View details
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => deleteRow([row.original.id])}
+                className="text-red-600"
+              >
+                Delete row
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
@@ -590,7 +694,7 @@ export function DataTable() {
         enableHiding: false,
       },
     ],
-    [toast]
+    [toast, sortingEnabled, openActionMenu]
   );
 
   const columnOrderIds = React.useMemo(() => columns.map((c) => c.id!), [
@@ -616,12 +720,15 @@ export function DataTable() {
     onRowSelectionChange: setRowSelection,
     onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    getSortedRowModel: sortingEnabled ? getSortedRowModel() : undefined,
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: paginationEnabled
+      ? getPaginationRowModel()
+      : undefined,
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     columnResizeMode: "onChange",
+    enableSorting: sortingEnabled,
     initialState: {
       pagination: {
         pageSize: 20,
@@ -648,9 +755,27 @@ export function DataTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 flex-wrap">
-        <DataTableToolbar table={table} />
+      <DataTableToolbar table={table} />
+
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="sorting-enable"
+            checked={sortingEnabled}
+            onCheckedChange={setSortingEnabled}
+          />
+          <Label htmlFor="sorting-enable">Enable Sorting</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="pagination-enable"
+            checked={paginationEnabled}
+            onCheckedChange={setPaginationEnabled}
+          />
+          <Label htmlFor="pagination-enable">Enable Pagination</Label>
+        </div>
       </div>
+
       <div className="flex items-center gap-2 flex-wrap">
         <Button
           onClick={() => {
@@ -662,6 +787,7 @@ export function DataTable() {
             });
           }}
           variant="outline"
+          size="sm"
         >
           <Plus className="mr-2 h-4 w-4" />
           Add Row
@@ -669,6 +795,7 @@ export function DataTable() {
         <Button
           onClick={() => setIsStreaming((prev) => !prev)}
           variant="outline"
+          size="sm"
           className="w-[180px]"
         >
           {isStreaming ? (
@@ -703,41 +830,49 @@ export function DataTable() {
             });
           }}
           variant="outline"
+          size="sm"
         >
           <RefreshCw className="mr-2 h-4 w-4" />
           Update Random
         </Button>
         <Button
           onClick={() => {
-            if (data.length === 0) {
+            const selectedRows = table.getFilteredSelectedRowModel().rows;
+            if (selectedRows.length === 0) {
               toast({
                 variant: "destructive",
-                title: "Cannot delete",
-                description: "Table is empty.",
+                title: "No rows selected",
+                description: "Please select rows to delete.",
               });
               return;
             }
-            const randomIndex = Math.floor(Math.random() * data.length);
-            const rowToDelete = data[randomIndex];
-            if (!rowToDelete) return;
-            deleteRow([rowToDelete.id]);
+            const idsToDelete = selectedRows.map((row) => row.original.id);
+            deleteRow(idsToDelete);
+            table.resetRowSelection();
             toast({
-              title: "Row deleted",
-              description: `Deleted row ID ${rowToDelete.id}.`,
+              title: "Rows deleted",
+              description: `${idsToDelete.length} row(s) deleted.`,
             });
           }}
-          variant="outline"
+          variant="destructive"
+          size="sm"
+          disabled={table.getFilteredSelectedRowModel().rows.length === 0}
         >
           <Trash2 className="mr-2 h-4 w-4" />
-          Delete Random
+          Delete Selected
         </Button>
         <div className="text-sm text-muted-foreground ml-auto">
           <span className="font-bold text-foreground">
             {table.getFilteredRowModel().rows.length.toLocaleString()}
           </span>{" "}
-          of <span className="font-bold text-foreground">{data.length.toLocaleString()}</span> rows
+          of{" "}
+          <span className="font-bold text-foreground">
+            {data.length.toLocaleString()}
+          </span>{" "}
+          rows
         </div>
       </div>
+
       <div className="rounded-md border">
         <DndContext
           collisionDetection={closestCenter}
@@ -766,12 +901,19 @@ export function DataTable() {
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody>
+            <TableBody
+              onMouseLeave={() => setOpenActionMenu(null)}
+            >
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
+                    onDoubleClick={() => setDialogRow(row.original)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setOpenActionMenu(String(row.original.id));
+                    }}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
@@ -800,78 +942,103 @@ export function DataTable() {
           </Table>
         </DndContext>
       </div>
-      <div className="flex items-center justify-between py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+      {paginationEnabled && (
+        <div className="flex items-center justify-between py-4">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredSelectedRowModel().rows.length} of{" "}
+            {table.getFilteredRowModel().rows.length} row(s) selected.
+          </div>
+          <div className="flex items-center space-x-6 lg:space-x-8">
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-medium">Rows per page</p>
+              <Select
+                value={`${table.getState().pagination.pageSize}`}
+                onValueChange={(value) => {
+                  table.setPageSize(Number(value));
+                }}
+              >
+                <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue
+                    placeholder={table.getState().pagination.pageSize}
+                  />
+                </SelectTrigger>
+                <SelectContent side="top">
+                  {[10, 20, 50, 100, 500, 1000].map((pageSize) => (
+                    <SelectItem key={pageSize} value={`${pageSize}`}>
+                      {pageSize}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                className="hidden h-8 w-8 p-0 lg:flex"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Go to first page</span>
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <span className="sr-only">Go to previous page</span>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="h-8 w-8 p-0"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <span className="sr-only">Go to next page</span>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="hidden h-8 w-8 p-0 lg:flex"
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+              >
+                <span className="sr-only">Go to last page</span>
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">Rows per page</p>
-            <Select
-              value={`${table.getState().pagination.pageSize}`}
-              onValueChange={(value) => {
-                table.setPageSize(Number(value));
-              }}
-            >
-              <SelectTrigger className="h-8 w-[70px]">
-                <SelectValue
-                  placeholder={table.getState().pagination.pageSize}
-                />
-              </SelectTrigger>
-              <SelectContent side="top">
-                {[10, 20, 50, 100].map((pageSize) => (
-                  <SelectItem key={pageSize} value={`${pageSize}`}>
-                    {pageSize}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      )}
+      <AlertDialog
+        open={!!dialogRow}
+        onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Row Details</AlertDialogTitle>
+            <AlertDialogDescription>
+              Viewing full data for row ID: {dialogRow?.id}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="max-h-96 overflow-y-auto rounded-md border bg-muted p-4">
+            <pre>
+              <code>{JSON.stringify(dialogRow, null, 2)}</code>
+            </pre>
           </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to first page</span>
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to previous page</span>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to next page</span>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to last page</span>
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDialogRow(null)}>
+              Close
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
