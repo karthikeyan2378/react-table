@@ -31,13 +31,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const { toast } = useToast();
   const [data, setData] = React.useState(() => makeData(1000));
   const [isStreaming, setIsStreaming] = React.useState(false);
   const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
-  const [activeCharts, setActiveCharts] = React.useState<Array<keyof Person>>(['status']);
+  const [activeCharts, setActiveCharts] = React.useState<Array<keyof Person>>([]);
 
   const chartableColumns: Array<{ id: keyof Person; name: string; icon: React.ComponentType<{className?: string}> }> = [
     { id: 'status', name: 'Status', icon: Users },
@@ -135,6 +136,7 @@ export default function Home() {
     });
   };
 
+  const hasCharts = activeCharts.length > 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -202,27 +204,21 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <aside className="lg:col-span-1 flex flex-col gap-4">
-            <Card className="flex flex-col p-4 gap-4">
-               {activeCharts.length > 0 ? (
-                activeCharts.map((columnId) => (
-                  <ColumnChart
-                    key={columnId}
-                    data={data}
-                    columnId={columnId}
-                    onRemove={removeChart}
-                  />
-                ))
-              ) : (
-                <div className="flex h-48 items-center justify-center">
-                  <p className="text-muted-foreground text-center">
-                    Select a column from the &quot;Add Chart&quot; dropdown to display a chart.
-                  </p>
-                </div>
-              )}
-            </Card>
-          </aside>
-          <div className="lg:col-span-2">
+          {hasCharts && (
+            <aside className="lg:col-span-1 flex flex-col gap-4">
+              <Card className="flex flex-col p-4 gap-4">
+                {activeCharts.map((columnId) => (
+                    <ColumnChart
+                      key={columnId}
+                      data={data}
+                      columnId={columnId}
+                      onRemove={removeChart}
+                    />
+                  ))}
+              </Card>
+            </aside>
+          )}
+          <div className={cn(hasCharts ? "lg:col-span-2" : "lg:col-span-3")}>
             <Card className="shadow-2xl shadow-primary/10 h-full">
               <CardHeader>
                 <CardTitle>Live Data Feed</CardTitle>
