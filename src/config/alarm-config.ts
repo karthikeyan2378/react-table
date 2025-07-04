@@ -1,4 +1,3 @@
-import { AreaChart, Bell, Gauge, Shield, Users } from 'lucide-react';
 
 const config = {
   fields: {
@@ -16,9 +15,6 @@ const config = {
         { value: 'Indeterminate', label: 'Indeterminate' },
         { value: 'Cleared', label: 'Cleared' },
       ],
-      summaryInfo: {
-        possibleTypes: ["doughnut", "pie", "bar"],
-      },
     },
     ObjectLabel: {
       label: 'Object Label',
@@ -44,9 +40,6 @@ const config = {
         { value: 'CPU Overload', label: 'CPU Overload' },
         { value: 'Packet Loss', label: 'Packet Loss' },
       ],
-      summaryInfo: {
-        possibleTypes: ["doughnut", "pie", "bar"],
-      },
     },
     NetworkRaisedTimeLong: {
       label: 'Network Raised Time',
@@ -79,9 +72,6 @@ const config = {
         { value: 'ME', label: 'ME' },
         { value: 'Equipment', label: 'Equipment' },
       ],
-      summaryInfo: {
-        possibleTypes: ["doughnut", "pie", "bar"],
-      },
     },
     EMSName: {
       label: 'EMS Name',
@@ -144,6 +134,11 @@ const config = {
     State: {
       label: 'State',
       columnSize: 100,
+      columnType: 'categorical',
+      options: [
+        {value: 'Active', label: 'Active'},
+        {value: 'Cleared', label: 'Cleared'}
+      ]
     },
     FlapCount: {
       label: 'Flap Count',

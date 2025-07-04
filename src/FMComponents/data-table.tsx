@@ -11,6 +11,9 @@ interface SortConfig {
   direction: SortDirection;
 }
 
+type FilterValue = string | Set<string>;
+type Filters = Record<string, FilterValue>;
+
 const severityColors: Record<string, string> = {
   Critical: "bg-red-500",
   Major: "bg-orange-500",
@@ -27,11 +30,18 @@ const columnsToShow = Object.entries(alarmConfig.fields)
     label: config.label,
     size: config.columnSize || 150,
   }));
+  
+const filterableColumns = Object.entries(alarmConfig.fields).map(([id, { label, columnType, options }]) => ({
+    id: id as keyof Alarm,
+    name: label,
+    type: columnType,
+    options: options || [],
+}));
 
 interface DataTableProps {
   data: Alarm[];
   deleteRow: (rowIds: string[]) => void;
-  onSelectedRowsChange: (rowIds: string[]) => void;
+  onSelectedRowsChange: (rowIds:string[]) => void;
 }
 
 export function DataTable({
@@ -39,11 +49,13 @@ export function DataTable({
   deleteRow,
   onSelectedRowsChange,
 }: DataTableProps) {
-  const [filter, setFilter] = React.useState("");
+  const [filters, setFilters] = React.useState<Filters>({});
   const [sortConfig, setSortConfig] = React.useState<SortConfig | null>({ key: 'NetworkLastModifiedTimeLong', direction: 'desc' });
   const [currentPage, setCurrentPage] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(20);
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(new Set());
+  const [activeFilterDropdown, setActiveFilterDropdown] = React.useState<string | null>(null);
+  const [addFilterDropdownOpen, setAddFilterDropdownOpen] = React.useState(false);
 
   const handleSort = (key: keyof Alarm) => {
     let direction: SortDirection = "asc";
@@ -64,7 +76,7 @@ export function DataTable({
   };
 
   const toggleAllRows = (pageRows: Alarm[]) => {
-    const allSelected = pageRows.every(row => selectedRows.has(row.AlarmID));
+    const allSelected = pageRows.length > 0 && pageRows.every(row => selectedRows.has(row.AlarmID));
     const newSelection = new Set(selectedRows);
     if (allSelected) {
       pageRows.forEach(row => newSelection.delete(row.AlarmID));
@@ -79,12 +91,20 @@ export function DataTable({
   }, [selectedRows, onSelectedRowsChange]);
 
   const filteredData = React.useMemo(() => {
-    return data.filter((row) =>
-      Object.values(row).some((value) =>
-        String(value).toLowerCase().includes(filter.toLowerCase())
-      )
-    );
-  }, [data, filter]);
+    if (Object.keys(filters).length === 0) {
+      return data;
+    }
+    return data.filter(row => {
+      return Object.entries(filters).every(([key, filterValue]) => {
+        const rowValue = row[key as keyof Alarm];
+        if (filterValue instanceof Set) { // Categorical filter
+          return filterValue.size === 0 || filterValue.has(String(rowValue));
+        }
+        // Text filter
+        return String(rowValue).toLowerCase().includes(String(filterValue).toLowerCase());
+      });
+    });
+  }, [data, filters]);
 
   const sortedData = React.useMemo(() => {
     let sortableItems = [...filteredData];
@@ -115,6 +135,43 @@ export function DataTable({
 
   const totalPages = Math.ceil(sortedData.length / rowsPerPage);
 
+  const handleAddFilter = (columnId: keyof Alarm, type: string | undefined) => {
+      setFilters(prev => ({
+          ...prev,
+          [columnId]: type === 'categorical' ? new Set<string>() : ''
+      }));
+      setAddFilterDropdownOpen(false);
+  };
+  
+  const handleRemoveFilter = (columnId: keyof Alarm) => {
+      setFilters(prev => {
+          const newFilters = {...prev};
+          delete newFilters[columnId];
+          return newFilters;
+      });
+  };
+
+  const handleTextFilterChange = (columnId: keyof Alarm, value: string) => {
+    setFilters(prev => ({...prev, [columnId]: value}));
+  }
+
+  const handleCategoricalFilterChange = (columnId: keyof Alarm, value: string) => {
+      setFilters(prev => {
+          const currentFilter = prev[columnId];
+          if (currentFilter instanceof Set) {
+              const newSet = new Set(currentFilter);
+              if (newSet.has(value)) {
+                  newSet.delete(value);
+              } else {
+                  newSet.add(value);
+              }
+              return {...prev, [columnId]: newSet};
+          }
+          return prev;
+      });
+  };
+
+
   const SortIcon = ({ direction }: { direction: SortDirection | null }) => {
     if (!direction) return <span className="w-4 h-4 opacity-30">↕</span>;
     return direction === 'asc' ? <span className="w-4 h-4">🔼</span> : <span className="w-4 h-4">🔽</span>;
@@ -123,14 +180,69 @@ export function DataTable({
   return (
     <div className="space-y-4">
       {/* Toolbar */}
-      <div className="flex items-center justify-between">
-        <input
-          type="text"
-          placeholder="Filter all columns..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="h-9 px-3 rounded-md border border-input bg-background w-full md:w-1/3"
-        />
+      <div className="flex items-center justify-between flex-wrap gap-2">
+         <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative">
+                  <button onClick={() => setAddFilterDropdownOpen(p => !p)} className="h-9 px-3 rounded-md border bg-background flex items-center gap-2">
+                      <span>+</span> Add Filter
+                  </button>
+                  {addFilterDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 bg-white border rounded-md shadow-lg z-20 max-h-60 overflow-y-auto">
+                          {filterableColumns.map(col => (
+                              <button 
+                                key={col.id} 
+                                onClick={() => handleAddFilter(col.id, col.type)}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                                disabled={filters.hasOwnProperty(col.id)}
+                              >
+                                {col.name}
+                              </button>
+                          ))}
+                      </div>
+                  )}
+              </div>
+              
+              {Object.keys(filters).map(key => {
+                  const colConfig = filterableColumns.find(c => c.id === key);
+                  if (!colConfig) return null;
+
+                  return (
+                    <div key={key} className="flex items-center gap-1">
+                      {colConfig.type === 'categorical' ? (
+                          <div className="relative">
+                              <button onClick={() => setActiveFilterDropdown(d => d === key ? null : key)} className="h-9 px-3 rounded-md border bg-background flex items-center gap-1">
+                                  <span>{colConfig.name}</span>
+                                  <span className="text-muted-foreground text-xs">{(filters[key] as Set<string>).size || 'Any'}</span>
+                              </button>
+                              {activeFilterDropdown === key && (
+                                  <div className="absolute top-full left-0 mt-1 bg-white border rounded-md shadow-lg z-20 max-h-60 overflow-y-auto p-2">
+                                      {colConfig.options.map(opt => (
+                                          <label key={opt.value} className="flex items-center gap-2 p-1">
+                                              <input type="checkbox"
+                                                  checked={(filters[key] as Set<string>).has(opt.value)}
+                                                  onChange={() => handleCategoricalFilterChange(key as keyof Alarm, opt.value)}
+                                                  className="rounded border-gray-300"
+                                              />
+                                              <span>{opt.label}</span>
+                                          </label>
+                                      ))}
+                                  </div>
+                              )}
+                          </div>
+                      ) : (
+                          <input
+                              type="text"
+                              placeholder={`Filter ${colConfig.name}...`}
+                              value={filters[key] as string}
+                              onChange={(e) => handleTextFilterChange(key as keyof Alarm, e.target.value)}
+                              className="h-9 px-3 rounded-md border border-input bg-background w-40"
+                          />
+                      )}
+                      <button onClick={() => handleRemoveFilter(key as keyof Alarm)} className="h-9 w-9 p-0 flex items-center justify-center rounded-md border hover:bg-destructive/10 text-destructive">&times;</button>
+                    </div>
+                  )
+              })}
+         </div>
       </div>
 
       {/* Table */}
@@ -198,7 +310,7 @@ export function DataTable({
               ))
             ) : (
               <tr>
-                <td colSpan={columnsToShow.length + 1} className="h-24 text-center">
+                <td colSpan={columnsToShow.length + 2} className="h-24 text-center">
                   No results.
                 </td>
               </tr>
