@@ -5,7 +5,6 @@ import {
   Column,
   ColumnDef,
   ColumnFiltersState,
-  ColumnOrderState,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -20,29 +19,11 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  type DragEndEvent,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  horizontalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  GripVertical,
   PlusCircle,
   SlidersHorizontal,
   X,
@@ -348,55 +329,24 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
   );
 }
 
-const DraggableColumnHeader = ({
+const DataTableHeader = ({
   header,
   children,
 }: {
   header: Header<Alarm, unknown>;
   children: React.ReactNode;
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: header.column.id,
-    disabled: ["select", "actions", "drag-handle"].includes(header.column.id),
-  });
-
-  const [isMounted, setIsMounted] = React.useState(false);
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-    opacity: isDragging ? 0.8 : 1,
-    zIndex: isDragging ? 10 : 1,
-    position: "relative",
-  };
-
   const headerContent = (
     <div className="flex-1 flex items-center gap-2 pl-4 pr-2 py-3.5 h-full">
       {children}
     </div>
   );
 
-  const finalAttributes = { ...attributes };
-  if (!isMounted) {
-    delete finalAttributes['aria-describedby'];
-  }
-
   return (
     <TableHead
-      ref={setNodeRef}
       colSpan={header.colSpan}
-      style={{ ...style, width: header.getSize() }}
-      className="p-0 sticky top-0 bg-card z-10"
+      style={{ width: header.getSize() }}
+      className="p-0 sticky top-0 bg-card z-20"
     >
       <div className="flex items-center h-full">
         {header.column.getCanSort() ? (
@@ -405,17 +355,12 @@ const DraggableColumnHeader = ({
             onClick={header.column.getToggleSortingHandler()}
             className="w-full h-full p-0 m-0 justify-start"
             disabled={!header.column.getCanSort()}
-            {...finalAttributes}
-            {...listeners}
           >
             {headerContent}
           </Button>
         ) : (
-          <div {...finalAttributes} {...listeners} className="cursor-grab h-full">
-            {headerContent}
-          </div>
+          <div className="w-full h-full flex items-center">{headerContent}</div>
         )}
-
         <div
           onMouseDown={header.getResizeHandler()}
           onTouchStart={header.getResizeHandler()}
@@ -487,14 +432,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
   
   const columns = React.useMemo<ColumnDef<Alarm>[]>(() => {
     const staticColumns: ColumnDef<Alarm>[] = [
-      {
-        id: "drag-handle",
-        header: () => <GripVertical className="h-4 w-4" />,
-        cell: () => <GripVertical className="h-4 w-4 text-muted-foreground" />,
-        size: 40,
-        enableSorting: false,
-        enableHiding: false,
-      },
       {
         id: "select",
         header: ({ table }) => (
@@ -572,20 +509,11 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     return [...staticColumns, ...dynamicColumns];
   }, []);
   
-  const columnOrderIds = React.useMemo(() => [
-      'drag-handle',
-      'select',
-      ...Object.keys(alarmConfig.fields)
-    ], []);
-
-  const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(columnOrderIds);
-
   const table = useReactTable({
     data,
     columns,
     state: {
       sorting,
-      columnOrder,
       columnVisibility,
       rowSelection,
       columnFilters,
@@ -594,7 +522,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -616,23 +543,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     const selectedIds = selectedRows.map(row => row.original.AlarmID);
     onSelectedRowsChange(selectedIds);
   }, [rowSelection, onSelectedRowsChange, table]);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setColumnOrder((currentOrder) => {
-        const oldIndex = currentOrder.indexOf(active.id as string);
-        const newIndex = currentOrder.indexOf(over.id as string);
-        return arrayMove(currentOrder, oldIndex, newIndex);
-      });
-    }
-  };
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-    useSensor(KeyboardSensor, {})
-  );
 
   return (
     <TooltipProvider>
@@ -664,18 +574,15 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         </div>
 
         <div className="rounded-md border">
-          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd} sensors={sensors}>
             <Table style={{ width: table.getCenterTotalSize() }}>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                       {headerGroup.headers.map((header) => (
-                        <DraggableColumnHeader key={header.id} header={header}>
+                        <DataTableHeader key={header.id} header={header}>
                           {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                        </DraggableColumnHeader>
+                        </DataTableHeader>
                       ))}
-                    </SortableContext>
                   </TableRow>
                 ))}
               </TableHeader>
@@ -705,7 +612,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                 )}
               </TableBody>
             </Table>
-          </DndContext>
         </div>
         
         {paginationEnabled && (
