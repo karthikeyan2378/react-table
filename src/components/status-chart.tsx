@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, CartesianGrid, Pie, PieChart, Sector, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Pie, PieChart as RechartsPie, Sector, XAxis, YAxis } from 'recharts';
 
 import {
   Card,
@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/chart';
 import type { Person } from '@/lib/data';
 import { Button } from './ui/button';
-import { X } from 'lucide-react';
+import { BarChart3, PieChart as PieChartIcon, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -131,7 +131,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
   const renderChart = () => {
     if (chartType === 'pie') {
       return (
-        <PieChart>
+        <RechartsPie>
           <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
           <Pie
             data={chartData}
@@ -150,7 +150,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
           >
           </Pie>
           <ChartLegend content={<ChartLegendContent nameKey="name" />} />
-        </PieChart>
+        </RechartsPie>
       );
     }
 
@@ -180,12 +180,23 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
         </div>
         <div className="flex items-center gap-2">
            <Select value={chartType} onValueChange={(value) => setChartType(value as 'pie' | 'bar')}>
-            <SelectTrigger className="h-8 w-[120px] shrink-0">
+            <SelectTrigger className="h-8 w-auto shrink-0 gap-2 px-2">
+              {chartType === 'pie' ? <PieChartIcon className="h-4 w-4" /> : <BarChart3 className="h-4 w-4" />}
               <SelectValue placeholder="Chart Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="pie">Pie Chart</SelectItem>
-              <SelectItem value="bar">Bar Chart</SelectItem>
+              <SelectItem value="pie">
+                 <div className="flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4" />
+                  <span>Pie Chart</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="bar">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Bar Chart</span>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => onRemove(columnId)}>

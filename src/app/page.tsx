@@ -19,6 +19,10 @@ import {
   RefreshCw,
   Square,
   Trash2,
+  Users,
+  CalendarDays,
+  MousePointerClick,
+  Gauge,
 } from 'lucide-react';
 import { ColumnChart } from '@/components/status-chart';
 import {
@@ -35,11 +39,11 @@ export default function Home() {
   const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
   const [activeCharts, setActiveCharts] = React.useState<Array<keyof Person>>(['status']);
 
-  const chartableColumns: Array<{ id: keyof Person; name: string }> = [
-    { id: 'status', name: 'Status' },
-    { id: 'age', name: 'Age' },
-    { id: 'visits', name: 'Visits' },
-    { id: 'progress', name: 'Profile Progress' },
+  const chartableColumns: Array<{ id: keyof Person; name: string; icon: React.ComponentType<{className?: string}> }> = [
+    { id: 'status', name: 'Status', icon: Users },
+    { id: 'age', name: 'Age', icon: CalendarDays },
+    { id: 'visits', name: 'Visits', icon: MousePointerClick },
+    { id: 'progress', name: 'Profile Progress', icon: Gauge },
   ];
 
   const addChart = (columnId: keyof Person) => {
@@ -189,6 +193,7 @@ export default function Home() {
                   disabled={activeCharts.includes(col.id)}
                   onSelect={() => addChart(col.id)}
                 >
+                  <col.icon className="mr-2 h-4 w-4" />
                   {col.name}
                 </DropdownMenuItem>
               ))}
