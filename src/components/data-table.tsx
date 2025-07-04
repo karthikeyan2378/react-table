@@ -305,16 +305,16 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
 
   const handleFilterToggle = (columnId: string) => {
-    setActiveFilters((prev) =>
-      prev.includes(columnId)
-        ? prev.filter((id) => id !== columnId)
-        : [...prev, columnId]
-    );
-    // Clear filter value when hiding filter
-    if (activeFilters.includes(columnId)) {
+    const isCurrentlyActive = activeFilters.includes(columnId);
+    if (isCurrentlyActive) {
+      setActiveFilters((prev) => prev.filter((id) => id !== columnId));
       table.getColumn(columnId)?.setFilterValue(undefined);
+    } else {
+      setActiveFilters((prev) => [...prev, columnId]);
     }
   };
+  
+  const textFilterColumns = filterableColumns.filter(col => col.id !== 'status');
 
   return (
     <div className="flex items-center justify-between">
@@ -341,30 +341,25 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {activeFilters.includes("firstName") && (
-          <Input
-            placeholder="Filter first names..."
-            value={
-              (table.getColumn("firstName")?.getFilterValue() as string) ?? ""
-            }
-            onChange={(event) =>
-              table.getColumn("firstName")?.setFilterValue(event.target.value)
-            }
-            className="h-8 w-[150px] lg:w-[250px]"
-          />
-        )}
-        {activeFilters.includes("lastName") && (
-          <Input
-            placeholder="Filter last names..."
-            value={
-              (table.getColumn("lastName")?.getFilterValue() as string) ?? ""
-            }
-            onChange={(event) =>
-              table.getColumn("lastName")?.setFilterValue(event.target.value)
-            }
-            className="h-8 w-[150px] lg:w-[250px]"
-          />
-        )}
+        {textFilterColumns.map((col) => {
+          if (activeFilters.includes(col.id)) {
+            return (
+              <Input
+                key={col.id}
+                placeholder={`Filter ${col.name.toLowerCase()}...`}
+                value={
+                  (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
+                }
+                onChange={(event) =>
+                  table.getColumn(col.id)?.setFilterValue(event.target.value)
+                }
+                className="h-8 w-[150px] lg:w-[250px]"
+              />
+            )
+          }
+          return null
+        })}
+        
         {activeFilters.includes("status") && table.getColumn("status") && (
           <DataTableFacetedFilter
             column={table.getColumn("status")}
@@ -372,12 +367,14 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
             options={statuses}
           />
         )}
-        {/* Add more dynamic filters here based on `activeFilters` */}
 
         {isFiltered && (
           <Button
             variant="ghost"
-            onClick={() => table.resetColumnFilters()}
+            onClick={() => {
+              table.resetColumnFilters();
+              setActiveFilters([]);
+            }}
             className="h-8 px-2 lg:px-3"
           >
             Reset
@@ -694,7 +691,7 @@ export function DataTable() {
         enableHiding: false,
       },
     ],
-    [toast, sortingEnabled, openActionMenu]
+    [toast, sortingEnabled, openActionMenu, deleteRow]
   );
 
   const columnOrderIds = React.useMemo(() => columns.map((c) => c.id!), [
@@ -762,7 +759,12 @@ export function DataTable() {
           <Switch
             id="sorting-enable"
             checked={sortingEnabled}
-            onCheckedChange={setSortingEnabled}
+            onCheckedChange={(enabled) => {
+              if (!enabled) {
+                setSorting([]);
+              }
+              setSortingEnabled(enabled);
+            }}
           />
           <Label htmlFor="sorting-enable">Enable Sorting</Label>
         </div>
