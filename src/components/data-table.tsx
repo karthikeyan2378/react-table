@@ -12,6 +12,7 @@ import {
   SortingState,
   useReactTable,
   getSortedRowModel,
+  getFilteredRowModel,
 } from "@tanstack/react-table";
 import {
   DndContext,
@@ -41,6 +42,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Play,
+  Square,
 } from "lucide-react";
 
 import type { Person } from "@/lib/data";
@@ -69,6 +72,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -128,6 +132,38 @@ export function DataTable() {
   const { toast } = useToast();
   const [data, setData] = React.useState(() => makeData(1000));
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState("");
+  const [isStreaming, setIsStreaming] = React.useState(false);
+
+  const addRow = React.useCallback((newRows: Person[]) => {
+    setData(oldData => [...newRows, ...oldData]);
+  }, []);
+
+  const updateRow = React.useCallback((updatedRows: Person[]) => {
+    setData(oldData =>
+      oldData.map(row => {
+        const updatedRow = updatedRows.find(ur => ur.id === row.id);
+        return updatedRow ? { ...row, ...updatedRow } : row;
+      })
+    );
+  }, []);
+
+  const deleteRow = React.useCallback((rowIdsToDelete: number[]) => {
+    setData(oldData =>
+      oldData.filter(row => !rowIdsToDelete.includes(row.id))
+    );
+  }, []);
+
+  React.useEffect(() => {
+    if (!isStreaming) return;
+
+    const interval = setInterval(() => {
+      addRow(makeData(1));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isStreaming, addRow]);
+
 
   const columns = React.useMemo<ColumnDef<Person>[]>(
     () => [
@@ -139,25 +175,70 @@ export function DataTable() {
       },
       {
         accessorKey: "id",
-        header: "ID",
-        size: 60,
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="w-full justify-start"
+          >
+            ID
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        size: 80,
       },
       {
         accessorKey: "firstName",
-        header: "First Name",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="w-full justify-start"
+          >
+            First Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
       },
       {
         accessorKey: "lastName",
-        header: "Last Name",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="w-full justify-start"
+          >
+            Last Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
       },
       {
         accessorKey: "age",
-        header: "Age",
-        size: 50,
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="w-full justify-start"
+          >
+            Age
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        size: 80,
       },
       {
         accessorKey: "visits",
-        header: "Visits",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="w-full justify-start"
+          >
+            Visits
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
         size: 80,
       },
       {
@@ -187,6 +268,7 @@ export function DataTable() {
             <Button
               variant="ghost"
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+              className="w-full justify-start"
             >
               Profile Progress
               <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -230,37 +312,20 @@ export function DataTable() {
   const columnOrderIds = React.useMemo(() => columns.map(c => c.id!), [columns])
   const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(columnOrderIds);
 
-  const addRow = (newRows: Person[]) => {
-    setData(oldData => [...newRows, ...oldData]);
-    toast({ title: "Row added", description: `Added row ID ${newRows[0].id}.` });
-  };
-
-  const updateRow = (updatedRows: Person[]) => {
-    setData(oldData =>
-      oldData.map(row => {
-        const updatedRow = updatedRows.find(ur => ur.id === row.id);
-        return updatedRow ? { ...row, ...updatedRow } : row;
-      })
-    );
-  };
-
-  const deleteRow = (rowIdsToDelete: number[]) => {
-    setData(oldData =>
-      oldData.filter(row => !rowIdsToDelete.includes(row.id))
-    );
-  };
-
   const table = useReactTable({
     data,
     columns,
     state: {
       sorting,
       columnOrder,
+      globalFilter,
     },
     onSortingChange: setSorting,
     onColumnOrderChange: setColumnOrder,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     columnResizeMode: "onChange",
     initialState: {
@@ -290,9 +355,31 @@ export function DataTable() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
-        <Button onClick={() => addRow(makeData(1))} variant="outline">
+        <Input
+          placeholder="Search all columns..."
+          value={globalFilter ?? ""}
+          onChange={(event) => setGlobalFilter(event.target.value)}
+          className="h-9 max-w-xs"
+        />
+        <Button onClick={() => {
+          const newRows = makeData(1);
+          addRow(newRows);
+          toast({ title: "Row added", description: `Added row ID ${newRows[0].id}.` });
+        }} variant="outline">
           <Plus className="mr-2 h-4 w-4" />
           Add Row
+        </Button>
+        <Button
+            onClick={() => setIsStreaming((prev) => !prev)}
+            variant="outline"
+            className="w-[180px]"
+        >
+            {isStreaming ? (
+                <Square className="mr-2 h-4 w-4" />
+            ) : (
+                <Play className="mr-2 h-4 w-4" />
+            )}
+            {isStreaming ? "Stop Streaming" : "Start Streaming"}
         </Button>
         <Button
           onClick={() => {
