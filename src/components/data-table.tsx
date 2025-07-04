@@ -180,7 +180,6 @@ function DataTableFacetedFilter<TData, TValue>({
             <DropdownMenuCheckboxItem
               key={option.value}
               checked={isSelected}
-              onSelect={(e) => e.preventDefault()} // Prevent closing on select
               onCheckedChange={(checked) => {
                 if (checked) {
                   selectedValues.add(option.value);
@@ -461,13 +460,32 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [openActionMenu, setOpenActionMenu] = React.useState<string | null>(
-    null
-  );
   const [dialogRow, setDialogRow] = React.useState<Person | null>(null);
+  const [contextMenu, setContextMenu] = React.useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    row: Person | null;
+  }>({ visible: false, x: 0, y: 0, row: null });
+
+  const menuRef = React.useRef<HTMLDivElement>(null);
 
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
   const [sortingEnabled, setSortingEnabled] = React.useState(true);
+  
+  React.useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setContextMenu((prev) => ({ ...prev, visible: false, row: null }));
+      }
+    };
+    if (contextMenu.visible) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [contextMenu.visible]);
 
   const columns = React.useMemo<ColumnDef<Person>[]>(
     () => [
@@ -801,62 +819,35 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody onMouseLeave={() => setOpenActionMenu(null)}>
+              <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <DropdownMenu
-                      key={`menu-${row.id}`}
-                      open={openActionMenu === String(row.original.id)}
-                      onOpenChange={(isOpen) => setOpenActionMenu(isOpen ? String(row.original.id) : null) }
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      onDoubleClick={() => setDialogRow(row.original)}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setContextMenu({
+                          visible: true,
+                          x: e.clientX,
+                          y: e.clientY,
+                          row: row.original,
+                        });
+                      }}
                     >
-                      <DropdownMenuTrigger asChild>
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                          onDoubleClick={() => setDialogRow(row.original)}
-                          onContextMenu={(e) => {
-                            e.preventDefault();
-                            setOpenActionMenu(String(row.original.id));
-                          }}
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          style={{ width: cell.column.getSize() }}
                         >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell
-                              key={cell.id}
-                              style={{ width: cell.column.getSize() }}
-                            >
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext()
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            navigator.clipboard.writeText(String(row.original.id));
-                            toast({
-                              title: "Copied!",
-                              description: `Row ID ${row.original.id} copied to clipboard.`,
-                            });
-                          }}
-                        >
-                          Copy row ID
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setDialogRow(row.original)}>
-                          View details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => deleteRow([row.original.id])}
-                          className="text-red-600"
-                        >
-                          Delete row
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
                   ))
                 ) : (
                   <TableRow>
@@ -944,6 +935,49 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                 </Button>
               </div>
             </div>
+          </div>
+        )}
+        {contextMenu.visible && contextMenu.row && (
+          <div
+            ref={menuRef}
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+            className="fixed z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+          >
+            <div className="px-2 py-1.5 text-sm font-semibold">
+              Actions for Row ID: {contextMenu.row.id}
+            </div>
+            <Separator className="my-1" />
+            <button
+              className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+              onClick={() => {
+                navigator.clipboard.writeText(String(contextMenu.row?.id));
+                toast({
+                  title: "Copied!",
+                  description: `Row ID ${contextMenu.row?.id} copied to clipboard.`,
+                });
+                setContextMenu((p) => ({...p, visible: false}));
+              }}
+            >
+              Copy row ID
+            </button>
+            <button
+              className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+              onClick={() => {
+                setDialogRow(contextMenu.row);
+                setContextMenu((p) => ({...p, visible: false}));
+              }}
+            >
+              View details
+            </button>
+            <button
+              className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm text-red-600 outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+              onClick={() => {
+                deleteRow([contextMenu.row!.id]);
+                setContextMenu((p) => ({...p, visible: false}));
+              }}
+            >
+              Delete row
+            </button>
           </div>
         )}
         <AlertDialog

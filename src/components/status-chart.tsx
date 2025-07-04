@@ -8,7 +8,6 @@ import {
   Cell as RechartsCell,
   Pie,
   PieChart as RechartsPie,
-  Sector,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -72,9 +71,6 @@ const getBinnedData = (
 };
 
 export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
-  const [activeIndex, setActiveIndex] = React.useState<number | undefined>(
-    undefined
-  );
   const [chartType, setChartType] = React.useState<'pie' | 'bar'>('pie');
 
   const { chartData, chartConfig, title, description } = useMemo(() => {
@@ -161,14 +157,6 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
             nameKey="name"
             innerRadius={60}
             strokeWidth={5}
-            activeIndex={activeIndex}
-            activeShape={({ outerRadius = 0, ...props }: any) => (
-              <g>
-                <Sector {...props} outerRadius={outerRadius + 10} />
-              </g>
-            )}
-            onMouseLeave={() => setActiveIndex(undefined)}
-            onMouseEnter={(_, index) => setActiveIndex(index)}
           >
             {chartData.map((entry, index) => (
               <RechartsCell
