@@ -6,6 +6,10 @@ import { makeData, newAlarm } from '@/lib/data';
 import { type Alarm, alarmConfig } from '@/config/alarm-config';
 import { DataTable } from '@/FMComponents/data-table';
 import { ColumnChart } from '@/FMComponents/status-chart';
+import { Button } from '@/FMComponents/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/FMComponents/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
@@ -15,6 +19,7 @@ export default function Home() {
   const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([]);
   const [isClient, setIsClient] = React.useState(false);
   const [activeCharts, setActiveCharts] = React.useState<ChartableColumn[]>(['Severity']);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     setData(makeData(100));
@@ -27,13 +32,21 @@ export default function Home() {
 
   const deleteSelectedRows = () => {
     if (selectedRowIds.length === 0) {
-      alert("Please select rows to delete.");
+      toast({
+        title: "No rows selected",
+        description: "Please select rows to delete.",
+        variant: "destructive"
+      })
       return;
     }
     setData((oldData) =>
       oldData.filter((row) => !selectedRowIds.includes(row.AlarmID))
     );
     setSelectedRowIds([]);
+    toast({
+        title: "Rows Deleted",
+        description: `${selectedRowIds.length} row(s) have been deleted.`
+    })
   };
 
   React.useEffect(() => {
@@ -72,49 +85,36 @@ export default function Home() {
     <div className="min-h-screen bg-background text-foreground">
       <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h1 className="text-4xl lg:text-5xl font-extrabold font-headline tracking-tight text-primary">
+          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-primary">
             Real-Time Alarm Dashboard
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            A dependency-free data table for monitoring real-time alarm data with filtering and charting.
+            A config-driven data table for monitoring real-time alarm data with filtering, sorting, and charting.
           </p>
         </div>
         
         <div className="flex flex-wrap items-center gap-4 mb-4">
             <h2 className="text-xl font-semibold">Visualizations</h2>
              <div className="relative inline-block text-left">
-                <div>
-                  <button
-                    type="button"
-                    className="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
-                    onClick={() => setChartDropdownOpen(!isChartDropdownOpen)}
-                  >
-                    Add Chart
-                    <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-                {isChartDropdownOpen && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
-                    <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
-                      {summarizableColumns.map((key) => (
-                        <button
-                          key={key}
-                          onClick={() => {
-                            handleAddChart(key);
-                            setChartDropdownOpen(false);
-                          }}
-                          disabled={activeCharts.includes(key)}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
-                          role="menuitem"
-                        >
-                          {alarmConfig.fields[key].label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <DropdownMenu open={isChartDropdownOpen} onOpenChange={setChartDropdownOpen}>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            Add Chart
+                            <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        {summarizableColumns.map((key) => (
+                            <DropdownMenuItem
+                              key={key}
+                              onClick={() => handleAddChart(key)}
+                              disabled={activeCharts.includes(key)}
+                            >
+                              {alarmConfig.fields[key].label}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </div>
 
@@ -130,26 +130,24 @@ export default function Home() {
             ))}
         </div>
 
-
         <div className="flex items-center gap-2 flex-wrap mb-4">
-          <button onClick={addRow} className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 rounded-md text-sm inline-flex items-center">
-            <span className="mr-2">+</span>
+          <Button onClick={addRow}>
             Add Alarm
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => setIsStreaming((prev) => !prev)}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 px-4 py-2 rounded-md text-sm inline-flex items-center w-[180px] justify-center"
+            className="w-[180px] justify-center"
           >
-            {isStreaming ? '⏹ Stop' : '▶️ Start'} Streaming
-          </button>
-          <button
+            {isStreaming ? '⏹ Stop Streaming' : '▶️ Start Streaming'}
+          </Button>
+          <Button
+            variant="destructive"
             onClick={deleteSelectedRows}
             disabled={selectedRowIds.length === 0}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 px-4 py-2 rounded-md text-sm inline-flex items-center disabled:opacity-50"
           >
-            <span className="mr-2">🗑️</span>
             Delete Selected
-          </button>
+          </Button>
         </div>
         
         <div className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm">
