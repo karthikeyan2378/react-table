@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -45,19 +44,14 @@ import {
   ChevronsRight,
   GripVertical,
   MoreHorizontal,
-  Play,
-  Plus,
   PlusCircle,
-  RefreshCw,
   SlidersHorizontal,
-  Square,
   Trash2,
   X,
   Filter,
 } from "lucide-react";
 
 import type { Person } from "@/lib/data";
-import { makeData } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -138,7 +132,7 @@ function DataTableFacetedFilter<TData, TValue>({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <PlusCircle className="mr-2 h-4 w-4 text-blue-500" />
           {title}
           {selectedValues?.size > 0 && (
             <>
@@ -177,10 +171,11 @@ function DataTableFacetedFilter<TData, TValue>({
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[200px]" align="start">
         {options.map((option) => {
+          const isSelected = selectedValues.has(option.value);
           return (
             <DropdownMenuCheckboxItem
               key={option.value}
-              checked={selectedValues.has(option.value)}
+              checked={isSelected}
               onCheckedChange={(checked) => {
                 if (checked) {
                   selectedValues.add(option.value);
@@ -226,7 +221,7 @@ function DataTableViewOptions<TData>({
           size="sm"
           className="ml-auto hidden h-8 lg:flex"
         >
-          <SlidersHorizontal className="mr-2 h-4 w-4" />
+          <SlidersHorizontal className="mr-2 h-4 w-4 text-blue-500" />
           View
         </Button>
       </DropdownMenuTrigger>
@@ -260,15 +255,14 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
 
-  const handleFilterToggle = (columnId: string) => {
-    const isCurrentlyActive = activeFilters.includes(columnId);
-    if (isCurrentlyActive) {
-      setActiveFilters((prev) => prev.filter((id) => id !== columnId));
-      table.getColumn(columnId)?.setFilterValue(undefined);
+  const handleFilterToggle = (columnId: string, isActive?: boolean) => {
+    if (isActive) {
+       setActiveFilters((prev) => prev.filter((id) => id !== columnId));
+       table.getColumn(columnId)?.setFilterValue(undefined);
     } else {
-      setActiveFilters((prev) => [...prev, columnId]);
+       setActiveFilters((prev) => [...prev, columnId]);
     }
-  };
+};
 
   const textFilterColumns = filterableColumns.filter(
     (col) => col.id !== "status"
@@ -280,7 +274,7 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
-              <Filter className="mr-2 h-4 w-4" />
+              <Filter className="mr-2 h-4 w-4 text-blue-500" />
               Add Filter
             </Button>
           </DropdownMenuTrigger>
@@ -291,7 +285,7 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
               <DropdownMenuCheckboxItem
                 key={col.id}
                 checked={activeFilters.includes(col.id)}
-                onCheckedChange={() => handleFilterToggle(col.id)}
+                onCheckedChange={(checked) => handleFilterToggle(col.id, !checked)}
               >
                 {col.name}
               </DropdownMenuCheckboxItem>
@@ -308,18 +302,20 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
                   value={
                     (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
                   }
-                  onChange={(event) =>
-                    table
-                      .getColumn(col.id)
-                      ?.setFilterValue(event.target.value || undefined)
-                  }
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    table.getColumn(col.id)?.setFilterValue(value || undefined);
+                    if (!value) {
+                      handleFilterToggle(col.id, true);
+                    }
+                  }}
                   className="h-8 w-[150px] lg:w-[250px]"
                 />
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 shrink-0"
-                  onClick={() => handleFilterToggle(col.id)}
+                  onClick={() => handleFilterToggle(col.id, true)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -336,11 +332,11 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
               title="Status"
               options={statuses}
             />
-            <Button
+             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8 shrink-0"
-              onClick={() => handleFilterToggle("status")}
+              onClick={() => handleFilterToggle("status", true)}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -438,9 +434,14 @@ const DraggableColumnHeader = ({
   );
 };
 
-export function DataTable() {
+interface DataTableProps {
+  data: Person[];
+  deleteRow: (rowIds: number[]) => void;
+  onSelectedRowsChange: (rowIds: number[]) => void;
+}
+
+export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTableProps) {
   const { toast } = useToast();
-  const [data, setData] = React.useState(() => makeData(1000));
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -448,7 +449,6 @@ export function DataTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [isStreaming, setIsStreaming] = React.useState(false);
   const [openActionMenu, setOpenActionMenu] = React.useState<string | null>(
     null
   );
@@ -456,35 +456,6 @@ export function DataTable() {
 
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
   const [sortingEnabled, setSortingEnabled] = React.useState(true);
-
-  const addRow = React.useCallback((newRows: Person[]) => {
-    setData((oldData) => [...newRows, ...oldData]);
-  }, []);
-
-  const updateRow = React.useCallback((updatedRows: Person[]) => {
-    setData((oldData) =>
-      oldData.map((row) => {
-        const updatedRow = updatedRows.find((ur) => ur.id === row.id);
-        return updatedRow ? { ...row, ...updatedRow } : row;
-      })
-    );
-  }, []);
-
-  const deleteRow = React.useCallback((rowIdsToDelete: number[]) => {
-    setData((oldData) =>
-      oldData.filter((row) => !rowIdsToDelete.includes(row.id))
-    );
-  }, []);
-
-  React.useEffect(() => {
-    if (!isStreaming) return;
-
-    const interval = setInterval(() => {
-      addRow(makeData(1));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isStreaming, addRow]);
 
   const columns = React.useMemo<ColumnDef<Person>[]>(
     () => [
@@ -525,7 +496,7 @@ export function DataTable() {
         accessorKey: "id",
         header: ({ column }) => (
           <>
-            ID
+            <span className="text-blue-500">ID</span>
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
@@ -535,7 +506,7 @@ export function DataTable() {
         accessorKey: "firstName",
         header: ({ column }) => (
           <>
-            First Name
+            <span className="text-blue-500">First Name</span>
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
@@ -544,7 +515,7 @@ export function DataTable() {
         accessorKey: "lastName",
         header: ({ column }) => (
           <>
-            Last Name
+            <span className="text-blue-500">Last Name</span>
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
@@ -553,7 +524,7 @@ export function DataTable() {
         accessorKey: "age",
         header: ({ column }) => (
           <>
-            Age
+            <span className="text-blue-500">Age</span>
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
@@ -563,7 +534,7 @@ export function DataTable() {
         accessorKey: "visits",
         header: ({ column }) => (
           <>
-            Visits
+            <span className="text-blue-500">Visits</span>
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
@@ -696,6 +667,13 @@ export function DataTable() {
     },
   });
 
+  React.useEffect(() => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    const selectedIds = selectedRows.map(row => row.original.id);
+    onSelectedRowsChange(selectedIds);
+  }, [rowSelection, onSelectedRowsChange, table]);
+
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active && over && active.id !== over.id) {
@@ -751,91 +729,7 @@ export function DataTable() {
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <Button
-          onClick={() => {
-            const newRows = makeData(1);
-            addRow(newRows);
-            toast({
-              title: "Row added",
-              description: `Added row ID ${newRows[0].id}.`,
-            });
-          }}
-          variant="outline"
-          size="sm"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Row
-        </Button>
-        <Button
-          onClick={() => setIsStreaming((prev) => !prev)}
-          variant="outline"
-          size="sm"
-          className="w-[180px]"
-        >
-          {isStreaming ? (
-            <Square className="mr-2 h-4 w-4" />
-          ) : (
-            <Play className="mr-2 h-4 w-4" />
-          )}
-          {isStreaming ? "Stop Streaming" : "Start Streaming"}
-        </Button>
-        <Button
-          onClick={() => {
-            if (data.length === 0) {
-              toast({
-                variant: "destructive",
-                title: "Cannot update",
-                description: "Table is empty.",
-              });
-              return;
-            }
-            const randomIndex = Math.floor(Math.random() * data.length);
-            const rowToUpdate = data[randomIndex];
-            if (!rowToUpdate) return;
-            const updatedRow = {
-              ...rowToUpdate,
-              visits: rowToUpdate.visits + 100,
-              progress: Math.min(100, rowToUpdate.progress + 10),
-            };
-            updateRow([updatedRow]);
-            toast({
-              title: "Row updated",
-              description: `Updated row ID ${updatedRow.id}.`,
-            });
-          }}
-          variant="outline"
-          size="sm"
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Update Random
-        </Button>
-        <Button
-          onClick={() => {
-            const selectedRows = table.getFilteredSelectedRowModel().rows;
-            if (selectedRows.length === 0) {
-              toast({
-                variant: "destructive",
-                title: "No rows selected",
-                description: "Please select rows to delete.",
-              });
-              return;
-            }
-            const idsToDelete = selectedRows.map((row) => row.original.id);
-            deleteRow(idsToDelete);
-            table.resetRowSelection();
-            toast({
-              title: "Rows deleted",
-              description: `${idsToDelete.length} row(s) deleted.`,
-            });
-          }}
-          variant="destructive"
-          size="sm"
-          disabled={table.getFilteredSelectedRowModel().rows.length === 0}
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete Selected
-        </Button>
-        <div className="text-sm text-muted-foreground ml-auto">
+          <div className="text-sm text-muted-foreground ml-auto">
           <span className="font-bold text-foreground">
             {table.getFilteredRowModel().rows.length.toLocaleString()}
           </span>{" "}
