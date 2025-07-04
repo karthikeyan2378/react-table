@@ -35,10 +35,14 @@ import { cn } from '@/lib/utils';
 
 export default function Home() {
   const { toast } = useToast();
-  const [data, setData] = React.useState(() => makeData(1000));
+  const [data, setData] = React.useState<Person[]>([]);
   const [isStreaming, setIsStreaming] = React.useState(false);
   const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
   const [activeCharts, setActiveCharts] = React.useState<Array<keyof Person>>([]);
+
+  React.useEffect(() => {
+    setData(makeData(1000));
+  }, []);
 
   const chartableColumns: Array<{ id: keyof Person; name: string; icon: React.ComponentType<{className?: string}> }> = [
     { id: 'status', name: 'Status', icon: Users },
