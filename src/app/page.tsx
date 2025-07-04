@@ -196,28 +196,28 @@ export default function Home() {
         </DropdownMenu>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4">
-          <aside className="lg:w-1/3 xl:w-1/4 flex flex-col gap-4">
-            {activeCharts.length > 0 ? (
-              activeCharts.map((columnId) => (
-                <ColumnChart
-                  key={columnId}
-                  data={data}
-                  columnId={columnId}
-                  onRemove={removeChart}
-                />
-              ))
-            ) : (
-              <Card className="flex h-48 items-center justify-center">
-                <CardContent className="pt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <aside className="lg:col-span-1 flex flex-col gap-4">
+            <Card className="flex flex-col p-4 gap-4">
+               {activeCharts.length > 0 ? (
+                activeCharts.map((columnId) => (
+                  <ColumnChart
+                    key={columnId}
+                    data={data}
+                    columnId={columnId}
+                    onRemove={removeChart}
+                  />
+                ))
+              ) : (
+                <div className="flex h-48 items-center justify-center">
                   <p className="text-muted-foreground text-center">
                     Select a column from the &quot;Add Chart&quot; dropdown to display a chart.
                   </p>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              )}
+            </Card>
           </aside>
-          <div className="lg:w-2/3 xl:w-3/4">
+          <div className="lg:col-span-2">
             <Card className="shadow-2xl shadow-primary/10 h-full">
               <CardHeader>
                 <CardTitle>Live Data Feed</CardTitle>
