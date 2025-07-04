@@ -1,46 +1,53 @@
-import { faker } from '@faker-js/faker';
+
 import { type Alarm, alarmConfig } from '@/config/alarm-config';
 
 let alarmIdCounter = 1;
+const severities = ['Critical', 'Major', 'Minor', 'Warning', 'Indeterminate', 'Cleared'];
+const alarmNames = ['Link Down', 'High Temperature', 'CPU Overload', 'Packet Loss'];
+const objectTypes = ['TransportEMS', 'TopologicalLink', 'PTP', 'ME', 'Equipment'];
+const states = ['Active', 'Cleared'];
 
-const newAlarm = (): Alarm => {
-  const alarm: Partial<Alarm> = {
+const getRandom = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
+const randomDate = (start: Date, end: Date) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+
+export const newAlarm = (): Alarm => {
+  const now = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(now.getDate() - 30);
+
+  return {
     AlarmID: `ALM-${alarmIdCounter++}`,
+    Severity: getRandom(severities),
+    ObjectLabel: `Device-${Math.floor(Math.random() * 1000)}`,
+    NELabel: `NE-${Math.floor(Math.random() * 100)}`,
+    AlarmIdentifier: `uuid-${Math.random().toString(36).substring(2, 15)}`,
+    AlarmName: getRandom(alarmNames),
+    NetworkRaisedTimeLong: randomDate(thirtyDaysAgo, now),
+    NetworkLastModifiedTimeLong: randomDate(thirtyDaysAgo, now),
+    LastModificationTimeLong: randomDate(thirtyDaysAgo, now),
+    ObjectType: getRandom(objectTypes),
+    EMSName: 'EMS-Primary',
+    Vendor: 'Vendor-A',
+    DomainType: 'Core',
+    NativeProbableCause: 'Signal Fail',
+    ProbableCause: 'Signal Failure',
+    ProbableCauseQualifier: 'N/A',
+    ElementAddress: `10.0.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+    ProductName: `Router-X${Math.floor(Math.random() * 100)}`,
+    LayerRate: '10G',
+    ActivePull: Math.random() > 0.5 ? 'Yes' : 'No',
+    GatewayId: `GW-${Math.floor(Math.random() * 5)}`,
+    InventoryAttached: Math.random() > 0.5 ? 'Yes' : 'No',
+    AcknowledgedBy: 'unacked',
+    AcknowledgedTimeLong: randomDate(thirtyDaysAgo, now),
+    State: getRandom(states),
+    FlapCount: Math.floor(Math.random() * 50),
+    AdditionalText: 'Additional details here',
+    IsSuppressed: Math.random() > 0.5 ? 'Yes' : 'No',
   };
-
-  for (const key in alarmConfig.fields) {
-    if (key === 'AlarmID') continue;
-
-    const config = alarmConfig.fields[key as keyof typeof alarmConfig.fields];
-    let value: any;
-
-    if (config.columnType === 'dateTime') {
-      value = faker.date.recent({ days: 30 });
-    } else if (config.columnType === 'categorical' && config.options) {
-      value = faker.helpers.arrayElement(config.options.map(o => o.value));
-    } else if (key === 'FlapCount') {
-        value = faker.number.int({ min: 0, max: 50 });
-    } else if (key === 'NELabel' || key === 'ObjectLabel' || key === 'AlarmName') {
-      value = `${faker.word.adjective()} ${faker.word.noun()}`;
-    } else if (key === 'AcknowledgedBy') {
-        value = faker.person.fullName();
-    } else if (key === 'InventoryAttached' || key === 'IsSuppressed' || key === 'ActivePull') {
-        value = faker.datatype.boolean() ? 'Yes' : 'No';
-    } else if (key === 'AlarmIdentifier') {
-        value = faker.string.uuid();
-    }
-     else {
-      value = faker.lorem.words(2);
-    }
-    (alarm as any)[key] = value;
-  }
-  
-  return alarm as Alarm;
 };
 
 export function makeData(count: number): Alarm[] {
-    if (count > 1) { // Reset for full data load
-        alarmIdCounter = 1;
-    }
+    alarmIdCounter = 1;
     return Array.from({ length: count }, newAlarm);
 }
