@@ -3,7 +3,6 @@
 
 import * as React from "react";
 import { type Alarm, alarmConfig } from "@/config/alarm-config";
-import { format } from "date-fns";
 
 type SortDirection = "asc" | "desc";
 
@@ -180,8 +179,7 @@ export function DataTable({
                     let cellContent: React.ReactNode = String(value ?? '');
                     
                     if (config.columnType === 'dateTime' && value instanceof Date) {
-                        const formatString = (config.formatType || 'dd-MMM-yyyy HH:mm:ss').replace(/mi/g, 'mm');
-                        cellContent = format(value, formatString);
+                        cellContent = value.toLocaleString();
                     } else if (column.key === 'Severity' && typeof value === 'string') {
                         cellContent = (
                           <span className={`px-2 py-0.5 rounded-full text-xs text-white ${severityColors[value] || 'bg-gray-400'}`}>
