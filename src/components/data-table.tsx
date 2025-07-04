@@ -7,12 +7,12 @@ import {
   ColumnOrderState,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   Header,
   SortingState,
   useReactTable,
   getSortedRowModel,
 } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   DndContext,
   KeyboardSensor,
@@ -34,11 +34,13 @@ import {
   ArrowUpDown,
   GripVertical,
   MoreHorizontal,
-  Pause,
-  Play,
   Plus,
   RefreshCw,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 
 import type { Person } from "@/lib/data";
@@ -52,6 +54,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -118,7 +127,6 @@ const DraggableColumnHeader = ({
 export function DataTable() {
   const { toast } = useToast();
   const [data, setData] = React.useState(() => makeData(1000));
-  const [isStreaming, setIsStreaming] = React.useState(false);
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const columns = React.useMemo<ColumnDef<Person>[]>(
@@ -242,16 +250,6 @@ export function DataTable() {
     );
   };
 
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isStreaming) {
-      interval = setInterval(() => {
-        setData((old) => [...makeData(10), ...old]);
-      }, 100);
-    }
-    return () => clearInterval(interval);
-  }, [isStreaming]);
-
   const table = useReactTable({
     data,
     columns,
@@ -263,19 +261,14 @@ export function DataTable() {
     onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     columnResizeMode: "onChange",
+    initialState: {
+        pagination: {
+            pageSize: 20,
+        },
+    }
   });
-
-  const tableContainerRef = React.useRef<HTMLDivElement>(null);
-  const { rows } = table.getRowModel();
-  const rowVirtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 45, // Adjust this to your row height
-    overscan: 20,
-  });
-
-  const virtualRows = rowVirtualizer.getVirtualItems();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -297,17 +290,6 @@ export function DataTable() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 flex-wrap">
-        <Button onClick={() => setIsStreaming((prev) => !prev)} variant="outline" className="w-40">
-          {isStreaming ? (
-            <>
-              <Pause className="mr-2 h-4 w-4" /> Pause Stream
-            </>
-          ) : (
-            <>
-              <Play className="mr-2 h-4 w-4" /> Start Stream
-            </>
-          )}
-        </Button>
         <Button onClick={() => addRow(makeData(1))} variant="outline">
           <Plus className="mr-2 h-4 w-4" />
           Add Row
@@ -356,9 +338,7 @@ export function DataTable() {
         </div>
       </div>
       <div
-        ref={tableContainerRef}
-        className="rounded-md border overflow-auto relative"
-        style={{ height: "600px" }}
+        className="rounded-md border"
       >
         <DndContext
           collisionDetection={closestCenter}
@@ -387,28 +367,14 @@ export function DataTable() {
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody
-              style={{
-                height: `${rowVirtualizer.getTotalSize()}px`,
-                position: "relative",
-              }}
-            >
-              {virtualRows.map((virtualRow) => {
-                const row = rows[virtualRow.index];
-                return (
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map(row => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
                   >
-                    {row.getVisibleCells().map((cell) => (
+                    {row.getVisibleCells().map(cell => (
                       <TableCell
                         key={cell.id}
                         style={{ width: cell.column.getSize() }}
@@ -420,12 +386,86 @@ export function DataTable() {
                       </TableCell>
                     ))}
                   </TableRow>
-                );
-              })}
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </DndContext>
       </div>
+      <div className="flex items-center justify-between py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+        </div>
+        <div className="flex items-center space-x-6 lg:space-x-8">
+            <div className="flex items-center space-x-2">
+                <p className="text-sm font-medium">Rows per page</p>
+                <Select
+                    value={`${table.getState().pagination.pageSize}`}
+                    onValueChange={(value) => {
+                        table.setPageSize(Number(value))
+                    }}
+                >
+                    <SelectTrigger className="h-8 w-[70px]">
+                        <SelectValue placeholder={table.getState().pagination.pageSize} />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                        {[10, 20, 50, 100].map((pageSize) => (
+                            <SelectItem key={pageSize} value={`${pageSize}`}>
+                                {pageSize}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount()}
+            </div>
+            <div className="flex items-center space-x-2">
+                <Button
+                    variant="outline"
+                    className="hidden h-8 w-8 p-0 lg:flex"
+                    onClick={() => table.setPageIndex(0)}
+                    disabled={!table.getCanPreviousPage()}
+                >
+                    <span className="sr-only">Go to first page</span>
+                    <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                >
+                    <span className="sr-only">Go to previous page</span>
+                    <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                >
+                    <span className="sr-only">Go to next page</span>
+                    <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                    variant="outline"
+                    className="hidden h-8 w-8 p-0 lg:flex"
+                    onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                    disabled={!table.getCanNextPage()}
+                >
+                    <span className="sr-only">Go to last page</span>
+                    <ChevronsRight className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    </div>
     </div>
   );
 }

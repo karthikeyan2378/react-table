@@ -10,14 +10,14 @@ export default function Home() {
             React Data Stream Table
           </h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            A high-performance table with virtualization, column resizing & reordering, and real-time data streaming.
+            A high-performance table with pagination, column resizing & reordering.
           </p>
         </div>
         <Card className="shadow-2xl shadow-primary/10">
             <CardHeader>
                 <CardTitle>Live Data Feed</CardTitle>
                 <CardDescription>
-                    The table below handles 100 new rows per second with virtualization for smooth scrolling.
+                    The table below supports pagination for smooth navigation through large datasets.
                 </CardDescription>
             </CardHeader>
             <CardContent>
