@@ -148,7 +148,7 @@ function DataTableFacetedFilter<TData, TValue>({
   options,
 }: DataTableFacetedFilterProps<TData, TValue>) {
   const facets = column?.getFacetedUniqueValues();
-  const selectedValues = new Set(column?.getFilterValue() as string[]);
+  const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
 
   return (
     <Popover>
@@ -745,8 +745,17 @@ export function DataTable() {
   };
 
   const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {})
   );
 
