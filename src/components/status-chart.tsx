@@ -27,7 +27,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import type { Person } from '@/lib/data';
+import { type Alarm, alarmConfig } from '@/config/alarm-config';
 import { Button } from './ui/button';
 import { BarChart3, PieChart as PieChartIcon, X, Donut } from 'lucide-react';
 import { useMemo } from 'react';
@@ -40,19 +40,19 @@ import {
 } from './ui/select';
 
 interface ColumnChartProps {
-  data: Person[];
-  columnId: keyof Person;
-  onRemove: (columnId: keyof Person) => void;
+  data: Alarm[];
+  columnId: keyof Alarm;
+  onRemove: (columnId: keyof Alarm) => void;
 }
 
 const getBinnedData = (
-  data: Person[],
-  columnId: 'age' | 'visits' | 'progress',
+  data: Alarm[],
+  columnId: keyof Alarm,
   binSize: number
 ) => {
   if (data.length === 0) return [];
   const counts = data.reduce((acc, item) => {
-    const value = item[columnId];
+    const value = item[columnId] as number;
     if (typeof value !== 'number') return acc;
     const binStart = Math.floor(value / binSize) * binSize;
     const binEnd = binStart + binSize - 1;
@@ -74,73 +74,48 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
   const [chartType, setChartType] = React.useState<'pie' | 'bar' | 'doughnut'>('pie');
 
   const { chartData, chartConfig, title, description } = useMemo(() => {
-    let title = '';
-    let description = '';
+    const config = alarmConfig.fields[columnId];
+    let title = config?.label || 'Chart';
+    let description = `Distribution of ${title}.`;
     let chartData: any[] = [];
-    let chartConfig: ChartConfig = {
+    let baseChartConfig: ChartConfig = {
       count: { label: 'Count' },
     };
 
-    switch (columnId) {
-      case 'status':
-        title = 'Status Distribution';
-        description = 'A breakdown of relationship statuses.';
-        const statusConfig: ChartConfig = {
-          single: { label: 'Single', color: 'hsl(var(--chart-1))' },
-          complicated: { label: 'Complicated', color: 'hsl(var(--chart-2))' },
-          relationship: {
-            label: 'Relationship',
-            color: 'hsl(var(--chart-3))',
-          },
-        };
-        Object.assign(chartConfig, statusConfig);
+    if (config?.columnType === 'categorical' && config.options) {
+      const colorKeys = Object.keys(config.options.reduce((acc, option) => ({...acc, [option.value]: true }), {}));
+      const statusConfig: ChartConfig = {};
+      colorKeys.forEach((key, index) => {
+        statusConfig[key] = { label: key, color: `hsl(var(--chart-${(index % 5) + 1}))` };
+      });
+       Object.assign(baseChartConfig, statusConfig);
 
-        const statusCounts = data.reduce(
-          (acc, person) => {
-            acc[person.status] = (acc[person.status] || 0) + 1;
-            return acc;
-          },
-          {} as Record<Person['status'], number>
-        );
-        chartData = Object.entries(statusCounts).map(([status, count]) => ({
-          name: status.charAt(0).toUpperCase() + status.slice(1),
-          count: count,
-          fill: `var(--color-${status.toLowerCase()})`,
-        }));
-        break;
-
-      case 'age':
-        title = 'Age Distribution';
-        description = 'A breakdown of age groups.';
-        chartData = getBinnedData(data, 'age', 10);
-        chartConfig.count.color = 'hsl(var(--chart-1))';
-        break;
-
-      case 'visits':
-        title = 'Visits Distribution';
-        description = 'A breakdown of visit counts.';
-        chartData = getBinnedData(data, 'visits', 100);
-        chartConfig.count.color = 'hsl(var(--chart-2))';
-        break;
-
-      case 'progress':
-        title = 'Progress Distribution';
-        description = 'A breakdown of profile progress.';
-        chartData = getBinnedData(data, 'progress', 10);
-        chartConfig.count.color = 'hsl(var(--chart-3))';
-        break;
-    }
-
-    if (columnId !== 'status') {
+      const statusCounts = data.reduce(
+        (acc, item) => {
+          const value = item[columnId] as string;
+          acc[value] = (acc[value] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+      chartData = Object.entries(statusCounts).map(([status, count]) => ({
+        name: status,
+        count: count,
+        fill: `var(--color-${status})`,
+      }));
+    } else { // Numerical data
+      // Binning logic for numerical data
+      const binSize = columnId === 'FlapCount' ? 5 : 10;
+      chartData = getBinnedData(data, columnId, binSize);
       chartData.forEach((item, index) => {
         const colorKey = `chart-${(index % 5) + 1}`;
         const color = `hsl(var(--${colorKey}))`;
         item.fill = color;
-        chartConfig[item.name] = { label: item.name, color: color };
+        baseChartConfig[item.name] = { label: item.name, color: color };
       });
     }
 
-    return { chartData, chartConfig, title, description };
+    return { chartData, chartConfig: baseChartConfig, title, description };
   }, [data, columnId]);
 
   const renderChart = () => {
@@ -186,7 +161,11 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
         />
         <YAxis fontSize={12} />
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-        <Bar dataKey="count" radius={4} />
+        <Bar dataKey="count" radius={4}>
+           {chartData.map((entry, index) => (
+              <RechartsCell key={`cell-${index}`} fill={entry.fill} />
+            ))}
+        </Bar>
       </BarChart>
     );
   };
@@ -248,7 +227,7 @@ export function ColumnChart({ data, columnId, onRemove }: ColumnChartProps) {
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-video"
+          className="mx-auto aspect-video max-h-[300px]"
         >
           {chartData.length > 0 ? (
             renderChart()

@@ -49,7 +49,7 @@ import {
   Filter,
 } from "lucide-react";
 
-import type { Person } from "@/lib/data";
+import { type Alarm, alarmConfig } from "@/config/alarm-config";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -69,7 +69,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -99,21 +98,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+import { format } from "date-fns";
 
-const statuses = [
-  { value: "single", label: "Single" },
-  { value: "complicated", label: "Complicated" },
-  { value: "relationship", label: "Relationship" },
-];
+const filterableColumns = Object.entries(alarmConfig.fields)
+  .map(([id, { label }]) => ({ id, name: label }));
 
-const filterableColumns = [
-  { id: "firstName", name: "First Name" },
-  { id: "lastName", name: "Last Name" },
-  { id: "age", name: "Age" },
-  { id: "visits", name: "Visits" },
-  { id: "status", name: "Status" },
-  { id: "progress", name: "Progress" },
-];
+const severityColors: Record<string, string> = {
+  Critical: "bg-red-500",
+  Major: "bg-orange-500",
+  Minor: "bg-yellow-500",
+  Warning: "bg-blue-500",
+  Indeterminate: "bg-gray-500",
+  Cleared: "bg-green-500",
+};
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;
@@ -121,7 +118,6 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   options: {
     label: string;
     value: string;
-    icon?: React.ComponentType<{ className?: string }>;
   }[];
 }
 
@@ -141,33 +137,18 @@ function DataTableFacetedFilter<TData, TValue>({
           {selectedValues?.size > 0 && (
             <>
               <Separator orientation="vertical" className="mx-2 h-4" />
-              <Badge
-                variant="secondary"
-                className="rounded-sm px-1 font-normal lg:hidden"
-              >
-                {selectedValues.size}
-              </Badge>
               <div className="hidden space-x-1 lg:flex">
-                {selectedValues.size > 2 ? (
-                  <Badge
-                    variant="secondary"
-                    className="rounded-sm px-1 font-normal"
-                  >
-                    {selectedValues.size} selected
-                  </Badge>
-                ) : (
-                  options
-                    .filter((option) => selectedValues.has(option.value))
-                    .map((option) => (
-                      <Badge
-                        variant="secondary"
-                        key={option.value}
-                        className="rounded-sm px-1 font-normal"
-                      >
-                        {option.label}
-                      </Badge>
-                    ))
-                )}
+                {options
+                  .filter((option) => selectedValues.has(option.value))
+                  .map((option) => (
+                    <Badge
+                      variant="secondary"
+                      key={option.value}
+                      className="rounded-sm px-1 font-normal"
+                    >
+                      {option.label}
+                    </Badge>
+                  ))}
               </div>
             </>
           )}
@@ -212,6 +193,7 @@ function DataTableFacetedFilter<TData, TValue>({
   );
 }
 
+
 function DataTableViewOptions<TData>({
   table,
 }: {
@@ -239,6 +221,7 @@ function DataTableViewOptions<TData>({
               typeof column.accessorFn !== "undefined" && column.getCanHide()
           )
           .map((column) => {
+            const config = alarmConfig.fields[column.id as keyof typeof alarmConfig.fields];
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
@@ -246,7 +229,7 @@ function DataTableViewOptions<TData>({
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {column.id}
+                {config?.label || column.id}
               </DropdownMenuCheckboxItem>
             );
           })}
@@ -266,11 +249,17 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
     } else {
        setActiveFilters((prev) => [...prev, columnId]);
     }
-};
+  };
 
-  const textFilterColumns = filterableColumns.filter(
-    (col) => col.id !== "status"
-  );
+  const textFilterColumns = filterableColumns.filter(col => {
+    const fieldConfig = alarmConfig.fields[col.id as keyof typeof alarmConfig.fields];
+    return fieldConfig && fieldConfig.columnType !== 'categorical';
+  });
+
+  const categoricalFilterColumns = filterableColumns.filter(col => {
+    const fieldConfig = alarmConfig.fields[col.id as keyof typeof alarmConfig.fields];
+    return fieldConfig && fieldConfig.columnType === 'categorical';
+  });
 
   return (
     <div className="flex items-center justify-between">
@@ -312,12 +301,7 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
                   }}
                   className="h-8 w-[150px] lg:w-[250px]"
                 />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={() => handleFilterToggle(col.id, true)}
-                >
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -326,23 +310,24 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
           return null;
         })}
 
-        {activeFilters.includes("status") && table.getColumn("status") && (
-          <div className="flex items-center gap-1">
-            <DataTableFacetedFilter
-              column={table.getColumn("status")}
-              title="Status"
-              options={statuses}
-            />
-             <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={() => handleFilterToggle("status", true)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+        {categoricalFilterColumns.map(col => {
+          const fieldConfig = alarmConfig.fields[col.id as keyof typeof alarmConfig.fields];
+          if (activeFilters.includes(col.id) && table.getColumn(col.id) && fieldConfig?.options) {
+            return (
+              <div key={col.id} className="flex items-center gap-1">
+                <DataTableFacetedFilter
+                  column={table.getColumn(col.id)}
+                  title={col.name}
+                  options={fieldConfig.options}
+                />
+                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )
+          }
+          return null;
+        })}
 
         {isFiltered && (
           <Button
@@ -367,7 +352,7 @@ const DraggableColumnHeader = ({
   header,
   children,
 }: {
-  header: Header<Person, unknown>;
+  header: Header<Alarm, unknown>;
   children: React.ReactNode;
 }) => {
   const {
@@ -411,7 +396,7 @@ const DraggableColumnHeader = ({
       ref={setNodeRef}
       colSpan={header.colSpan}
       style={{ ...style, width: header.getSize() }}
-      className="p-0"
+      className="p-0 sticky top-0 bg-card z-10"
     >
       <div className="flex items-center h-full">
         {header.column.getCanSort() ? (
@@ -446,26 +431,39 @@ const DraggableColumnHeader = ({
 };
 
 interface DataTableProps {
-  data: Person[];
-  deleteRow: (rowIds: number[]) => void;
-  onSelectedRowsChange: (rowIds: number[]) => void;
+  data: Alarm[];
+  deleteRow: (rowIds: string[]) => void;
+  onSelectedRowsChange: (rowIds: string[]) => void;
 }
 
 export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTableProps) {
   const { toast } = useToast();
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  
+  const initialSorting = React.useMemo(() => {
+    const descendingCol = Object.entries(alarmConfig.fields).find(([,config]) => config.sortOrder === 'DESCENDING');
+    return descendingCol ? [{ id: descendingCol[0], desc: true }] : [];
+  }, []);
+
+  const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  
+  const initialVisibility = React.useMemo(() => {
+    return Object.entries(alarmConfig.fields)
+      .filter(([, config]) => config.isColumnToHide)
+      .reduce((acc, [key]) => {
+        acc[key] = false;
+        return acc;
+      }, {} as VisibilityState);
+  }, []);
+  
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
-  const [dialogRow, setDialogRow] = React.useState<Person | null>(null);
+  const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
   const [contextMenu, setContextMenu] = React.useState<{
     visible: boolean;
     x: number;
     y: number;
-    row: Person | null;
+    row: Alarm | null;
   }>({ visible: false, x: 0, y: 0, row: null });
 
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -486,9 +484,9 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [contextMenu.visible]);
-
-  const columns = React.useMemo<ColumnDef<Person>[]>(
-    () => [
+  
+  const columns = React.useMemo<ColumnDef<Alarm>[]>(() => {
+    const staticColumns: ColumnDef<Alarm>[] = [
       {
         id: "drag-handle",
         header: () => <GripVertical className="h-4 w-4" />,
@@ -501,13 +499,8 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         id: "select",
         header: ({ table }) => (
           <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
+            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             aria-label="Select all"
           />
         ),
@@ -522,167 +515,70 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         enableHiding: false,
         size: 40,
       },
-      {
-        accessorKey: "id",
+    ];
+
+    const dynamicColumns = Object.entries(alarmConfig.fields).map(([key, config]) => {
+      const columnDef: ColumnDef<Alarm> = {
+        accessorKey: key,
         header: ({ column }) => (
           <>
-            <span className="text-blue-500">ID</span>
+            <span className="text-blue-500">{config.label}</span>
             {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
           </>
         ),
-        cell: ({ getValue }) => (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="block truncate">{getValue<number>()}</span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{getValue<number>()}</p>
-            </TooltipContent>
-          </Tooltip>
-        ),
-        size: 80,
-      },
-      {
-        accessorKey: "firstName",
-        header: ({ column }) => (
-          <>
-            <span className="text-blue-500">First Name</span>
-            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
-          </>
-        ),
-        cell: ({ getValue }) => (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="block truncate">{getValue<string>()}</span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{getValue<string>()}</p>
-            </TooltipContent>
-          </Tooltip>
-        ),
-      },
-      {
-        accessorKey: "lastName",
-        header: ({ column }) => (
-          <>
-            <span className="text-blue-500">Last Name</span>
-            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
-          </>
-        ),
-        cell: ({ getValue }) => (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="block truncate">{getValue<string>()}</span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{getValue<string>()}</p>
-            </TooltipContent>
-          </Tooltip>
-        ),
-      },
-      {
-        accessorKey: "age",
-        header: ({ column }) => (
-          <>
-            <span className="text-blue-500">Age</span>
-            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
-          </>
-        ),
-        cell: ({ getValue }) => (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="block truncate">{getValue<number>()}</span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{getValue<number>()}</p>
-            </TooltipContent>
-          </Tooltip>
-        ),
-        size: 80,
-      },
-      {
-        accessorKey: "visits",
-        header: ({ column }) => (
-          <>
-            <span className="text-blue-500">Visits</span>
-            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
-          </>
-        ),
-        cell: ({ getValue }) => (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="block truncate">{getValue<number>()}</span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{getValue<number>()}</p>
-            </TooltipContent>
-          </Tooltip>
-        ),
-        size: 80,
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
         cell: ({ row }) => {
-          const status = row.original.status;
+          const value = row.getValue(key) as any;
+          
+          if (config.columnType === 'dateTime' && value instanceof Date) {
+            const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
+            return (
+              <Tooltip>
+                <TooltipTrigger asChild><span className="block truncate">{format(value, formatString)}</span></TooltipTrigger>
+                <TooltipContent><p>{format(value, formatString)}</p></TooltipContent>
+              </Tooltip>
+            );
+          }
+          
+          if (key === 'Severity') {
+            return (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge className={cn("capitalize text-white", severityColors[value] || 'bg-gray-400')}>{value}</Badge>
+                </TooltipTrigger>
+                <TooltipContent><p>Severity: {value}</p></TooltipContent>
+              </Tooltip>
+            );
+          }
+
           return (
-            <Tooltip>
-              <TooltipTrigger>
-                <Badge
-                  variant={
-                    status === "complicated"
-                      ? "destructive"
-                      : status === "relationship"
-                      ? "default"
-                      : "secondary"
-                  }
-                  className="capitalize"
-                >
-                  {status}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Status: {status}</p>
-              </TooltipContent>
-            </Tooltip>
+             <Tooltip>
+                <TooltipTrigger asChild><span className="block truncate">{String(value ?? '')}</span></TooltipTrigger>
+                <TooltipContent><p>{String(value ?? '')}</p></TooltipContent>
+              </Tooltip>
           );
         },
-      },
-      {
-        accessorKey: "progress",
-        header: ({ column }) => (
-          <>
-            Profile Progress
-            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
-          </>
-        ),
-        cell: ({ row }) => (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center gap-2">
-                <Progress value={row.original.progress} className="w-24" />
-                <span>{row.original.progress}%</span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Profile Progress: {row.original.progress}%</p>
-            </TooltipContent>
-          </Tooltip>
-        ),
-      },
-    ],
-    []
-  );
+        size: config.columnSize || 150,
+        filterFn: (row, id, filterValue) => {
+          if (config.columnType === 'categorical') {
+            return (filterValue as any[]).includes(row.getValue(id));
+          }
+          // Default string filter
+          return String(row.getValue(id)).toLowerCase().includes(String(filterValue).toLowerCase());
+        }
+      };
+      return columnDef;
+    });
 
-  const columnOrderIds = React.useMemo(() => columns.map((c) => c.id!).filter(id => id !== 'actions'), [
-    columns,
-  ]);
-  const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(
-    columnOrderIds
-  );
+    return [...staticColumns, ...dynamicColumns];
+  }, []);
+  
+  const columnOrderIds = React.useMemo(() => [
+      'drag-handle',
+      'select',
+      ...Object.keys(alarmConfig.fields)
+    ], []);
+
+  const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>(columnOrderIds);
 
   const table = useReactTable({
     data,
@@ -702,9 +598,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: paginationEnabled
-      ? getPaginationRowModel()
-      : undefined,
+    getPaginationRowModel: paginationEnabled ? getPaginationRowModel() : undefined,
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     columnResizeMode: "onChange",
@@ -714,14 +608,14 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         pageSize: 20,
       },
     },
+    getRowId: (row) => row.AlarmID,
   });
 
   React.useEffect(() => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedIds = selectedRows.map(row => row.original.id);
+    const selectedIds = selectedRows.map(row => row.original.AlarmID);
     onSelectedRowsChange(selectedIds);
   }, [rowSelection, onSelectedRowsChange, table]);
-
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -735,17 +629,8 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
   };
 
   const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 5,
-      },
-    }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
     useSensor(KeyboardSensor, {})
   );
 
@@ -756,30 +641,17 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
 
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center space-x-2">
-            <Switch
-              id="sorting-enable"
-              checked={sortingEnabled}
-              onCheckedChange={(enabled) => {
-                if (!enabled) {
-                  setSorting([]);
-                }
-                setSortingEnabled(enabled);
-              }}
-            />
+            <Switch id="sorting-enable" checked={sortingEnabled} onCheckedChange={setSortingEnabled} />
             <Label htmlFor="sorting-enable">Enable Sorting</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <Switch
-              id="pagination-enable"
-              checked={paginationEnabled}
-              onCheckedChange={setPaginationEnabled}
-            />
+            <Switch id="pagination-enable" checked={paginationEnabled} onCheckedChange={setPaginationEnabled} />
             <Label htmlFor="pagination-enable">Enable Pagination</Label>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-sm text-muted-foreground ml-auto">
+          <div className="text-sm text-muted-foreground ml-auto">
             <span className="font-bold text-foreground">
               {table.getFilteredRowModel().rows.length.toLocaleString()}
             </span>{" "}
@@ -792,27 +664,15 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         </div>
 
         <div className="rounded-md border">
-          <DndContext
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-          >
+          <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd} sensors={sensors}>
             <Table style={{ width: table.getCenterTotalSize() }}>
-              <TableHeader className="sticky top-0 z-40 bg-card">
+              <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
-                    <SortableContext
-                      items={columnOrder}
-                      strategy={horizontalListSortingStrategy}
-                    >
+                    <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                       {headerGroup.headers.map((header) => (
                         <DraggableColumnHeader key={header.id} header={header}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                         </DraggableColumnHeader>
                       ))}
                     </SortableContext>
@@ -828,41 +688,26 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                       onDoubleClick={() => setDialogRow(row.original)}
                       onContextMenu={(e) => {
                         e.preventDefault();
-                        setContextMenu({
-                          visible: true,
-                          x: e.clientX,
-                          y: e.clientY,
-                          row: row.original,
-                        });
+                        setContextMenu({ visible: true, x: e.clientX, y: e.clientY, row: row.original });
                       }}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          style={{ width: cell.column.getSize() }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                        <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No results.
-                    </TableCell>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">No results.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
           </DndContext>
         </div>
+        
         {paginationEnabled && (
           <div className="flex items-center justify-between py-4">
             <div className="flex-1 text-sm text-muted-foreground">
@@ -874,69 +719,29 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                 <p className="text-sm font-medium">Rows per page</p>
                 <Select
                   value={`${table.getState().pagination.pageSize}`}
-                  onValueChange={(value) => {
-                    table.setPageSize(Number(value));
-                  }}
+                  onValueChange={(value) => table.setPageSize(Number(value))}
                 >
-                  <SelectTrigger className="h-8 w-[70px]">
-                    <SelectValue
-                      placeholder={table.getState().pagination.pageSize}
-                    />
-                  </SelectTrigger>
+                  <SelectTrigger className="h-8 w-[70px]"><SelectValue placeholder={table.getState().pagination.pageSize} /></SelectTrigger>
                   <SelectContent side="top">
                     {[10, 20, 50, 100, 500, 1000].map((pageSize) => (
-                      <SelectItem key={pageSize} value={`${pageSize}`}>
-                        {pageSize}
-                      </SelectItem>
+                      <SelectItem key={pageSize} value={`${pageSize}`}>{pageSize}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
+                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
               </div>
               <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex"
-                  onClick={() => table.setPageIndex(0)}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <span className="sr-only">Go to first page</span>
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <span className="sr-only">Go to previous page</span>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-8 w-8 p-0"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <span className="sr-only">Go to next page</span>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex"
-                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <span className="sr-only">Go to last page</span>
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
+                <Button variant="outline" className="hidden h-8 w-8 p-0 lg:flex" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></Button>
+                <Button variant="outline" className="h-8 w-8 p-0" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></Button>
+                <Button variant="outline" className="h-8 w-8 p-0" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></Button>
+                <Button variant="outline" className="hidden h-8 w-8 p-0 lg:flex" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></Button>
               </div>
             </div>
           </div>
         )}
+
         {contextMenu.visible && contextMenu.row && (
           <div
             ref={menuRef}
@@ -944,27 +749,24 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             className="fixed z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
           >
             <div className="px-2 py-1.5 text-sm font-semibold">
-              Actions for Row ID: {contextMenu.row.id}
+              Actions for Alarm ID: {contextMenu.row.AlarmID}
             </div>
             <Separator className="my-1" />
             <button
               className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
               onClick={() => {
-                navigator.clipboard.writeText(String(contextMenu.row?.id));
-                toast({
-                  title: "Copied!",
-                  description: `Row ID ${contextMenu.row?.id} copied to clipboard.`,
-                });
-                setContextMenu((p) => ({...p, visible: false}));
+                navigator.clipboard.writeText(String(contextMenu.row?.AlarmID));
+                toast({ title: "Copied!", description: `Alarm ID ${contextMenu.row?.AlarmID} copied.` });
+                setContextMenu({ ...contextMenu, visible: false });
               }}
             >
-              Copy row ID
+              Copy Alarm ID
             </button>
             <button
               className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
               onClick={() => {
                 setDialogRow(contextMenu.row);
-                setContextMenu((p) => ({...p, visible: false}));
+                setContextMenu({ ...contextMenu, visible: false });
               }}
             >
               View details
@@ -972,34 +774,26 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             <button
               className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm text-red-600 outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
               onClick={() => {
-                deleteRow([contextMenu.row!.id]);
-                setContextMenu((p) => ({...p, visible: false}));
+                deleteRow([contextMenu.row!.AlarmID]);
+                setContextMenu({ ...contextMenu, visible: false });
               }}
             >
               Delete row
             </button>
           </div>
         )}
-        <AlertDialog
-          open={!!dialogRow}
-          onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}
-        >
+        
+        <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Row Details</AlertDialogTitle>
-              <AlertDialogDescription>
-                Viewing full data for row ID: {dialogRow?.id}
-              </AlertDialogDescription>
+              <AlertDialogTitle>Alarm Details</AlertDialogTitle>
+              <AlertDialogDescription>Viewing full data for Alarm ID: {dialogRow?.AlarmID}</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="max-h-96 overflow-y-auto rounded-md border bg-muted p-4">
-              <pre>
-                <code>{JSON.stringify(dialogRow, null, 2)}</code>
-              </pre>
+              <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDialogRow(null)}>
-                Close
-              </AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setDialogRow(null)}>Close</AlertDialogCancel>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
