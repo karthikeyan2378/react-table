@@ -1,3 +1,4 @@
+
 # Real-Time Alarm Dashboard Components
 
 This project contains a set of reusable components for displaying real-time data in a highly configurable table, complete with filtering, sorting, and charting capabilities.
