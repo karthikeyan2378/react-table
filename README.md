@@ -2,11 +2,11 @@
 
 This project contains a set of reusable components for displaying real-time data in a highly configurable table, complete with filtering, sorting, and charting capabilities.
 
-The components are built with Next.js, React, ShadCN UI, and Tailwind CSS. They have been refactored to use relative paths for easy integration into other projects.
+The components are built with React, ShadCN UI, and Tailwind CSS and have been refactored to use relative paths for easy integration into other projects, regardless of the framework (Vite, Create React App, etc.).
 
-## How to Integrate into Another Next.js Project
+## How to Integrate into Another React Project
 
-Follow these steps to use these components in a separate Next.js application.
+Follow these steps to use these components in a separate React application.
 
 ### Step 1: Copy Component Files
 
@@ -21,36 +21,29 @@ Your new project's `src` folder should now contain these directories.
 
 ### Step 2: Install Dependencies
 
-Install the necessary packages. Open a terminal in your new project's root directory and run the following commands:
-
-**Install main dependencies:**
+Install the necessary packages. Open a terminal in your new project's root directory and run the following command:
 
 ```bash
 npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table class-variance-authority clsx date-fns lucide-react recharts tailwind-merge tailwindcss-animate
 ```
 
-**Install development dependencies (for Tailwind CSS):**
-
-```bash
-npm install -D tailwindcss postcss autoprefixer
-```
+If your project uses TypeScript, you may also need the associated type definitions.
 
 ### Step 3: Configure Tailwind CSS
 
 Properly setting up Tailwind is essential for the components' styling to work correctly.
 
-**A. Create `tailwind.config.ts`**
+**A. Create `tailwind.config.js`**
 
-Create a `tailwind.config.ts` file at the root of your new project and add the following content. This defines the theme (colors, fonts, etc.) that the components rely on.
+If you don't already have one, create a `tailwind.config.js` file at the root of your new project and add the following content. This defines the theme (colors, fonts, etc.) that the components rely on.
 
-```ts
-import type { Config } from "tailwindcss"
-
-const config = {
+```js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   darkMode: ["class"],
   content: [
-    './src/**/*.{ts,tsx,mdx}',
-	],
+    './src/**/*.{js,ts,jsx,tsx,mdx}', // Make sure this path covers all your component files
+  ],
   prefix: "",
   theme: {
     container: {
@@ -125,14 +118,12 @@ const config = {
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config
-
-export default config
+}
 ```
 
 **B. Update Global CSS File**
 
-Open your main CSS file (e.g., `src/app/globals.css`) and add the following at the top. This sets up the CSS variables for the color theme.
+Open your main CSS file (e.g., `src/index.css` or `src/app.css`) and add the following at the top. This sets up the Tailwind directives and the CSS variables for the color theme.
 
 ```css
 @tailwind base;
@@ -169,6 +160,7 @@ Open your main CSS file (e.g., `src/app/globals.css`) and add the following at t
   }
 
   .dark {
+    /* Optional: Add dark mode variables if needed */
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
     --card: 222 47% 11%;
@@ -195,38 +187,29 @@ Open your main CSS file (e.g., `src/app/globals.css`) and add the following at t
     --chart-5: 340 75% 55%;
   }
 }
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-}
 ```
 
-### Step 4: Set Up Root Layout
+### Step 4: Add the Toaster Provider
 
-Ensure your root layout (`src/app/layout.tsx`) includes the `Toaster` component so that notifications can be displayed.
+For notifications to work, you must add the `<Toaster />` component to the root of your application (e.g., inside `App.jsx` or your main layout component).
 
 ```tsx
-import './globals.css';
-import { Toaster } from '../FMComponents/ui/toaster'; // Adjust path if needed
+import { Toaster } from './FMComponents/ui/toaster'; // Adjust path if needed
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+function App() {
   return (
-    <html lang="en">
-      <body>
-        {children}
-        <Toaster />
-      </body>
-    </html>
+    <>
+      {/* The rest of your application */}
+      <Toaster />
+    </>
   );
 }
+
+export default App;
 ```
 
 ### Step 5: Use the Components
 
-You are now ready to use the components. You can use the `page.tsx` from this project as a template for how to implement the `DataTable` and `ColumnChart`.
+You are now ready to use the components. You can use the `page.tsx` from this project as a template for how to implement the `DataTable` and `ColumnChart` in your own application.
 
-Copy the content of `src/app/page.tsx` from this project into a page in your new project to see a working example.
-
-By following these steps, you will have a fully functional data table and charting system in your new application.
+By following these steps, you will have a fully functional and portable data table and charting system in your application.

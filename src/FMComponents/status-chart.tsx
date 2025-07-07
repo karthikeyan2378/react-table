@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import * as React from 'react';
 import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid, Doughnut } from 'recharts';
