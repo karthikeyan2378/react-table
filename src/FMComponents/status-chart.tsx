@@ -3,11 +3,11 @@
 
 import * as React from 'react';
 import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid, Doughnut } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/FMComponents/ui/card';
-import { Button } from '@/FMComponents/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/FMComponents/ui/dropdown-menu';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { X as XIcon, PieChart as PieChartIcon, BarChart2, Donut } from 'lucide-react';
-import { type Alarm, alarmConfig } from '@/config/alarm-config';
+import { type Alarm, alarmConfig } from '../config/alarm-config';
 
 type ChartType = 'pie' | 'bar' | 'doughnut';
 type ChartableColumn = keyof typeof alarmConfig.fields;

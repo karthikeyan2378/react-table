@@ -32,10 +32,10 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 
-import { type Alarm, alarmConfig } from "@/config/alarm-config";
-import { Badge } from "@/FMComponents/ui/badge";
-import { Button } from "@/FMComponents/ui/button";
-import { Checkbox } from "@/FMComponents/ui/checkbox";
+import { type Alarm, alarmConfig } from "../config/alarm-config";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Checkbox } from "./ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -44,21 +44,21 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/FMComponents/ui/dropdown-menu";
+} from "./ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/FMComponents/ui/tooltip";
-import { Input } from "@/FMComponents/ui/input";
+} from "./ui/tooltip";
+import { Input } from "./ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/FMComponents/ui/select";
+} from "./ui/select";
 import {
   Table,
   TableBody,
@@ -66,9 +66,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/FMComponents/ui/table";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+} from "./ui/table";
+import { cn } from "../lib/utils";
+import { useToast } from "../hooks/use-toast";
 import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
