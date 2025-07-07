@@ -31,6 +31,7 @@ import {
   Filter,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { type Alarm, alarmConfig } from "../config/alarm-config";
 import { Badge } from "./ui/badge";
@@ -334,9 +335,11 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
 const DataTableHeader = ({
   header,
   children,
+  style,
 }: {
   header: Header<Alarm, unknown>;
   children: React.ReactNode;
+  style?: React.CSSProperties
 }) => {
   const headerContent = (
     <div className="flex-1 flex items-center gap-2 pl-4 pr-2 py-3.5 h-full">
@@ -347,8 +350,8 @@ const DataTableHeader = ({
   return (
     <TableHead
       colSpan={header.colSpan}
-      style={{ width: header.getSize() }}
-      className="p-0 sticky top-0 bg-card z-10"
+      style={{ ...style, width: header.getSize() }}
+      className="p-0"
     >
       <div className="flex items-center h-full">
         {header.column.getCanSort() ? (
@@ -549,6 +552,17 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     onSelectedRowsChange(selectedIds);
   }, [rowSelection, onSelectedRowsChange, table]);
 
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const { rows } = table.getRowModel();
+
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => 53, // A reasonable estimate for row height in pixels
+    overscan: 10,
+  });
+
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
@@ -578,38 +592,54 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
           </div>
         </div>
 
-        <div className="rounded-md border overflow-auto relative max-h-[60vh]">
-            <Table style={{ width: table.getCenterTotalSize() }}>
-              <TableHeader>
+        <div ref={tableContainerRef} className="rounded-md border overflow-auto relative max-h-[60vh]">
+            <Table style={{ width: table.getCenterTotalSize(), display: 'grid' }}>
+              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'hsl(var(--card))' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
+                  <TableRow key={headerGroup.id} style={{ display: 'flex', width: '100%'}}>
                       {headerGroup.headers.map((header) => (
-                        <DataTableHeader key={header.id} header={header}>
+                        <DataTableHeader 
+                          key={header.id} 
+                          header={header}
+                          style={{ display: 'flex', width: header.getSize() }}
+                        >
                           {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                         </DataTableHeader>
                       ))}
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      onDoubleClick={() => setDialogRow(row.original)}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        setContextMenu({ visible: true, x: e.clientX, y: e.clientY, row: row.original });
-                      }}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} style={{ width: cell.column.getSize() }}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
+              <TableBody style={{ display: 'grid', height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+                {rowVirtualizer.getVirtualItems().length > 0 ? (
+                  rowVirtualizer.getVirtualItems().map(virtualRow => {
+                    const row = rows[virtualRow.index];
+                    return (
+                        <TableRow
+                          key={row.id}
+                          data-state={row.getIsSelected() && "selected"}
+                          onDoubleClick={() => setDialogRow(row.original)}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            setContextMenu({ visible: true, x: e.clientX, y: e.clientY, row: row.original });
+                          }}
+                          style={{
+                            display: 'flex',
+                            position: 'absolute',
+                            transform: `translateY(${virtualRow.start}px)`,
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: `${virtualRow.size}px`,
+                          }}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id} style={{ display: 'flex', alignItems: 'center', width: cell.column.getSize() }}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                    )
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">No results.</TableCell>
