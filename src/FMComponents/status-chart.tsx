@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid, Doughnut } from 'recharts';
+import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -23,13 +23,13 @@ interface ColumnChartProps {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1943'];
 
-export function ColumnChart({
+const ColumnChartComponent = ({
   columnId,
   label,
   data,
   onRemove,
   initialChartType = 'pie',
-}: ColumnChartProps) {
+}: ColumnChartProps) => {
   const [chartType, setChartType] = React.useState<ChartType>(initialChartType);
 
   const chartData = React.useMemo(() => {
@@ -111,7 +111,7 @@ export function ColumnChart({
                   const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
                   return (
                     <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central">
-                      {`${(percent * 100).toFixed(0)}%`}
+                      {`%${(percent * 100).toFixed(0)}`}
                     </text>
                   );
                 }}
@@ -129,3 +129,5 @@ export function ColumnChart({
     </Card>
   );
 }
+
+export const ColumnChart = React.memo(ColumnChartComponent);

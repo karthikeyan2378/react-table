@@ -15,16 +15,37 @@ type ChartableColumn = keyof typeof alarmConfig.fields;
 
 export default function Home() {
   const [data, setData] = React.useState<Alarm[]>([]);
+  const [chartData, setChartData] = React.useState<Alarm[]>([]); // New throttled state for charts
   const [isStreaming, setIsStreaming] = React.useState(false);
   const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([]);
   const [isClient, setIsClient] = React.useState(false);
   const [activeCharts, setActiveCharts] = React.useState<ChartableColumn[]>(['Severity']);
   const { toast } = useToast();
+  const chartUpdateDebounceRef = React.useRef<NodeJS.Timeout>();
 
   React.useEffect(() => {
-    setData(makeData(100));
+    const initialData = makeData(100);
+    setData(initialData);
+    setChartData(initialData);
     setIsClient(true);
   }, []);
+
+  // Debounce chart updates to improve performance during streaming
+  React.useEffect(() => {
+    if (chartUpdateDebounceRef.current) {
+      clearTimeout(chartUpdateDebounceRef.current);
+    }
+    
+    chartUpdateDebounceRef.current = setTimeout(() => {
+      setChartData(data);
+    }, 1000); // Update charts 1 second after the last data change
+
+    return () => {
+      if (chartUpdateDebounceRef.current) {
+        clearTimeout(chartUpdateDebounceRef.current);
+      }
+    }
+  }, [data]);
 
   const addRow = React.useCallback(() => {
     setData((oldData) => [newAlarm(), ...oldData]);
@@ -124,7 +145,7 @@ export default function Home() {
                     key={columnId}
                     columnId={columnId}
                     label={alarmConfig.fields[columnId].label}
-                    data={data}
+                    data={chartData}
                     onRemove={handleRemoveChart}
                 />
             ))}
