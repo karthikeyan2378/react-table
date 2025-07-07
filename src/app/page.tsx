@@ -15,13 +15,14 @@ type ChartableColumn = keyof typeof alarmConfig.fields;
 
 export default function Home() {
   const [data, setData] = React.useState<Alarm[]>([]);
-  const [chartData, setChartData] = React.useState<Alarm[]>([]); // New throttled state for charts
+  const [chartData, setChartData] = React.useState<Alarm[]>([]);
   const [isStreaming, setIsStreaming] = React.useState(false);
   const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([]);
   const [isClient, setIsClient] = React.useState(false);
   const [activeCharts, setActiveCharts] = React.useState<ChartableColumn[]>(['Severity']);
   const { toast } = useToast();
   const chartUpdateDebounceRef = React.useRef<NodeJS.Timeout>();
+  const [isPending, startTransition] = React.useTransition();
 
   React.useEffect(() => {
     const initialData = makeData(100);
@@ -48,8 +49,10 @@ export default function Home() {
   }, [data]);
 
   const addRow = React.useCallback(() => {
-    setData((oldData) => [newAlarm(), ...oldData]);
-  }, []);
+    startTransition(() => {
+      setData((oldData) => [newAlarm(), ...oldData]);
+    });
+  }, [startTransition]);
 
   const deleteSelectedRows = () => {
     if (selectedRowIds.length === 0) {
