@@ -321,6 +321,7 @@ export function DataTable<TData>({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
   const [dialogRow, setDialogRow] = React.useState<TData | null>(null);
+  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; row: TData } | null>(null);
 
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
   const [sortingEnabled, setSortingEnabled] = React.useState(true);
@@ -421,7 +422,7 @@ export function DataTable<TData>({
                           key={header.id} 
                           colSpan={header.colSpan}
                           data-column-id={header.id}
-                          style={{ width: header.getSize(), display: 'flex', flexShrink: 0 }}
+                          style={{ width: header.getSize(), display: 'flex', flexShrink: 0, minWidth: header.column.columnDef.minSize }}
                           onDrop={(e) => {
                             e.preventDefault();
                             const draggedColumnId = e.dataTransfer.getData('text/plain');
@@ -474,11 +475,18 @@ export function DataTable<TData>({
                   rowVirtualizer.getVirtualItems().map(virtualRow => {
                     const row = rows[virtualRow.index];
                     return (
-                      <DropdownMenu key={row.id}>
-                        <DropdownMenuTrigger asChild>
-                          <TableRow
+                        <TableRow
+                            key={row.id}
                             data-state={row.getIsSelected() && "selected"}
-                            onContextMenu={(e) => { e.preventDefault(); }}
+                            onContextMenu={(e) => { 
+                                e.preventDefault(); 
+                                setContextMenu({
+                                    x: e.clientX,
+                                    y: e.clientY,
+                                    row: row.original
+                                });
+                            }}
+                            onDoubleClick={() => setDialogRow(row.original)}
                             style={{
                               display: 'flex',
                               position: 'absolute',
@@ -490,14 +498,11 @@ export function DataTable<TData>({
                             }}
                           >
                             {row.getVisibleCells().map((cell) => (
-                              <TableCell key={cell.id} style={{ display: 'flex', alignItems: 'center', width: cell.column.getSize(), flexShrink: 0 }}>
+                              <TableCell key={cell.id} style={{ display: 'flex', alignItems: 'center', width: cell.column.getSize(), flexShrink: 0, minWidth: cell.column.columnDef.minSize }}>
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                               </TableCell>
                             ))}
-                          </TableRow>
-                        </DropdownMenuTrigger>
-                        {renderRowContextMenu && renderRowContextMenu(row.original)}
-                      </DropdownMenu>
+                        </TableRow>
                     )
                   })
                 ) : (
@@ -542,6 +547,29 @@ export function DataTable<TData>({
             </div>
           </div>
         )}
+
+        <DropdownMenu
+            open={!!contextMenu}
+            onOpenChange={(isOpen) => {
+            if (!isOpen) {
+                setContextMenu(null);
+            }
+            }}
+            modal={false}
+        >
+            <DropdownMenuTrigger
+                style={{
+                    position: "fixed",
+                    left: contextMenu?.x,
+                    top: contextMenu?.y,
+                    width: 1,
+                    height: 1,
+                    opacity: 0,
+                    pointerEvents: "none",
+                }}
+            />
+            {contextMenu?.row && renderRowContextMenu && renderRowContextMenu(contextMenu.row)}
+        </DropdownMenu>
 
         <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>
           <AlertDialogContent>
