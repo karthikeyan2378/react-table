@@ -310,65 +310,51 @@ const reorderColumn = (
 const DataTableHeader = ({
   header,
   table,
-  draggedColumnId,
-  setDraggedColumnId,
-  style,
 }: {
   header: Header<Alarm, unknown>;
   table: ReactTable<Alarm>;
-  draggedColumnId: string | null;
-  setDraggedColumnId: React.Dispatch<React.SetStateAction<string | null>>;
-  style?: React.CSSProperties;
 }) => {
   const { getState, setColumnOrder } = table;
   const { columnOrder } = getState();
-  const [isDragOver, setIsDragOver] = React.useState(false);
+  const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(null);
 
-  const isDraggable = header.column.id !== 'select';
+  const isDraggable = header.column.getCanResize();
 
-  const onDrop = (e: React.DragEvent<HTMLTableHeadElement>) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    e.dataTransfer.setData('text/plain', header.column.id);
+    setDraggedColumnId(header.column.id);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const droppedColumnId = e.dataTransfer.getData("text/plain");
-    if (droppedColumnId && droppedColumnId !== header.column.id) {
-        const newOrder = reorderColumn(droppedColumnId, header.column.id, columnOrder);
-        setColumnOrder(newOrder);
+    const draggedId = e.dataTransfer.getData('text/plain');
+    const targetId = header.column.id;
+    if (draggedId && draggedId !== targetId) {
+      const newOrder = reorderColumn(draggedId, targetId, columnOrder);
+      setColumnOrder(newOrder);
     }
     setDraggedColumnId(null);
-    setIsDragOver(false);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedColumnId(null);
   };
 
   return (
     <TableHead
       colSpan={header.colSpan}
-      style={{ ...style, width: header.getSize(), opacity: draggedColumnId === header.id ? 0.5 : 1 }}
-      className={cn("p-0 h-12", isDragOver ? "border-l-2 border-l-primary" : "")}
-      draggable={isDraggable}
-      onDragStart={(e) => {
-        if (isDraggable) {
-          e.dataTransfer.setData("text/plain", header.column.id);
-          setDraggedColumnId(header.column.id);
-        }
-      }}
-      onDragEnter={(e) => {
-        if (isDraggable && draggedColumnId && draggedColumnId !== header.column.id) {
-            e.preventDefault();
-            setIsDragOver(true);
-        }
-      }}
-      onDragLeave={() => {
-          setIsDragOver(false);
-      }}
-      onDragOver={(e) => {
-        e.preventDefault();
-      }}
-      onDrop={onDrop}
-      onDragEnd={() => {
-        setDraggedColumnId(null);
-        setIsDragOver(false);
-      }}
+      style={{ width: header.getSize() }}
+      className={cn("p-0 h-12", draggedColumnId === header.id ? "opacity-50" : "")}
     >
-      <div className={cn("flex items-center h-full", isDraggable && 'cursor-grab')}>
-        <div className="flex-1 flex items-center gap-2 pl-4 pr-1 py-3.5 h-full">
+      <div 
+        className={cn("flex items-center h-full select-none", isDraggable && "cursor-grab")}
+        draggable={isDraggable}
+        onDragStart={handleDragStart}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex-grow flex items-center gap-2 pl-4 pr-1 py-3.5 h-full">
           {flexRender(header.column.columnDef.header, header.getContext())}
         </div>
         {header.column.getCanResize() && (
@@ -597,8 +583,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
   }, [sortingEnabled]);
   
   const [columnOrder, setColumnOrder] = React.useState<string[]>(() => columns.map(c => c.id!));
-  const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(null);
-
+  
   const table = useReactTable({
     data,
     columns,
@@ -677,7 +662,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         </div>
 
         <div ref={tableContainerRef} className="rounded-md border overflow-auto relative max-h-[60vh]">
-            <Table style={{ width: table.getCenterTotalSize(), display: 'grid' }}>
+            <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
               <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'hsl(var(--card))' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="hover:bg-card" style={{ display: 'flex', width: '100%'}}>
@@ -686,9 +671,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                           key={header.id} 
                           header={header}
                           table={table}
-                          draggedColumnId={draggedColumnId}
-                          setDraggedColumnId={setDraggedColumnId}
-                          style={{ display: 'flex', width: header.getSize() }}
                         />
                       ))}
                   </TableRow>
@@ -718,7 +700,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                           }}
                         >
                           {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id} style={{ display: 'flex', alignItems: 'center', width: cell.column.getSize() }}>
+                            <TableCell key={cell.id} style={{ display: 'flex', alignItems: 'center', width: cell.column.getSize(), flexShrink: 0 }}>
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </TableCell>
                           ))}
