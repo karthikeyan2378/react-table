@@ -27,7 +27,6 @@ import {
   ChevronsRight,
   ChevronsUpDown,
   Filter,
-  MoreVertical,
   PlusCircle,
   SlidersHorizontal,
   X,
@@ -292,58 +291,17 @@ const reorderColumn = (
   targetColumnId: string,
   columnOrder: string[]
 ): string[] => {
-  const newOrder = [...columnOrder];
-  const draggedIndex = newOrder.indexOf(draggedColumnId);
-  const targetIndex = newOrder.indexOf(targetColumnId);
+  const newColumnOrder = [...columnOrder];
+  const draggedColumnIndex = newColumnOrder.indexOf(draggedColumnId);
+  const targetColumnIndex = newColumnOrder.indexOf(targetColumnId);
   
-  if (draggedIndex > -1 && targetIndex > -1) {
-    const [draggedItem] = newOrder.splice(draggedIndex, 1);
-    newOrder.splice(targetIndex, 0, draggedItem);
+  if (draggedColumnIndex > -1 && targetColumnIndex > -1) {
+    const [removed] = newColumnOrder.splice(draggedColumnIndex, 1);
+    newColumnOrder.splice(targetColumnIndex, 0, removed);
   }
   
-  return newOrder;
+  return newColumnOrder;
 };
-
-const DataTableHeader = ({ header }: { header: Header<Alarm, unknown> }) => {
-  if (!header.isPlaceholder) {
-    const {
-        attributes: { ...droppableAttributes },
-        listeners: droppableListeners,
-        setNodeRef: droppableRef,
-    } = { attributes: {}, listeners: {}, setNodeRef: () => {} };
-
-    const {
-        attributes: { ...draggableAttributes },
-        listeners: draggableListeners,
-        setNodeRef: draggableRef,
-    } = { attributes: {}, listeners: {}, setNodeRef: () => {} };
-
-    return (
-      <TableHead
-        colSpan={header.colSpan}
-        style={{ width: header.getSize(), flexShrink: 0 }}
-      >
-        <div className="flex items-center h-full select-none">
-          <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden w-full">
-            {flexRender(header.column.columnDef.header, header.getContext())}
-          </div>
-          {header.column.getCanResize() && (
-            <div
-              onMouseDown={header.getResizeHandler()}
-              onTouchStart={header.getResizeHandler()}
-              className={cn(
-                "h-full w-1.5 cursor-col-resize select-none touch-none",
-                header.column.getIsResizing() ? "bg-primary" : ""
-              )}
-            />
-          )}
-        </div>
-      </TableHead>
-    );
-  }
-  return <TableHead colSpan={header.colSpan} style={{ width: header.getSize() }} />;
-};
-
 
 interface DataTableProps {
   data: Alarm[];
@@ -397,6 +355,14 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                     >
                       Select/Deselect All
                     </DropdownMenuCheckboxItem>
+                    {table.getIsSomeRowsSorted() && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => table.resetSorting(true)}>
+                          Clear All Sorts
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -442,23 +408,27 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
       const columnDef: ColumnDef<Alarm> = {
         accessorKey: key,
         header: ({ header, column, table }) => {
-            const { setColumnOrder } = table.options.meta as {
-                setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
-            };
-
-            const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-                const draggedId = e.dataTransfer.getData('text/plain');
-                const targetId = column.id;
-                if (draggedId && draggedId !== targetId) {
-                    setColumnOrder(currentOrder => reorderColumn(draggedId, targetId, currentOrder));
-                }
-            };
-            
             return (
               <div 
-                className="flex items-center justify-between w-full h-full"
-                onDrop={handleDrop}
+                draggable={table.getState().columnOrder.includes(column.id)}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('text/plain', column.id);
+                }}
+                onDrop={(e) => {
+                  const draggedColumnId = e.dataTransfer.getData('text/plain');
+                  const targetColumnId = column.id;
+                  if (draggedColumnId && draggedColumnId !== targetColumnId) {
+                    table.setColumnOrder(
+                      reorderColumn(
+                        draggedColumnId,
+                        targetColumnId,
+                        table.getState().columnOrder
+                      )
+                    );
+                  }
+                }}
                 onDragOver={(e) => e.preventDefault()}
+                className="flex items-center justify-between w-full h-full cursor-move"
               >
                 <span className="font-semibold text-foreground truncate">{config.label}</span>
                 <div className="flex items-center">
@@ -467,7 +437,12 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 p-0 hover:bg-transparent"
-                      onClick={() => sortingEnabled && column.toggleSorting(column.getIsSorted() === 'asc')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if(sortingEnabled) {
+                          column.toggleSorting(column.getIsSorted() === 'asc');
+                        }
+                      }}
                     >
                       {column.getIsSorted() === 'desc' ? (
                         <ArrowDown className="h-4 w-4" />
@@ -478,30 +453,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                       )}
                     </Button>
                   )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 p-0 hover:bg-transparent cursor-grab"
-                        draggable="true"
-                        onDragStart={(e) => {
-                            e.dataTransfer.setData('text/plain', column.id);
-                            e.stopPropagation();
-                        }}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {column.getIsSorted() && (
-                        <DropdownMenuItem onClick={() => column.clearSorting()}>
-                           <X className="mr-2 h-4 w-4 text-muted-foreground" />
-                           Clear Sort
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </div>
             )
@@ -581,9 +532,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     getFacetedUniqueValues: getFacetedUniqueValues(),
     columnResizeMode: "onChange",
     enableSorting: sortingEnabled,
-    meta: {
-        setColumnOrder,
-    },
     initialState: {
       pagination: {
         pageSize: 20,
@@ -644,10 +592,32 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id} className="hover:bg-card" style={{ display: 'flex', width: '100%'}}>
                       {headerGroup.headers.map((header) => (
-                        <DataTableHeader 
+                        <TableHead 
                           key={header.id} 
-                          header={header}
-                        />
+                          colSpan={header.colSpan}
+                          style={{ width: header.getSize(), display: 'flex' }}
+                        >
+                           <div className="flex items-center h-full w-full">
+                              <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden w-full">
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </div>
+                              {header.column.getCanResize() && (
+                                <div
+                                  onMouseDown={header.getResizeHandler()}
+                                  onTouchStart={header.getResizeHandler()}
+                                  className={cn(
+                                    "h-full w-1.5 cursor-col-resize select-none touch-none",
+                                    header.column.getIsResizing() ? "bg-primary" : ""
+                                  )}
+                                />
+                              )}
+                            </div>
+                        </TableHead>
                       ))}
                   </TableRow>
                 ))}
@@ -660,7 +630,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                         <TableRow
                           key={row.id}
                           data-state={row.getIsSelected() && "selected"}
-                          onDoubleClick={() => setDialogRow(row.original)}
                           style={{
                             display: 'flex',
                             position: 'absolute',
