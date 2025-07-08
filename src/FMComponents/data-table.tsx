@@ -301,9 +301,7 @@ const reorderColumn = (
   
   if (draggedIndex > -1 && targetIndex > -1) {
     const [draggedItem] = newOrder.splice(draggedIndex, 1);
-    if(draggedItem) {
-        newOrder.splice(targetIndex, 0, draggedItem);
-    }
+    newOrder.splice(targetIndex, 0, draggedItem);
   }
   
   return newOrder;
@@ -330,8 +328,9 @@ const DataTableHeader = ({
 
   const onDrop = (e: React.DragEvent<HTMLTableHeadElement>) => {
     e.preventDefault();
-    if (draggedColumnId && draggedColumnId !== header.column.id) {
-        const newOrder = reorderColumn(draggedColumnId, header.column.id, columnOrder);
+    const droppedColumnId = e.dataTransfer.getData("text/plain");
+    if (droppedColumnId && droppedColumnId !== header.column.id) {
+        const newOrder = reorderColumn(droppedColumnId, header.column.id, columnOrder);
         setColumnOrder(newOrder);
     }
     setDraggedColumnId(null);
@@ -344,8 +343,9 @@ const DataTableHeader = ({
       style={{ ...style, width: header.getSize(), opacity: draggedColumnId === header.id ? 0.5 : 1 }}
       className={cn("p-0 h-12", isDragOver ? "border-l-2 border-l-primary" : "")}
       draggable={isDraggable}
-      onDragStart={() => {
+      onDragStart={(e) => {
         if (isDraggable) {
+          e.dataTransfer.setData("text/plain", header.column.id);
           setDraggedColumnId(header.column.id);
         }
       }}
