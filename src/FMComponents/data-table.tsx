@@ -418,12 +418,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                   const draggedColumnId = e.dataTransfer.getData('text/plain');
                   const targetColumnId = column.id;
                   if (draggedColumnId && draggedColumnId !== targetColumnId) {
-                    const newOrder = reorderColumn(
-                      draggedColumnId,
-                      targetColumnId,
-                      table.getState().columnOrder
-                    );
-                    table.setColumnOrder(newOrder);
+                    table.setColumnOrder((old) => reorderColumn(draggedColumnId, targetColumnId, old));
                   }
                 }}
                 onDragOver={(e) => e.preventDefault()}
@@ -629,6 +624,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                         <TableRow
                           key={row.id}
                           data-state={row.getIsSelected() && "selected"}
+                          onDoubleClick={() => setDialogRow(row.original)}
                           style={{
                             display: 'flex',
                             position: 'absolute',
