@@ -309,15 +309,12 @@ const reorderColumn = (
 
 const DataTableHeader = ({
   header,
-  table,
+  setColumnOrder,
 }: {
   header: Header<Alarm, unknown>;
-  table: ReactTable<Alarm>;
+  setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
 }) => {
-  const { getState, setColumnOrder } = table;
-  const { columnOrder } = getState();
   const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(null);
-
   const isDraggable = header.column.getCanResize();
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
@@ -330,8 +327,9 @@ const DataTableHeader = ({
     const draggedId = e.dataTransfer.getData('text/plain');
     const targetId = header.column.id;
     if (draggedId && draggedId !== targetId) {
-      const newOrder = reorderColumn(draggedId, targetId, columnOrder);
-      setColumnOrder(newOrder);
+      setColumnOrder(currentOrder => {
+        return reorderColumn(draggedId, targetId, currentOrder);
+      });
     }
     setDraggedColumnId(null);
   };
@@ -343,7 +341,7 @@ const DataTableHeader = ({
   return (
     <TableHead
       colSpan={header.colSpan}
-      style={{ width: header.getSize() }}
+      style={{ width: header.getSize(), flexShrink: 0 }}
       className={cn("p-0 h-12", draggedColumnId === header.id ? "opacity-50" : "")}
     >
       <div 
@@ -354,7 +352,7 @@ const DataTableHeader = ({
         onDrop={handleDrop}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex-grow flex items-center gap-2 pl-4 pr-1 py-3.5 h-full">
+        <div className="flex items-center gap-2 pl-4 pr-1 py-3.5 h-full overflow-hidden">
           {flexRender(header.column.columnDef.header, header.getContext())}
         </div>
         {header.column.getCanResize() && (
@@ -670,7 +668,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                         <DataTableHeader 
                           key={header.id} 
                           header={header}
-                          table={table}
+                          setColumnOrder={setColumnOrder}
                         />
                       ))}
                   </TableRow>
