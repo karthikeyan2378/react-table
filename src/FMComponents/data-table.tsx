@@ -295,13 +295,18 @@ const reorderColumn = (
   targetColumnId: string,
   columnOrder: string[]
 ): string[] => {
-  const newColumnOrder = [...columnOrder];
-  newColumnOrder.splice(
-    newColumnOrder.indexOf(targetColumnId),
-    0,
-    newColumnOrder.splice(newColumnOrder.indexOf(draggedColumnId), 1)[0] as string
-  );
-  return newColumnOrder;
+  const newOrder = [...columnOrder];
+  const draggedIndex = newOrder.indexOf(draggedColumnId);
+  const targetIndex = newOrder.indexOf(targetColumnId);
+  
+  if (draggedIndex > -1 && targetIndex > -1) {
+    const [draggedItem] = newOrder.splice(draggedIndex, 1);
+    if(draggedItem) {
+        newOrder.splice(targetIndex, 0, draggedItem);
+    }
+  }
+  
+  return newOrder;
 };
 
 const DataTableHeader = ({
@@ -319,48 +324,50 @@ const DataTableHeader = ({
 }) => {
   const { getState, setColumnOrder } = table;
   const { columnOrder } = getState();
+  const [isDragOver, setIsDragOver] = React.useState(false);
 
   const isDraggable = header.column.id !== 'select';
 
   const onDrop = (e: React.DragEvent<HTMLTableHeadElement>) => {
     e.preventDefault();
-    if (draggedColumnId && isDraggable) {
+    if (draggedColumnId && draggedColumnId !== header.column.id) {
         const newOrder = reorderColumn(draggedColumnId, header.column.id, columnOrder);
         setColumnOrder(newOrder);
     }
     setDraggedColumnId(null);
+    setIsDragOver(false);
   };
-
-  const [isDragOver, setIsDragOver] = React.useState(false);
 
   return (
     <TableHead
       colSpan={header.colSpan}
       style={{ ...style, width: header.getSize(), opacity: draggedColumnId === header.id ? 0.5 : 1 }}
-      className={cn("p-0 h-12", isDragOver ? "bg-accent" : "")}
+      className={cn("p-0 h-12", isDragOver ? "border-l-2 border-l-primary" : "")}
       draggable={isDraggable}
-      onDragStart={() => isDraggable && setDraggedColumnId(header.column.id)}
+      onDragStart={() => {
+        if (isDraggable) {
+          setDraggedColumnId(header.column.id);
+        }
+      }}
       onDragEnter={(e) => {
-        if (isDraggable && draggedColumnId) {
+        if (isDraggable && draggedColumnId && draggedColumnId !== header.column.id) {
             e.preventDefault();
             setIsDragOver(true);
         }
       }}
-      onDragLeave={() => isDraggable && draggedColumnId && setIsDragOver(false)}
-      onDragOver={(e) => {
-        if (isDraggable && draggedColumnId) {
-          e.preventDefault();
-        }
-      }}
-      onDrop={(e) => {
-        if (isDraggable) {
-          onDrop(e);
+      onDragLeave={() => {
           setIsDragOver(false);
-        }
       }}
-      onDragEnd={() => setDraggedColumnId(null)}
+      onDragOver={(e) => {
+        e.preventDefault();
+      }}
+      onDrop={onDrop}
+      onDragEnd={() => {
+        setDraggedColumnId(null);
+        setIsDragOver(false);
+      }}
     >
-      <div className="flex items-center h-full">
+      <div className={cn("flex items-center h-full", isDraggable && 'cursor-grab')}>
         <div className="flex-1 flex items-center gap-2 pl-4 pr-1 py-3.5 h-full">
           {flexRender(header.column.columnDef.header, header.getContext())}
         </div>
@@ -507,8 +514,8 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 p-0"
-                  onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                  className="h-8 w-8 p-0 hover:bg-transparent"
+                  onClick={() => sortingEnabled && column.toggleSorting(column.getIsSorted() === 'asc')}
                 >
                   {column.getIsSorted() === 'desc' ? (
                     <ArrowDown className="h-4 w-4" />
@@ -587,10 +594,9 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     });
 
     return [...staticColumns, ...dynamicColumns];
-  }, []);
+  }, [sortingEnabled]);
   
-  const columnIds = React.useMemo(() => columns.map(c => c.id!), [columns]);
-  const [columnOrder, setColumnOrder] = React.useState<string[]>(columnIds);
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(() => columns.map(c => c.id!));
   const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(null);
 
   const table = useReactTable({
