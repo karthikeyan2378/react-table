@@ -355,7 +355,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                     >
                       Select/Deselect All
                     </DropdownMenuCheckboxItem>
-                    {table.getIsSomeRowsSorted() && (
+                    {table.getState().sorting.length > 0 && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => table.resetSorting(true)}>
@@ -418,13 +418,12 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                   const draggedColumnId = e.dataTransfer.getData('text/plain');
                   const targetColumnId = column.id;
                   if (draggedColumnId && draggedColumnId !== targetColumnId) {
-                    table.setColumnOrder(
-                      reorderColumn(
-                        draggedColumnId,
-                        targetColumnId,
-                        table.getState().columnOrder
-                      )
+                    const newOrder = reorderColumn(
+                      draggedColumnId,
+                      targetColumnId,
+                      table.getState().columnOrder
                     );
+                    table.setColumnOrder(newOrder);
                   }
                 }}
                 onDragOver={(e) => e.preventDefault()}
