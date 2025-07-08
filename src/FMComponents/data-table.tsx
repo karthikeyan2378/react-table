@@ -30,6 +30,7 @@ import {
   PlusCircle,
   SlidersHorizontal,
   X,
+  MoreVertical,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -410,21 +411,34 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         header: ({ column, table }) => {
             return (
               <div 
-                draggable={!!column.accessorKey}
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('text/plain', column.id);
-                }}
                 onDrop={(e) => {
+                  e.preventDefault();
                   const draggedColumnId = e.dataTransfer.getData('text/plain');
                   const targetColumnId = column.id;
                   if (draggedColumnId && draggedColumnId !== targetColumnId) {
-                    table.setColumnOrder((old) => reorderColumn(draggedColumnId, targetColumnId, old));
+                    table.setColumnOrder(
+                      (old) => reorderColumn(draggedColumnId, targetColumnId, old)
+                    );
                   }
                 }}
-                onDragOver={(e) => e.preventDefault()}
-                className="flex items-center justify-between w-full h-full cursor-move"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                }}
+                className="flex items-center justify-between w-full h-full"
               >
-                <span className="font-semibold text-foreground">{config.label}</span>
+                <div className="flex items-center gap-2">
+                    <div
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', column.id);
+                        e.stopPropagation();
+                      }}
+                      className="cursor-move"
+                    >
+                      <MoreVertical className="h-4 w-4 text-muted-foreground/70" />
+                    </div>
+                  <span className="font-semibold text-foreground">{config.label}</span>
+                </div>
                 <div className="flex items-center">
                   {column.getCanSort() && (
                     <Button
@@ -551,6 +565,16 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     overscan: 10,
   });
 
+  const renderContextMenu = (row: Alarm) => (
+    <DropdownMenuContent>
+      <DropdownMenuItem onClick={() => setDialogRow(row)}>
+        View Details
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.AlarmID)}>
+        Copy Alarm ID
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  );
 
   return (
     <TooltipProvider>
@@ -592,8 +616,8 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                           colSpan={header.colSpan}
                           style={{ width: header.getSize(), display: 'flex' }}
                         >
-                           <div className="flex items-center h-full w-full">
-                              <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden w-full">
+                           <div className="flex items-center h-full w-full flex-grow">
+                              <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden flex-grow">
                                 {header.isPlaceholder
                                   ? null
                                   : flexRender(
@@ -601,17 +625,17 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                                       header.getContext()
                                     )}
                               </div>
-                              {header.column.getCanResize() && (
-                                <div
-                                  onMouseDown={header.getResizeHandler()}
-                                  onTouchStart={header.getResizeHandler()}
-                                  className={cn(
-                                    "h-full w-1.5 cursor-col-resize select-none touch-none",
-                                    header.column.getIsResizing() ? "bg-primary" : ""
-                                  )}
-                                />
-                              )}
                             </div>
+                            {header.column.getCanResize() && (
+                              <div
+                                onMouseDown={header.getResizeHandler()}
+                                onTouchStart={header.getResizeHandler()}
+                                className={cn(
+                                  "h-full w-1.5 cursor-col-resize select-none touch-none shrink-0",
+                                  header.column.getIsResizing() ? "bg-primary" : ""
+                                )}
+                              />
+                            )}
                         </TableHead>
                       ))}
                   </TableRow>
@@ -622,26 +646,31 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                   rowVirtualizer.getVirtualItems().map(virtualRow => {
                     const row = rows[virtualRow.index];
                     return (
-                        <TableRow
-                          key={row.id}
-                          data-state={row.getIsSelected() && "selected"}
-                          onDoubleClick={() => setDialogRow(row.original)}
-                          style={{
-                            display: 'flex',
-                            position: 'absolute',
-                            transform: `translateY(${virtualRow.start}px)`,
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: `${virtualRow.size}px`,
-                          }}
-                        >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id} style={{ display: 'flex', alignItems: 'center', width: cell.column.getSize(), flexShrink: 0 }}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          ))}
-                        </TableRow>
+                      <DropdownMenu key={row.id}>
+                        <DropdownMenuTrigger asChild>
+                          <TableRow
+                            data-state={row.getIsSelected() && "selected"}
+                            onDoubleClick={() => setDialogRow(row.original)}
+                            onContextMenu={(e) => { e.preventDefault(); }}
+                            style={{
+                              display: 'flex',
+                              position: 'absolute',
+                              transform: `translateY(${virtualRow.start}px)`,
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: `${virtualRow.size}px`,
+                            }}
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell key={cell.id} style={{ display: 'flex', alignItems: 'center', width: cell.column.getSize(), flexShrink: 0 }}>
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </DropdownMenuTrigger>
+                        {renderContextMenu(row.original)}
+                      </DropdownMenu>
                     )
                   })
                 ) : (
