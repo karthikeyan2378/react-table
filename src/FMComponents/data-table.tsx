@@ -20,15 +20,18 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
-  ArrowUpDown,
+  ArrowDown,
+  ArrowUp,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  EyeOff,
+  Filter,
+  MoreVertical,
   PlusCircle,
   SlidersHorizontal,
   X,
-  Filter,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -177,51 +180,6 @@ function DataTableFacetedFilter<TData, TValue>({
   );
 }
 
-
-function DataTableViewOptions<TData>({
-  table,
-}: {
-  table: ReactTable<TData>;
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto hidden h-8 lg:flex"
-        >
-          <SlidersHorizontal className="mr-2 h-4 w-4 text-blue-500" />
-          View
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[150px]">
-        <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {table
-          .getAllColumns()
-          .filter(
-            (column) =>
-              typeof column.accessorFn !== "undefined" && column.getCanHide()
-          )
-          .map((column) => {
-            const config = alarmConfig.fields[column.id as keyof typeof alarmConfig.fields];
-            return (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                className="capitalize"
-                checked={column.getIsVisible()}
-                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-              >
-                {config?.label || column.id}
-              </DropdownMenuCheckboxItem>
-            );
-          })}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
@@ -327,58 +285,99 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
     </div>
   );
 }
 
+const reorderColumn = (
+  draggedColumnId: string,
+  targetColumnId: string,
+  columnOrder: string[]
+): string[] => {
+  const newColumnOrder = [...columnOrder];
+  newColumnOrder.splice(
+    newColumnOrder.indexOf(targetColumnId),
+    0,
+    newColumnOrder.splice(newColumnOrder.indexOf(draggedColumnId), 1)[0] as string
+  );
+  return newColumnOrder;
+};
+
 const DataTableHeader = ({
   header,
-  children,
+  table,
+  draggedColumnId,
+  setDraggedColumnId,
   style,
 }: {
   header: Header<Alarm, unknown>;
-  children: React.ReactNode;
-  style?: React.CSSProperties
+  table: ReactTable<Alarm>;
+  draggedColumnId: string | null;
+  setDraggedColumnId: React.Dispatch<React.SetStateAction<string | null>>;
+  style?: React.CSSProperties;
 }) => {
-  const headerContent = (
-    <div className="flex-1 flex items-center gap-2 pl-4 pr-2 py-3.5 h-full">
-      {children}
-    </div>
-  );
+  const { getState, setColumnOrder } = table;
+  const { columnOrder } = getState();
+
+  const isDraggable = header.column.id !== 'select' && header.column.getCanPin && header.column.getCanPin();
+
+  const onDrop = (e: React.DragEvent<HTMLTableHeadElement>) => {
+    e.preventDefault();
+    if (draggedColumnId && isDraggable) {
+        const newOrder = reorderColumn(draggedColumnId, header.column.id, columnOrder);
+        setColumnOrder(newOrder);
+    }
+    setDraggedColumnId(null);
+  };
+
+  const [isDragOver, setIsDragOver] = React.useState(false);
 
   return (
     <TableHead
       colSpan={header.colSpan}
-      style={{ ...style, width: header.getSize() }}
-      className="p-0"
+      style={{ ...style, width: header.getSize(), opacity: draggedColumnId === header.id ? 0.5 : 1 }}
+      className={cn("p-0 h-12", isDragOver ? "bg-accent" : "")}
+      draggable={isDraggable}
+      onDragStart={() => isDraggable && setDraggedColumnId(header.column.id)}
+      onDragEnter={(e) => {
+        if (isDraggable && draggedColumnId) {
+            e.preventDefault();
+            setIsDragOver(true);
+        }
+      }}
+      onDragLeave={() => isDraggable && draggedColumnId && setIsDragOver(false)}
+      onDragOver={(e) => {
+        if (isDraggable && draggedColumnId) {
+          e.preventDefault();
+        }
+      }}
+      onDrop={(e) => {
+        if (isDraggable) {
+          onDrop(e);
+          setIsDragOver(false);
+        }
+      }}
+      onDragEnd={() => setDraggedColumnId(null)}
     >
       <div className="flex items-center h-full">
-        {header.column.getCanSort() ? (
-          <Button
-            variant="ghost"
-            onClick={header.column.getToggleSortingHandler()}
-            className="w-full h-full p-0 m-0 justify-start"
-            disabled={!header.column.getCanSort()}
-          >
-            {headerContent}
-          </Button>
-        ) : (
-          <div className="w-full h-full flex items-center">{headerContent}</div>
+        <div className="flex-1 flex items-center gap-2 pl-4 pr-1 py-3.5 h-full">
+          {flexRender(header.column.columnDef.header, header.getContext())}
+        </div>
+        {header.column.getCanResize() && (
+          <div
+            onMouseDown={header.getResizeHandler()}
+            onTouchStart={header.getResizeHandler()}
+            className={cn(
+              "h-full w-1.5 cursor-col-resize select-none touch-none",
+              header.column.getIsResizing() ? "bg-primary" : ""
+            )}
+          />
         )}
-        <div
-          onMouseDown={header.getResizeHandler()}
-          onTouchStart={header.getResizeHandler()}
-          className={cn(
-            "h-full w-1.5 cursor-col-resize select-none touch-none",
-            "hover:bg-primary/50",
-            header.column.getIsResizing() ? "bg-primary" : ""
-          )}
-        />
       </div>
     </TableHead>
   );
 };
+
 
 interface DataTableProps {
   data: Alarm[];
@@ -440,11 +439,47 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
       {
         id: "select",
         header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
+            <div className="flex items-center justify-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 hover:bg-transparent">
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[200px]">
+                   <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
+                   <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    >
+                      Select/Deselect All
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {table
+                        .getAllColumns()
+                        .filter(
+                            (column) =>
+                            typeof column.accessorFn !== "undefined" && column.getCanHide()
+                        )
+                        .map((column) => {
+                            const config = alarmConfig.fields[column.id as keyof typeof alarmConfig.fields];
+                            return (
+                            <DropdownMenuCheckboxItem
+                                key={column.id}
+                                className="capitalize"
+                                checked={column.getIsVisible()}
+                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                            >
+                                {config?.label || column.id}
+                            </DropdownMenuCheckboxItem>
+                            );
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
         ),
         cell: ({ row }) => (
           <Checkbox
@@ -455,7 +490,8 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         ),
         enableSorting: false,
         enableHiding: false,
-        size: 40,
+        enableResizing: false,
+        size: 60,
       },
     ];
 
@@ -463,10 +499,36 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
       const columnDef: ColumnDef<Alarm> = {
         accessorKey: key,
         header: ({ column }) => (
-          <>
-            <span className="text-blue-500">{config.label}</span>
-            {column.getCanSort() && <ArrowUpDown className="ml-2 h-4 w-4" />}
-          </>
+          <div className="flex items-center justify-between w-full">
+            <span className="font-semibold text-foreground truncate">{config.label}</span>
+            {column.getCanSort() && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-transparent">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+                    <ArrowUp className="mr-2 h-4 w-4 text-muted-foreground" /> Sort Asc
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+                    <ArrowDown className="mr-2 h-4 w-4 text-muted-foreground" /> Sort Desc
+                  </DropdownMenuItem>
+                   {column.getIsSorted() && (
+                    <DropdownMenuItem onClick={() => column.clearSorting()}>
+                       <X className="mr-2 h-4 w-4 text-muted-foreground" />
+                       Clear Sort
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
+                    <EyeOff className="mr-2 h-4 w-4 text-muted-foreground" /> Hide Column
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         ),
         cell: ({ row }) => {
           const value = row.getValue(key) as any;
@@ -517,6 +579,10 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     return [...staticColumns, ...dynamicColumns];
   }, []);
   
+  const columnIds = React.useMemo(() => columns.map(c => c.id!), [columns]);
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(columnIds);
+  const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(null);
+
   const table = useReactTable({
     data,
     columns,
@@ -525,11 +591,13 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
       columnVisibility,
       rowSelection,
       columnFilters,
+      columnOrder,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -558,7 +626,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 53, // A reasonable estimate for row height in pixels
+    estimateSize: () => 53,
     overscan: 10,
   });
 
@@ -601,10 +669,11 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                         <DataTableHeader 
                           key={header.id} 
                           header={header}
+                          table={table}
+                          draggedColumnId={draggedColumnId}
+                          setDraggedColumnId={setDraggedColumnId}
                           style={{ display: 'flex', width: header.getSize() }}
-                        >
-                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                        </DataTableHeader>
+                        />
                       ))}
                   </TableRow>
                 ))}
