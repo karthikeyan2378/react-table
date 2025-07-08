@@ -24,6 +24,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Filter,
+  MoreVertical,
   PlusCircle,
   X,
 } from "lucide-react";
@@ -69,6 +70,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+
+// Memoize the row model functions to prevent them from being recreated on every render.
+const coreRowModel = getCoreRowModel();
+const facetedRowModel = getFacetedRowModel();
+const facetedUniqueValues = getFacetedUniqueValues();
+const filteredRowModel = getFilteredRowModel();
+const paginationRowModel = getPaginationRowModel();
+const sortedRowModel = getSortedRowModel();
 
 // A generic faceted filter component.
 interface DataTableFacetedFilterProps<TData> {
@@ -319,36 +328,40 @@ export function DataTable<TData>({
   const [columnOrder, setColumnOrder] = React.useState<string[]>(() =>
     columns.map(c => c.id!).filter(Boolean)
   );
+
+  const tableState = React.useMemo(() => ({
+    sorting,
+    columnVisibility,
+    rowSelection,
+    columnFilters,
+    columnOrder,
+  }), [sorting, columnVisibility, rowSelection, columnFilters, columnOrder]);
+
+  const tableInitialState = React.useMemo(() => ({
+    pagination: {
+        pageSize: 20,
+    },
+  }), []);
   
   const table = useReactTable({
     data,
     columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-      columnOrder,
-    },
+    state: tableState,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onColumnOrderChange: setColumnOrder,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: paginationEnabled ? getPaginationRowModel() : undefined,
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
+    getCoreRowModel: coreRowModel,
+    getSortedRowModel: sortedRowModel,
+    getFilteredRowModel: filteredRowModel,
+    getPaginationRowModel: paginationEnabled ? paginationRowModel : undefined,
+    getFacetedRowModel: facetedRowModel,
+    getFacetedUniqueValues: facetedUniqueValues,
     columnResizeMode: "onChange",
     enableSorting: sortingEnabled,
     getRowId,
-    initialState: {
-        pagination: {
-            pageSize: 20,
-        },
-    },
+    initialState: tableInitialState,
   });
 
   React.useEffect(() => {
@@ -402,17 +415,6 @@ export function DataTable<TData>({
                   <TableRow 
                     key={headerGroup.id} 
                     className="hover:bg-card flex w-full"
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const draggedColumnId = e.dataTransfer.getData('text/plain');
-                      const targetColumnId = (e.target as HTMLElement).closest('th')?.dataset.columnId;
-                      if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
-                        table.setColumnOrder(
-                          (old) => reorderColumn(draggedColumnId, targetColumnId, old)
-                        );
-                      }
-                    }}
-                    onDragOver={(e) => e.preventDefault()}
                   >
                       {headerGroup.headers.map((header) => (
                         <TableHead 
@@ -420,19 +422,36 @@ export function DataTable<TData>({
                           colSpan={header.colSpan}
                           data-column-id={header.id}
                           style={{ width: header.getSize(), display: 'flex', flexShrink: 0 }}
-                          draggable
-                          onDragStart={(e) => {
-                             e.dataTransfer.setData('text/plain', header.id);
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const draggedColumnId = e.dataTransfer.getData('text/plain');
+                            const targetColumnId = header.id;
+                            if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
+                                table.setColumnOrder(
+                                    (old) => reorderColumn(draggedColumnId, targetColumnId, old)
+                                );
+                            }
                           }}
+                          onDragOver={(e) => e.preventDefault()}
                         >
                            <div className="flex items-center h-full w-full">
-                              <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden flex-grow">
+                              <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden">
                                 {header.isPlaceholder
                                   ? null
                                   : flexRender(
                                       header.column.columnDef.header,
                                       header.getContext()
                                     )}
+                              </div>
+                              <div
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('text/plain', header.id);
+                                  e.stopPropagation();
+                                }}
+                                className="cursor-grab p-1"
+                              >
+                                <MoreVertical className="h-4 w-4" />
                               </div>
                             </div>
                             {header.column.getCanResize() && (
@@ -459,7 +478,6 @@ export function DataTable<TData>({
                         <DropdownMenuTrigger asChild>
                           <TableRow
                             data-state={row.getIsSelected() && "selected"}
-                            onDoubleClick={() => setDialogRow(row.original)}
                             onContextMenu={(e) => { e.preventDefault(); }}
                             style={{
                               display: 'flex',

@@ -40,6 +40,7 @@ export default function Home() {
   const [isPending, startTransition] = React.useTransition();
   const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
 
+  const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
 
   const columns = React.useMemo<ColumnDef<Alarm>[]>(() => {
     const staticColumns: ColumnDef<Alarm>[] = [
@@ -379,12 +380,18 @@ export default function Home() {
                 data={data}
                 columns={columns}
                 onSelectedRowsChange={setSelectedRowIds}
-                getRowId={(row) => row.AlarmID}
+                getRowId={getRowId}
                 filterableColumns={filterableColumns}
                 initialColumnVisibility={initialColumnVisibility}
                 initialSorting={initialSorting}
                 renderRowContextMenu={(row) => (
-                    <DropdownMenuContent>
+                    <DropdownMenuContent
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDoubleClick={(e) => {
+                            e.preventDefault();
+                            setDialogRow(row);
+                        }}
+                    >
                         <DropdownMenuItem onClick={() => setDialogRow(row)}>
                             View Details
                         </DropdownMenuItem>
