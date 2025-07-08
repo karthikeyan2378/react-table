@@ -3,7 +3,6 @@
 
 import * as React from "react";
 import {
-  Column,
   ColumnDef,
   ColumnFiltersState,
   flexRender,
@@ -27,7 +26,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ChevronsUpDown,
-  EyeOff,
   Filter,
   MoreVertical,
   PlusCircle,
@@ -73,7 +71,6 @@ import {
   TableRow,
 } from "./ui/table";
 import { cn } from "../lib/utils";
-import { useToast } from "../hooks/use-toast";
 import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
@@ -101,7 +98,7 @@ const severityColors: Record<string, string> = {
 };
 
 interface DataTableFacetedFilterProps<TData, TValue> {
-  column?: Column<TData, TValue>;
+  column?: ReactTable<TData>['getColumn'];
   title?: string;
   options: {
     label: string;
@@ -259,7 +256,7 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
             return (
               <div key={col.id} className="flex items-center gap-1">
                 <DataTableFacetedFilter
-                  column={table.getColumn(col.id)}
+                  column={table.getColumn(col.id)!}
                   title={col.name}
                   options={fieldConfig.options}
                 />
@@ -307,67 +304,44 @@ const reorderColumn = (
   return newOrder;
 };
 
-const DataTableHeader = ({
-  header,
-  setColumnOrder,
-}: {
-  header: Header<Alarm, unknown>;
-  setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
-}) => {
-  const [draggedColumnId, setDraggedColumnId] = React.useState<string | null>(null);
-  const isDraggable = header.column.getCanResize();
+const DataTableHeader = ({ header }: { header: Header<Alarm, unknown> }) => {
+  if (!header.isPlaceholder) {
+    const {
+        attributes: { ...droppableAttributes },
+        listeners: droppableListeners,
+        setNodeRef: droppableRef,
+    } = { attributes: {}, listeners: {}, setNodeRef: () => {} };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
-    e.dataTransfer.setData('text/plain', header.column.id);
-    setDraggedColumnId(header.column.id);
-  };
+    const {
+        attributes: { ...draggableAttributes },
+        listeners: draggableListeners,
+        setNodeRef: draggableRef,
+    } = { attributes: {}, listeners: {}, setNodeRef: () => {} };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const draggedId = e.dataTransfer.getData('text/plain');
-    const targetId = header.column.id;
-    if (draggedId && draggedId !== targetId) {
-      setColumnOrder(currentOrder => {
-        return reorderColumn(draggedId, targetId, currentOrder);
-      });
-    }
-    setDraggedColumnId(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedColumnId(null);
-  };
-
-  return (
-    <TableHead
-      colSpan={header.colSpan}
-      style={{ width: header.getSize(), flexShrink: 0 }}
-      className={cn("p-0 h-12", draggedColumnId === header.id ? "opacity-50" : "")}
-    >
-      <div 
-        className={cn("flex items-center h-full select-none", isDraggable && "cursor-grab")}
-        draggable={isDraggable}
-        onDragStart={handleDragStart}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
-        onDragEnd={handleDragEnd}
+    return (
+      <TableHead
+        colSpan={header.colSpan}
+        style={{ width: header.getSize(), flexShrink: 0 }}
       >
-        <div className="flex items-center gap-2 pl-4 pr-1 py-3.5 h-full overflow-hidden">
-          {flexRender(header.column.columnDef.header, header.getContext())}
+        <div className="flex items-center h-full select-none">
+          <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden w-full">
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </div>
+          {header.column.getCanResize() && (
+            <div
+              onMouseDown={header.getResizeHandler()}
+              onTouchStart={header.getResizeHandler()}
+              className={cn(
+                "h-full w-1.5 cursor-col-resize select-none touch-none",
+                header.column.getIsResizing() ? "bg-primary" : ""
+              )}
+            />
+          )}
         </div>
-        {header.column.getCanResize() && (
-          <div
-            onMouseDown={header.getResizeHandler()}
-            onTouchStart={header.getResizeHandler()}
-            className={cn(
-              "h-full w-1.5 cursor-col-resize select-none touch-none",
-              header.column.getIsResizing() ? "bg-primary" : ""
-            )}
-          />
-        )}
-      </div>
-    </TableHead>
-  );
+      </TableHead>
+    );
+  }
+  return <TableHead colSpan={header.colSpan} style={{ width: header.getSize() }} />;
 };
 
 
@@ -378,8 +352,6 @@ interface DataTableProps {
 }
 
 export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTableProps) {
-  const { toast } = useToast();
-  
   const initialSorting = React.useMemo(() => {
     const descendingCol = Object.entries(alarmConfig.fields).find(([,config]) => config.sortOrder === 'DESCENDING');
     return descendingCol ? [{ id: descendingCol[0], desc: true }] : [];
@@ -400,31 +372,9 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
   const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
-  const [contextMenu, setContextMenu] = React.useState<{
-    visible: boolean;
-    x: number;
-    y: number;
-    row: Alarm | null;
-  }>({ visible: false, x: 0, y: 0, row: null });
-
-  const menuRef = React.useRef<HTMLDivElement>(null);
 
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
   const [sortingEnabled, setSortingEnabled] = React.useState(true);
-  
-  React.useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setContextMenu((prev) => ({ ...prev, visible: false, row: null }));
-      }
-    };
-    if (contextMenu.visible) {
-      document.addEventListener("click", handleOutsideClick);
-    }
-    return () => {
-      document.removeEventListener("click", handleOutsideClick);
-    };
-  }, [contextMenu.visible]);
   
   const columns = React.useMemo<ColumnDef<Alarm>[]>(() => {
     const staticColumns: ColumnDef<Alarm>[] = [
@@ -484,53 +434,78 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         enableHiding: false,
         enableResizing: false,
         size: 60,
+        minSize: 60,
       },
     ];
 
     const dynamicColumns = Object.entries(alarmConfig.fields).map(([key, config]) => {
       const columnDef: ColumnDef<Alarm> = {
         accessorKey: key,
-        header: ({ column }) => (
-          <div className="flex items-center justify-between w-full h-full">
-            <span className="font-semibold text-foreground truncate">{config.label}</span>
-            <div className="flex items-center">
-              {column.getCanSort() && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 p-0 hover:bg-transparent"
-                  onClick={() => sortingEnabled && column.toggleSorting(column.getIsSorted() === 'asc')}
-                >
-                  {column.getIsSorted() === 'desc' ? (
-                    <ArrowDown className="h-4 w-4" />
-                  ) : column.getIsSorted() === 'asc' ? (
-                    <ArrowUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
+        header: ({ header, column, table }) => {
+            const { setColumnOrder } = table.options.meta as {
+                setColumnOrder: React.Dispatch<React.SetStateAction<string[]>>;
+            };
+
+            const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+                const draggedId = e.dataTransfer.getData('text/plain');
+                const targetId = column.id;
+                if (draggedId && draggedId !== targetId) {
+                    setColumnOrder(currentOrder => reorderColumn(draggedId, targetId, currentOrder));
+                }
+            };
+            
+            return (
+              <div 
+                className="flex items-center justify-between w-full h-full"
+                onDrop={handleDrop}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                <span className="font-semibold text-foreground truncate">{config.label}</span>
+                <div className="flex items-center">
+                  {column.getCanSort() && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 p-0 hover:bg-transparent"
+                      onClick={() => sortingEnabled && column.toggleSorting(column.getIsSorted() === 'asc')}
+                    >
+                      {column.getIsSorted() === 'desc' ? (
+                        <ArrowDown className="h-4 w-4" />
+                      ) : column.getIsSorted() === 'asc' ? (
+                        <ArrowUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
+                      )}
+                    </Button>
                   )}
-                </Button>
-              )}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-transparent">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {column.getIsSorted() && (
-                    <DropdownMenuItem onClick={() => column.clearSorting()}>
-                       <X className="mr-2 h-4 w-4 text-muted-foreground" />
-                       Clear Sort
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-                    <EyeOff className="mr-2 h-4 w-4 text-muted-foreground" /> Hide Column
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        ),
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 p-0 hover:bg-transparent cursor-grab"
+                        draggable="true"
+                        onDragStart={(e) => {
+                            e.dataTransfer.setData('text/plain', column.id);
+                            e.stopPropagation();
+                        }}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {column.getIsSorted() && (
+                        <DropdownMenuItem onClick={() => column.clearSorting()}>
+                           <X className="mr-2 h-4 w-4 text-muted-foreground" />
+                           Clear Sort
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            )
+        },
         cell: ({ row }) => {
           const value = row.getValue(key) as any;
           
@@ -567,6 +542,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
           );
         },
         size: config.columnSize || 150,
+        minSize: 75,
         filterFn: (row, id, filterValue) => {
           if (config.columnType === 'categorical') {
             return (filterValue as any[]).includes(row.getValue(id));
@@ -580,7 +556,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     return [...staticColumns, ...dynamicColumns];
   }, [sortingEnabled]);
   
-  const [columnOrder, setColumnOrder] = React.useState<string[]>(() => columns.map(c => c.id!));
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(() => columns.map(c => c.id!).filter(Boolean));
   
   const table = useReactTable({
     data,
@@ -605,6 +581,9 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     getFacetedUniqueValues: getFacetedUniqueValues(),
     columnResizeMode: "onChange",
     enableSorting: sortingEnabled,
+    meta: {
+        setColumnOrder,
+    },
     initialState: {
       pagination: {
         pageSize: 20,
@@ -668,7 +647,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                         <DataTableHeader 
                           key={header.id} 
                           header={header}
-                          setColumnOrder={setColumnOrder}
                         />
                       ))}
                   </TableRow>
@@ -683,10 +661,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                           key={row.id}
                           data-state={row.getIsSelected() && "selected"}
                           onDoubleClick={() => setDialogRow(row.original)}
-                          onContextMenu={(e) => {
-                            e.preventDefault();
-                            setContextMenu({ visible: true, x: e.clientX, y: e.clientY, row: row.original });
-                          }}
                           style={{
                             display: 'flex',
                             position: 'absolute',
@@ -748,47 +722,6 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
           </div>
         )}
 
-        {contextMenu.visible && contextMenu.row && (
-          <div
-            ref={menuRef}
-            style={{ top: contextMenu.y, left: contextMenu.x }}
-            className="fixed z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
-          >
-            <div className="px-2 py-1.5 text-sm font-semibold">
-              Actions for Alarm ID: {contextMenu.row.AlarmID}
-            </div>
-            <Separator className="my-1" />
-            <button
-              className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
-              onClick={() => {
-                navigator.clipboard.writeText(String(contextMenu.row?.AlarmID));
-                toast({ title: "Copied!", description: `Alarm ID ${contextMenu.row?.AlarmID} copied.` });
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-            >
-              Copy Alarm ID
-            </button>
-            <button
-              className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
-              onClick={() => {
-                setDialogRow(contextMenu.row);
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-            >
-              View details
-            </button>
-            <button
-              className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm text-red-600 outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
-              onClick={() => {
-                deleteRow([contextMenu.row!.AlarmID]);
-                setContextMenu({ ...contextMenu, visible: false });
-              }}
-            >
-              Delete row
-            </button>
-          </div>
-        )}
-        
         <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
