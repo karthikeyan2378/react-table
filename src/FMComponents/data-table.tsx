@@ -407,10 +407,10 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     const dynamicColumns = Object.entries(alarmConfig.fields).map(([key, config]) => {
       const columnDef: ColumnDef<Alarm> = {
         accessorKey: key,
-        header: ({ header, column, table }) => {
+        header: ({ column, table }) => {
             return (
               <div 
-                draggable={table.getState().columnOrder.includes(column.id)}
+                draggable={!!column.accessorKey}
                 onDragStart={(e) => {
                   e.dataTransfer.setData('text/plain', column.id);
                 }}
@@ -424,7 +424,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                 onDragOver={(e) => e.preventDefault()}
                 className="flex items-center justify-between w-full h-full cursor-move"
               >
-                <span className="font-semibold text-foreground truncate">{config.label}</span>
+                <span className="font-semibold text-foreground">{config.label}</span>
                 <div className="flex items-center">
                   {column.getCanSort() && (
                     <Button
@@ -487,7 +487,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
           );
         },
         size: config.columnSize || 150,
-        minSize: 75,
+        minSize: 120,
         filterFn: (row, id, filterValue) => {
           if (config.columnType === 'categorical') {
             return (filterValue as any[]).includes(row.getValue(id));
@@ -501,7 +501,8 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     return [...staticColumns, ...dynamicColumns];
   }, [sortingEnabled]);
   
-  const [columnOrder, setColumnOrder] = React.useState<string[]>(() => columns.map(c => c.id!).filter(Boolean));
+  const initialColumnOrder = React.useMemo(() => ['select', ...Object.keys(alarmConfig.fields)], []);
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(initialColumnOrder);
   
   const table = useReactTable({
     data,
@@ -584,7 +585,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
               <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'hsl(var(--card))' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} className="hover:bg-card" style={{ display: 'flex', width: '100%'}}>
+                  <TableRow key={headerGroup.id} className="hover:bg-card flex w-full">
                       {headerGroup.headers.map((header) => (
                         <TableHead 
                           key={header.id} 
