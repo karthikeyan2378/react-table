@@ -26,6 +26,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ChevronsUpDown,
   EyeOff,
   Filter,
   MoreVertical,
@@ -319,7 +320,7 @@ const DataTableHeader = ({
   const { getState, setColumnOrder } = table;
   const { columnOrder } = getState();
 
-  const isDraggable = header.column.id !== 'select' && header.column.getCanPin && header.column.getCanPin();
+  const isDraggable = header.column.id !== 'select';
 
   const onDrop = (e: React.DragEvent<HTMLTableHeadElement>) => {
     e.preventDefault();
@@ -499,35 +500,44 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
       const columnDef: ColumnDef<Alarm> = {
         accessorKey: key,
         header: ({ column }) => (
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-between w-full h-full">
             <span className="font-semibold text-foreground truncate">{config.label}</span>
-            {column.getCanSort() && (
+            <div className="flex items-center">
+              {column.getCanSort() && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 p-0"
+                  onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                >
+                  {column.getIsSorted() === 'desc' ? (
+                    <ArrowDown className="h-4 w-4" />
+                  ) : column.getIsSorted() === 'asc' ? (
+                    <ArrowUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
+                  )}
+                </Button>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-transparent">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 p-0 hover:bg-transparent">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-                    <ArrowUp className="mr-2 h-4 w-4 text-muted-foreground" /> Sort Asc
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-                    <ArrowDown className="mr-2 h-4 w-4 text-muted-foreground" /> Sort Desc
-                  </DropdownMenuItem>
-                   {column.getIsSorted() && (
+                  {column.getIsSorted() && (
                     <DropdownMenuItem onClick={() => column.clearSorting()}>
                        <X className="mr-2 h-4 w-4 text-muted-foreground" />
                        Clear Sort
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
                     <EyeOff className="mr-2 h-4 w-4 text-muted-foreground" /> Hide Column
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            )}
+            </div>
           </div>
         ),
         cell: ({ row }) => {
@@ -664,7 +674,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             <Table style={{ width: table.getCenterTotalSize(), display: 'grid' }}>
               <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'hsl(var(--card))' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} style={{ display: 'flex', width: '100%'}}>
+                  <TableRow key={headerGroup.id} className="hover:bg-card" style={{ display: 'flex', width: '100%'}}>
                       {headerGroup.headers.map((header) => (
                         <DataTableHeader 
                           key={header.id} 
