@@ -19,26 +19,18 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import {
-  ArrowDown,
-  ArrowUp,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  ChevronsUpDown,
   Filter,
   PlusCircle,
-  SlidersHorizontal,
   X,
-  MoreVertical,
 } from "lucide-react";
-import { format } from "date-fns";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
-import { type Alarm, alarmConfig } from "../config/alarm-config";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -48,12 +40,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 import { Input } from "./ui/input";
 import {
   Select,
@@ -84,20 +70,8 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 
-
-const filterableColumns = Object.entries(alarmConfig.fields)
-  .map(([id, { label }]) => ({ id, name: label }));
-
-const severityColors: Record<string, string> = {
-  Critical: "bg-red-500",
-  Major: "bg-orange-500",
-  Minor: "bg-yellow-500",
-  Warning: "bg-blue-500",
-  Indeterminate: "bg-gray-500",
-  Cleared: "bg-green-500",
-};
-
-interface DataTableFacetedFilterProps<TData, TValue> {
+// A generic faceted filter component.
+interface DataTableFacetedFilterProps<TData> {
   column?: ReactTable<TData>['getColumn'];
   title?: string;
   options: {
@@ -106,11 +80,11 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   }[];
 }
 
-function DataTableFacetedFilter<TData, TValue>({
+function DataTableFacetedFilter<TData>({
   column,
   title,
   options,
-}: DataTableFacetedFilterProps<TData, TValue>) {
+}: DataTableFacetedFilterProps<TData>) {
   const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
 
   return (
@@ -178,7 +152,20 @@ function DataTableFacetedFilter<TData, TValue>({
   );
 }
 
-function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
+// A generic toolbar that receives filterable column definitions as props.
+interface FilterableColumn {
+    id: string;
+    name: string;
+    type: 'text' | 'categorical';
+    options?: { label: string; value: string }[];
+}
+
+interface DataTableToolbarProps<TData> {
+  table: ReactTable<TData>;
+  filterableColumns: FilterableColumn[];
+}
+
+function DataTableToolbar<TData>({ table, filterableColumns }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
 
@@ -191,15 +178,8 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
     }
   };
 
-  const textFilterColumns = filterableColumns.filter(col => {
-    const fieldConfig = alarmConfig.fields[col.id as keyof typeof alarmConfig.fields];
-    return fieldConfig && fieldConfig.columnType !== 'categorical';
-  });
-
-  const categoricalFilterColumns = filterableColumns.filter(col => {
-    const fieldConfig = alarmConfig.fields[col.id as keyof typeof alarmConfig.fields];
-    return fieldConfig && fieldConfig.columnType === 'categorical';
-  });
+  const textFilterColumns = filterableColumns.filter(col => col.type === 'text');
+  const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
     <div className="flex items-center justify-between">
@@ -251,14 +231,13 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
         })}
 
         {categoricalFilterColumns.map(col => {
-          const fieldConfig = alarmConfig.fields[col.id as keyof typeof alarmConfig.fields];
-          if (activeFilters.includes(col.id) && table.getColumn(col.id) && fieldConfig?.options) {
+          if (activeFilters.includes(col.id) && table.getColumn(col.id) && col.options) {
             return (
               <div key={col.id} className="flex items-center gap-1">
                 <DataTableFacetedFilter
                   column={table.getColumn(col.id)!}
                   title={col.name}
-                  options={fieldConfig.options}
+                  options={col.options}
                 />
                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
                   <X className="h-4 w-4" />
@@ -287,6 +266,7 @@ function DataTableToolbar<TData>({ table }: { table: ReactTable<TData> }) {
   );
 }
 
+// A pure helper function for reordering columns in an array.
 const reorderColumn = (
   draggedColumnId: string,
   targetColumnId: string,
@@ -304,219 +284,41 @@ const reorderColumn = (
   return newColumnOrder;
 };
 
-interface DataTableProps {
-  data: Alarm[];
-  deleteRow: (rowIds: string[]) => void;
+// Generic DataTable component props.
+interface DataTableProps<TData> {
+  data: TData[];
+  columns: ColumnDef<TData>[];
+  getRowId: (row: TData) => string;
   onSelectedRowsChange: (rowIds: string[]) => void;
+  renderRowContextMenu?: (row: TData) => React.ReactNode;
+  filterableColumns?: FilterableColumn[];
+  initialColumnVisibility?: VisibilityState;
+  initialSorting?: SortingState;
 }
 
-export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTableProps) {
-  const initialSorting = React.useMemo(() => {
-    const descendingCol = Object.entries(alarmConfig.fields).find(([,config]) => config.sortOrder === 'DESCENDING');
-    return descendingCol ? [{ id: descendingCol[0], desc: true }] : [];
-  }, []);
-
+// The generic DataTable component.
+export function DataTable<TData>({
+  data,
+  columns,
+  getRowId,
+  onSelectedRowsChange,
+  renderRowContextMenu,
+  filterableColumns = [],
+  initialColumnVisibility = {},
+  initialSorting = [],
+}: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  
-  const initialVisibility = React.useMemo(() => {
-    return Object.entries(alarmConfig.fields)
-      .filter(([, config]) => config.isColumnToHide)
-      .reduce((acc, [key]) => {
-        acc[key] = false;
-        return acc;
-      }, {} as VisibilityState);
-  }, []);
-  
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialVisibility);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
-  const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
+  const [dialogRow, setDialogRow] = React.useState<TData | null>(null);
 
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
   const [sortingEnabled, setSortingEnabled] = React.useState(true);
   
-  const columns = React.useMemo<ColumnDef<Alarm>[]>(() => {
-    const staticColumns: ColumnDef<Alarm>[] = [
-      {
-        id: "select",
-        header: ({ table }) => (
-            <div className="flex items-center justify-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 hover:bg-transparent">
-                    <SlidersHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[200px]">
-                   <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
-                   <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem
-                        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    >
-                      Select/Deselect All
-                    </DropdownMenuCheckboxItem>
-                    {table.getState().sorting.length > 0 && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => table.resetSorting(true)}>
-                          Clear All Sorts
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {table
-                        .getAllColumns()
-                        .filter(
-                            (column) =>
-                            typeof column.accessorFn !== "undefined" && column.getCanHide()
-                        )
-                        .map((column) => {
-                            const config = alarmConfig.fields[column.id as keyof typeof alarmConfig.fields];
-                            return (
-                            <DropdownMenuCheckboxItem
-                                key={column.id}
-                                className="capitalize"
-                                checked={column.getIsVisible()}
-                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                            >
-                                {config?.label || column.id}
-                            </DropdownMenuCheckboxItem>
-                            );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        enableResizing: false,
-        size: 60,
-        minSize: 60,
-      },
-    ];
-
-    const dynamicColumns = Object.entries(alarmConfig.fields).map(([key, config]) => {
-      const columnDef: ColumnDef<Alarm> = {
-        accessorKey: key,
-        header: ({ column, table }) => {
-            return (
-              <div 
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const draggedColumnId = e.dataTransfer.getData('text/plain');
-                  const targetColumnId = column.id;
-                  if (draggedColumnId && draggedColumnId !== targetColumnId) {
-                    table.setColumnOrder(
-                      (old) => reorderColumn(draggedColumnId, targetColumnId, old)
-                    );
-                  }
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                }}
-                className="flex items-center justify-between w-full h-full"
-              >
-                <div className="flex items-center gap-2">
-                    <div
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData('text/plain', column.id);
-                        e.stopPropagation();
-                      }}
-                      className="cursor-move"
-                    >
-                      <MoreVertical className="h-4 w-4 text-muted-foreground/70" />
-                    </div>
-                  <span className="font-semibold text-foreground">{config.label}</span>
-                </div>
-                <div className="flex items-center">
-                  {column.getCanSort() && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 p-0 hover:bg-transparent"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if(sortingEnabled) {
-                          column.toggleSorting(column.getIsSorted() === 'asc');
-                        }
-                      }}
-                    >
-                      {column.getIsSorted() === 'desc' ? (
-                        <ArrowDown className="h-4 w-4" />
-                      ) : column.getIsSorted() === 'asc' ? (
-                        <ArrowUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )
-        },
-        cell: ({ row }) => {
-          const value = row.getValue(key) as any;
-          
-          if (config.columnType === 'dateTime' && value instanceof Date) {
-            try {
-                const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
-                return (
-                  <Tooltip>
-                    <TooltipTrigger asChild><span className="block truncate">{format(value, formatString)}</span></TooltipTrigger>
-                    <TooltipContent><p>{format(value, formatString)}</p></TooltipContent>
-                  </Tooltip>
-                );
-            } catch (e) {
-                return <span className="block truncate text-red-500">Invalid Date</span>
-            }
-          }
-          
-          if (key === 'Severity') {
-            return (
-              <Tooltip>
-                <TooltipTrigger>
-                  <Badge className={cn("capitalize text-white", severityColors[value] || 'bg-gray-400')}>{value}</Badge>
-                </TooltipTrigger>
-                <TooltipContent><p>Severity: {value}</p></TooltipContent>
-              </Tooltip>
-            );
-          }
-
-          return (
-             <Tooltip>
-                <TooltipTrigger asChild><span className="block truncate">{String(value ?? '')}</span></TooltipTrigger>
-                <TooltipContent><p>{String(value ?? '')}</p></TooltipContent>
-              </Tooltip>
-          );
-        },
-        size: config.columnSize || 150,
-        minSize: 120,
-        filterFn: (row, id, filterValue) => {
-          if (config.columnType === 'categorical') {
-            return (filterValue as any[]).includes(row.getValue(id));
-          }
-          return String(row.getValue(id)).toLowerCase().includes(String(filterValue).toLowerCase());
-        }
-      };
-      return columnDef;
-    });
-
-    return [...staticColumns, ...dynamicColumns];
-  }, [sortingEnabled]);
-  
-  const initialColumnOrder = React.useMemo(() => ['select', ...Object.keys(alarmConfig.fields)], []);
-  const [columnOrder, setColumnOrder] = React.useState<string[]>(initialColumnOrder);
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(() =>
+    columns.map(c => c.id!).filter(Boolean)
+  );
   
   const table = useReactTable({
     data,
@@ -541,19 +343,19 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     getFacetedUniqueValues: getFacetedUniqueValues(),
     columnResizeMode: "onChange",
     enableSorting: sortingEnabled,
+    getRowId,
     initialState: {
-      pagination: {
-        pageSize: 20,
-      },
+        pagination: {
+            pageSize: 20,
+        },
     },
-    getRowId: (row) => row.AlarmID,
   });
 
   React.useEffect(() => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedIds = selectedRows.map(row => row.original.AlarmID);
+    const selectedIds = selectedRows.map(row => getRowId(row.original));
     onSelectedRowsChange(selectedIds);
-  }, [rowSelection, onSelectedRowsChange, table]);
+  }, [rowSelection, onSelectedRowsChange, table, getRowId]);
 
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const { rows } = table.getRowModel();
@@ -565,21 +367,9 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
     overscan: 10,
   });
 
-  const renderContextMenu = (row: Alarm) => (
-    <DropdownMenuContent>
-      <DropdownMenuItem onClick={() => setDialogRow(row)}>
-        View Details
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.AlarmID)}>
-        Copy Alarm ID
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  );
-
   return (
-    <TooltipProvider>
       <div className="space-y-4">
-        <DataTableToolbar table={table} />
+        <DataTableToolbar table={table} filterableColumns={filterableColumns} />
 
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center space-x-2">
@@ -609,14 +399,33 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
               <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'hsl(var(--card))' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id} className="hover:bg-card flex w-full">
+                  <TableRow 
+                    key={headerGroup.id} 
+                    className="hover:bg-card flex w-full"
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const draggedColumnId = e.dataTransfer.getData('text/plain');
+                      const targetColumnId = (e.target as HTMLElement).closest('th')?.dataset.columnId;
+                      if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
+                        table.setColumnOrder(
+                          (old) => reorderColumn(draggedColumnId, targetColumnId, old)
+                        );
+                      }
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                  >
                       {headerGroup.headers.map((header) => (
                         <TableHead 
                           key={header.id} 
                           colSpan={header.colSpan}
-                          style={{ width: header.getSize(), display: 'flex' }}
+                          data-column-id={header.id}
+                          style={{ width: header.getSize(), display: 'flex', flexShrink: 0 }}
+                          draggable
+                          onDragStart={(e) => {
+                             e.dataTransfer.setData('text/plain', header.id);
+                          }}
                         >
-                           <div className="flex items-center h-full w-full flex-grow">
+                           <div className="flex items-center h-full w-full">
                               <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden flex-grow">
                                 {header.isPlaceholder
                                   ? null
@@ -669,7 +478,7 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
                             ))}
                           </TableRow>
                         </DropdownMenuTrigger>
-                        {renderContextMenu(row.original)}
+                        {renderRowContextMenu && renderRowContextMenu(row.original)}
                       </DropdownMenu>
                     )
                   })
@@ -719,8 +528,8 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
         <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Alarm Details</AlertDialogTitle>
-              <AlertDialogDescription>Viewing full data for Alarm ID: {dialogRow?.AlarmID}</AlertDialogDescription>
+              <AlertDialogTitle>Item Details</AlertDialogTitle>
+              <AlertDialogDescription>Viewing full data for the selected item.</AlertDialogDescription>
             </AlertDialogHeader>
             <div className="max-h-96 overflow-y-auto rounded-md border bg-muted p-4">
               <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
@@ -731,6 +540,5 @@ export function DataTable({ data, deleteRow, onSelectedRowsChange }: DataTablePr
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </TooltipProvider>
   );
 }

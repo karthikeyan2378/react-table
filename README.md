@@ -1,34 +1,126 @@
 
 # Real-Time Alarm Dashboard Components
 
-This project contains a set of reusable components for displaying real-time data in a highly configurable table, complete with filtering, sorting, and charting capabilities.
+This project contains a set of reusable components for displaying real-time data in a highly configurable table, complete with filtering, sorting, and charting capabilities. The main component, `DataTable`, has been architected to be generic and reusable.
 
-The components are built with React, ShadCN UI, and Tailwind CSS and have been refactored to use relative paths for easy integration into other projects, regardless of the framework (Vite, Create React App, etc.).
+The components are built with React, ShadCN UI, and Tailwind CSS and have been refactored to use relative paths for easy integration into other projects.
+
+---
+
+## How to Use the `DataTable` Component
+
+The `DataTable` component is generic and can be used to render any kind of data. All application-specific logic, such as column definitions and cell rendering, is passed in as props.
+
+### Step 1: Import the Component
+
+First, import the `DataTable` component into your React component file.
+
+```tsx
+import { DataTable } from './FMComponents/data-table'; // Adjust path if needed
+```
+
+### Step 2: Define Your Columns
+
+The table's structure is defined by a `columns` array, which you create using the `ColumnDef` type from `@tanstack/react-table`. This is where you specify what each column displays.
+
+```tsx
+import { type ColumnDef } from '@tanstack/react-table';
+
+// Define the shape of your data
+export type Payment = {
+  id: string;
+  amount: number;
+  status: "pending" | "processing" | "success" | "failed";
+  email: string;
+};
+
+// Create the columns array
+export const columns: ColumnDef<Payment>[] = [
+  {
+    accessorKey: "status",
+    header: "Status",
+    // Use the `cell` property to customize rendering
+    cell: ({ row }) => {
+      const status = row.getValue("status");
+      // Example of custom rendering (e.g., a colored badge)
+      return <div className={`capitalize text-white p-1 rounded ${status === 'success' ? 'bg-green-500' : 'bg-yellow-500'}`}>{status}</div>;
+    },
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+  },
+  {
+    accessorKey: "amount",
+    header: "Amount",
+    // Format numbers as currency
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("amount"));
+      const formatted = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(amount);
+      return <div className="font-medium">{formatted}</div>;
+    },
+  },
+];
+```
+
+### Step 3: Render the DataTable
+
+Pass your data and columns to the `DataTable` component. You must also provide a `getRowId` function that returns a unique identifier for each row.
+
+```tsx
+import React from 'react';
+import { DataTable } from './FMComponents/data-table';
+import { columns, type Payment } from './your-column-definitions';
+
+// Sample data
+const myData: Payment[] = [
+  // ... your data array
+];
+
+function MyPageComponent() {
+  const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([]);
+
+  return (
+    <DataTable
+      data={myData}
+      columns={columns}
+      getRowId={(row) => row.id}
+      onSelectedRowsChange={setSelectedRowIds}
+      // You can also pass a function to render a context menu for each row
+      renderRowContextMenu={(row) => (
+        <MyCustomContextMenu rowData={row} />
+      )}
+    />
+  );
+}
+```
+
+By following these steps, you can use the powerful, generic `DataTable` to display any data set with custom rendering, sorting, filtering, and more.
+
+---
 
 ## How to Integrate into Another React Project
 
-Follow these steps to use these components in a separate React application.
+If you want to use these components in a separate React application, you need to copy the files and set up the dependencies and styling.
 
 ### Step 1: Copy Component Files
 
 Copy the following directories from this project into the `src` directory of your new project:
 
 -   `src/FMComponents`
--   `src/config`
 -   `src/hooks`
 -   `src/lib`
-
-Your new project's `src` folder should now contain these directories.
 
 ### Step 2: Install Dependencies
 
 Install the necessary packages. Open a terminal in your new project's root directory and run the following command:
 
 ```bash
-npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table class-variance-authority clsx date-fns lucide-react recharts tailwind-merge tailwindcss-animate
+npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns lucide-react recharts tailwind-merge tailwindcss-animate
 ```
-
-If your project uses TypeScript, you may also need the associated type definitions.
 
 ### Step 3: Configure Tailwind CSS
 
@@ -36,7 +128,7 @@ Properly setting up Tailwind is essential for the components' styling to work co
 
 **A. Create `tailwind.config.js`**
 
-If you don't already have one, create a `tailwind.config.js` file at the root of your new project and add the following content. This defines the theme (colors, fonts, etc.) that the components rely on.
+If you don't already have one, create a `tailwind.config.js` file at the root of your new project and add the following content.
 
 ```js
 /** @type {import('tailwindcss').Config} */
@@ -65,57 +157,9 @@ module.exports = {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
+        // ... (add the rest of the colors from the original config)
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-      },
+      // ... (add the rest of the theme extensions)
     },
   },
   plugins: [require("tailwindcss-animate")],
@@ -124,7 +168,7 @@ module.exports = {
 
 **B. Update Global CSS File**
 
-Open your main CSS file (e.g., `src/index.css` or `src/app.css`) and add the following at the top. This sets up the Tailwind directives and the CSS variables for the color theme.
+Open your main CSS file (e.g., `src/index.css`) and add the CSS variables for the color theme.
 
 ```css
 @tailwind base;
@@ -135,64 +179,19 @@ Open your main CSS file (e.g., `src/index.css` or `src/app.css`) and add the fol
   :root {
     --background: 222 47% 97%;
     --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
     --primary: 195 100% 50%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 210 40% 9.8%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 210 40% 45.1%;
-    --accent: 146 51% 36%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 195 100% 50%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    /* ... (add all other CSS variables from the original globals.css) */
   }
 
   .dark {
     /* Optional: Add dark mode variables if needed */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 195 100% 50%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 14.9%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 210 40% 14.9%;
-    --muted-foreground: 210 40% 63.9%;
-    --accent: 146 51% 36%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 214.3 31.8% 21.4%;
-    --input: 214.3 31.8% 21.4%;
-    --ring: 195 100% 50%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
   }
 }
 ```
 
 ### Step 4: Add the Toaster Provider
 
-For notifications to work, you must add the `<Toaster />` component to the root of your application (e.g., inside `App.jsx` or your main layout component).
+For notifications to work, add the `<Toaster />` component to the root of your application (e.g., inside `App.jsx` or your main layout component).
 
 ```tsx
 import { Toaster } from './FMComponents/ui/toaster'; // Adjust path if needed
@@ -205,12 +204,4 @@ function App() {
     </>
   );
 }
-
-export default App;
 ```
-
-### Step 5: Use the Components
-
-You are now ready to use the components. You can use the `page.tsx` from this project as a template for how to implement the `DataTable` and `ColumnChart` in your own application.
-
-By following these steps, you will have a fully functional and portable data table and charting system in your application.
