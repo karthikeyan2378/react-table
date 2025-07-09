@@ -5,6 +5,7 @@ const config = {
       label: 'Severity',
       isColumnToFreeze: true,
       isSummarizedColumn: true,
+      isFilterable: true,
       columnSize: 110,
       columnType: 'categorical',
       options: [
@@ -19,10 +20,12 @@ const config = {
     ObjectLabel: {
       label: 'Object Label',
       isColumnToFreeze: true,
+      isFilterable: true,
       columnSize: 200,
     },
     NELabel: {
       label: 'NE Label',
+      isFilterable: true,
       columnSize: 150,
     },
     AlarmIdentifier: {
@@ -32,6 +35,7 @@ const config = {
     AlarmName: {
       label: 'Alarm Name',
       isSummarizedColumn: true,
+      isFilterable: true,
       columnSize: 300,
       columnType: 'categorical',
       options: [
@@ -63,6 +67,7 @@ const config = {
     ObjectType: {
       label: 'Object Type',
       isSummarizedColumn: true,
+      isFilterable: true,
       columnSize: 150,
       columnType: 'categorical',
       options: [
@@ -133,6 +138,7 @@ const config = {
     },
     State: {
       label: 'State',
+      isFilterable: true,
       columnSize: 100,
       columnType: 'categorical',
       options: [
