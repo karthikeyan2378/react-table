@@ -37,6 +37,7 @@ import {
   Trash2,
   X,
   Sparkles,
+  Bot,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -177,7 +178,7 @@ export interface ToolbarVisibility {
   toggleSorting?: boolean;
   togglePagination?: boolean;
   toggleColumns?: boolean;
-  aiSummary?: boolean;
+  aiSearch?: boolean;
 }
 
 // A generic toolbar that receives filterable column definitions as props.
@@ -193,12 +194,48 @@ interface DataTableToolbarProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
-  onAiSummary?: () => void;
+  onAiSearch?: (query: string) => Promise<void>;
+  aiSearchIsLoading?: boolean;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
   onPaginationToggle: (enabled: boolean) => void;
   toolbarVisibility: ToolbarVisibility;
+}
+
+function AiSearch<TData>({ 
+    onAiSearch, 
+    isLoading 
+} : { 
+    onAiSearch?: (query: string) => Promise<void>, 
+    isLoading?: boolean 
+}) {
+    const [query, setQuery] = React.useState('');
+
+    const handleSearch = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (onAiSearch && query.trim()) {
+            await onAiSearch(query);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSearch} className="flex items-center gap-2">
+            <div className="relative flex items-center">
+                <Bot className="absolute left-2 h-4 w-4 text-gray-500" />
+                <Input
+                    placeholder="Filter with AI..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="h-8 w-[150px] lg:w-[250px] pl-8"
+                    disabled={isLoading}
+                />
+            </div>
+            <Button type="submit" size="sm" className="h-8" disabled={isLoading || !query.trim()}>
+                {isLoading ? 'Thinking...' : 'Search'}
+            </Button>
+        </form>
+    );
 }
 
 function DataTableToolbar<TData>({ 
@@ -213,7 +250,8 @@ function DataTableToolbar<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
-  onAiSummary,
+  onAiSearch,
+  aiSearchIsLoading,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -232,23 +270,33 @@ function DataTableToolbar<TData>({
        setActiveFilters((prev) => [...prev, columnId]);
     }
   };
+  
+  const clearAllFilters = () => {
+    table.resetColumnFilters();
+    onGlobalFilterChange("");
+    setActiveFilters([]);
+  };
 
   const textFilterColumns = filterableColumns.filter(col => col.type === 'text');
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
-    <div className="flex items-center justify-between gap-2 relative z-10">
+    <div className="flex items-center justify-between gap-2 relative z-10 flex-wrap">
       {/* Left side: Filters */}
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
-        <div className="relative flex items-center">
-            <Search className="absolute left-2 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search all columns..."
-              value={globalFilter ?? ""}
-              onChange={(event) => onGlobalFilterChange(event.target.value)}
-              className="h-8 w-[150px] lg:w-[250px] pl-8"
-            />
-        </div>
+        {toolbarVisibility.aiSearch !== false && onAiSearch ? (
+            <AiSearch onAiSearch={onAiSearch} isLoading={aiSearchIsLoading} />
+        ) : (
+            <div className="relative flex items-center">
+                <Search className="absolute left-2 h-4 w-4 text-gray-500" />
+                <Input
+                  placeholder="Search all columns..."
+                  value={globalFilter ?? ""}
+                  onChange={(event) => onGlobalFilterChange(event.target.value)}
+                  className="h-8 w-[150px] lg:w-[250px] pl-8"
+                />
+            </div>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
@@ -322,11 +370,7 @@ function DataTableToolbar<TData>({
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => {
-                          table.resetColumnFilters();
-                          onGlobalFilterChange("");
-                          setActiveFilters([]);
-                        }}
+                        onClick={clearAllFilters}
                         className="h-8 w-8"
                       >
                         <X className="h-4 w-4" />
@@ -343,18 +387,6 @@ function DataTableToolbar<TData>({
       {/* Right side: Actions & Settings */}
       <div className="flex items-center space-x-1">
         <TooltipProvider>
-          {toolbarVisibility.aiSummary !== false && onAiSummary && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8" onClick={onAiSummary}>
-                  <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
-                  AI Summary
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent><p>Generate AI Summary</p></TooltipContent>
-            </Tooltip>
-          )}
-
           {toolbarVisibility.addRow !== false && onAddRow && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -515,7 +547,8 @@ interface DataTableProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
-  onAiSummary?: () => void;
+  onAiSearch?: (query: string) => Promise<void>;
+  aiSearchIsLoading?: boolean;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -523,6 +556,8 @@ interface DataTableProps<TData> {
   initialRowsPerPage?: number;
   rowsPerPageOptions?: number[];
   toolbarVisibility?: ToolbarVisibility;
+  columnFilters: ColumnFiltersState;
+  onColumnFiltersChange: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
 }
 
 // The generic DataTable component.
@@ -547,7 +582,8 @@ export function DataTable<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
-  onAiSummary,
+  onAiSearch,
+  aiSearchIsLoading,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -555,9 +591,10 @@ export function DataTable<TData>({
   initialRowsPerPage = 20,
   rowsPerPageOptions = [10, 20, 50, 100, 500, 1000],
   toolbarVisibility = {},
+  columnFilters,
+  onColumnFiltersChange
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; row: TData } | null>(null);
@@ -604,7 +641,7 @@ export function DataTable<TData>({
     columns,
     state: tableState,
     onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: onColumnFiltersChange,
     onGlobalFilterChange: onGlobalFilterChange,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
@@ -680,12 +717,13 @@ export function DataTable<TData>({
           onExportCsv={onExportCsv}
           onExportXlsx={onExportXlsx}
           onExportPdf={onExportPdf}
-          onAiSummary={onAiSummary}
+          onAiSearch={onAiSearch}
+          aiSearchIsLoading={aiSearchIsLoading}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
           onPaginationToggle={setPaginationEnabled}
-          toolbarVisibility={{...toolbarVisibility, aiSummary: false}}
+          toolbarVisibility={toolbarVisibility}
         />
 
         <div 

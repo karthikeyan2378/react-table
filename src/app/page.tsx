@@ -10,7 +10,7 @@ import { Button } from '../FMComponents/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../FMComponents/ui/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { type Table as ReactTable, type Row } from '@tanstack/react-table';
+import { type Table as ReactTable, type Row, type ColumnFiltersState } from '@tanstack/react-table';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -25,6 +25,7 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
+import { generateFilter } from '../ai/flows/filter-flow';
 
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
@@ -43,6 +44,9 @@ export default function Home() {
   const [globalFilter, setGlobalFilter] = React.useState('');
   const [table, setTable] = React.useState<ReactTable<Alarm> | null>(null);
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [aiSearchIsLoading, setAiSearchIsLoading] = React.useState(false);
+
 
   const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
   
@@ -227,6 +231,28 @@ export default function Home() {
     doc.save('alarms.pdf');
   };
 
+  const handleAiSearch = async (query: string) => {
+    setAiSearchIsLoading(true);
+    try {
+        const filters = await generateFilter(query);
+        setGlobalFilter(''); // Clear global text search
+        setColumnFilters(filters); // Apply AI-generated filters
+        toast({
+            title: "AI Filter Applied",
+            description: "The table has been filtered based on your query.",
+        });
+    } catch (error) {
+        console.error("AI search failed:", error);
+        toast({
+            title: "AI Search Failed",
+            description: "Could not apply the filter. Please try a different query.",
+            variant: "destructive",
+        });
+    } finally {
+        setAiSearchIsLoading(false);
+    }
+  };
+
   if (!isClient) {
     return null;
   }
@@ -294,6 +320,8 @@ export default function Home() {
                 contextMenuItems={contextMenuItems}
                 globalFilter={globalFilter}
                 onGlobalFilterChange={setGlobalFilter}
+                columnFilters={columnFilters}
+                onColumnFiltersChange={setColumnFilters}
                 onTableReady={setTable}
                 onAddRow={addRow}
                 isStreaming={isStreaming}
@@ -302,12 +330,15 @@ export default function Home() {
                 onExportCsv={handleExportCsv}
                 onExportXlsx={handleExportXlsx}
                 onExportPdf={handleExportPdf}
+                onAiSearch={handleAiSearch}
+                aiSearchIsLoading={aiSearchIsLoading}
                 tableTitle="Live Alarm Feed"
                 tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
                 maxHeightWithPagination="60vh"
                 maxHeightWithoutPagination="80vh"
                 initialRowsPerPage={50}
                 rowsPerPageOptions={[20, 50, 100, 200, 500]}
+                toolbarVisibility={{ aiSearch: true }}
             />
         </div>
 
