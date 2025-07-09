@@ -28,7 +28,7 @@ import {
   FileSpreadsheet,
   FileText,
   Filter,
-  GripVertical,
+  MoreVertical,
   PlusCircle,
   Search,
   X,
@@ -605,7 +605,7 @@ export function DataTable<TData>({
                                   header.column.getIsResizing() ? "bg-blue-200" : "hover:bg-gray-200"
                                 )}
                               >
-                                <GripVertical className="h-4 w-4 text-gray-400" />
+                                <MoreVertical className="h-4 w-4 text-gray-400" />
                               </div>
                             )}
                         </TableHead>
