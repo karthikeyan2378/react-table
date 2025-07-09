@@ -177,7 +177,6 @@ export interface ToolbarVisibility {
   toggleSorting?: boolean;
   togglePagination?: boolean;
   toggleColumns?: boolean;
-  aiGenerateCode?: boolean;
 }
 
 // A generic toolbar that receives filterable column definitions as props.
@@ -193,7 +192,6 @@ interface DataTableToolbarProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
-  onAiGenerateCode?: () => void;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
@@ -213,7 +211,6 @@ function DataTableToolbar<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
-  onAiGenerateCode,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -377,17 +374,6 @@ function DataTableToolbar<TData>({
               <TooltipContent><p>Delete Selected</p></TooltipContent>
             </Tooltip>
           )}
-
-          {toolbarVisibility.aiGenerateCode !== false && onAiGenerateCode && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onAiGenerateCode} disabled={selectedRowCount === 0}>
-                  <Code className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent><p>AI Generate Code</p></TooltipContent>
-            </Tooltip>
-          )}
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
             <DropdownMenu>
@@ -516,7 +502,6 @@ interface DataTableProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
-  onAiGenerateCode?: () => void;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -550,7 +535,6 @@ export function DataTable<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
-  onAiGenerateCode,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -683,7 +667,6 @@ export function DataTable<TData>({
           onExportCsv={onExportCsv}
           onExportXlsx={onExportXlsx}
           onExportPdf={onExportPdf}
-          onAiGenerateCode={onAiGenerateCode}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}

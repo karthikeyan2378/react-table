@@ -25,8 +25,6 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
-import { generateCode } from '../ai/flows/code-generator-flow';
-import { AiCodeGeneratorModal } from '../FMComponents/ai-code-generator-modal';
 
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
@@ -46,7 +44,6 @@ export default function Home() {
   const [table, setTable] = React.useState<ReactTable<Alarm> | null>(null);
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [isAiModalOpen, setIsAiModalOpen] = React.useState(false);
 
 
   const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
@@ -233,21 +230,6 @@ export default function Home() {
     doc.save('alarms.pdf');
   };
 
-  const handleGenerateCode = async (prompt: string, data: any[]) => {
-    try {
-      const code = await generateCode({ prompt, data });
-      return code;
-    } catch (error) {
-      console.error("AI code generation failed:", error);
-      toast({
-        title: "AI Code Generation Failed",
-        description: "Could not generate code. Please try again.",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
   if (!isClient) {
     return null;
   }
@@ -325,14 +307,13 @@ export default function Home() {
                 onExportCsv={handleExportCsv}
                 onExportXlsx={handleExportXlsx}
                 onExportPdf={handleExportPdf}
-                onAiGenerateCode={() => setIsAiModalOpen(true)}
                 tableTitle="Live Alarm Feed"
                 tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
                 maxHeightWithPagination="60vh"
                 maxHeightWithoutPagination="80vh"
                 initialRowsPerPage={50}
                 rowsPerPageOptions={[20, 50, 100, 200, 500]}
-                toolbarVisibility={{ aiGenerateCode: true }}
+                toolbarVisibility={{}}
             />
         </div>
 
@@ -350,13 +331,6 @@ export default function Home() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-
-        <AiCodeGeneratorModal
-          isOpen={isAiModalOpen}
-          onClose={() => setIsAiModalOpen(false)}
-          selectedData={selectedRows}
-          onGenerate={handleGenerateCode}
-        />
 
       </main>
     </div>
