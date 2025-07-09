@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from "react";
@@ -61,6 +60,7 @@ import { cn } from "../lib/utils";
 import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
+import { Checkbox } from './ui/checkbox';
 
 // A generic faceted filter component.
 interface DataTableFacetedFilterProps<TData> {
@@ -158,7 +158,7 @@ interface DataTableToolbarProps<TData> {
 }
 
 function DataTableToolbar<TData>({ table, filterableColumns }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
+  const isFiltered = table.getState().columnFilters.length > 0 || !!table.getState().globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
 
   const handleFilterToggle = (columnId: string, isActive?: boolean) => {
@@ -176,6 +176,12 @@ function DataTableToolbar<TData>({ table, filterableColumns }: DataTableToolbarP
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
+        <Input
+          placeholder="Search all columns..."
+          value={(table.getState().globalFilter as string) ?? ""}
+          onChange={(event) => table.setGlobalFilter(event.target.value)}
+          className="h-8 w-[150px] lg:w-[250px]"
+        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
@@ -245,6 +251,7 @@ function DataTableToolbar<TData>({ table, filterableColumns }: DataTableToolbarP
             variant="ghost"
             onClick={() => {
               table.resetColumnFilters();
+              table.setGlobalFilter("");
               setActiveFilters([]);
             }}
             className="h-8 px-2 lg:px-3"
@@ -303,6 +310,7 @@ export function DataTable<TData>({
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; row: TData } | null>(null);
@@ -311,7 +319,7 @@ export function DataTable<TData>({
   const [sortingEnabled, setSortingEnabled] = React.useState(true);
   
   const [columnOrder, setColumnOrder] = React.useState<string[]>(() =>
-    columns.map(c => c.id!).filter(Boolean)
+    columns.map(c => (c.id ?? (c as any).accessorKey)!).filter(Boolean)
   );
   
   const [isDragging, setIsDragging] = React.useState(false);
@@ -335,7 +343,8 @@ export function DataTable<TData>({
     rowSelection,
     columnFilters,
     columnOrder,
-  }), [sorting, columnVisibility, rowSelection, columnFilters, columnOrder]);
+    globalFilter,
+  }), [sorting, columnVisibility, rowSelection, columnFilters, columnOrder, globalFilter]);
 
   const tableInitialState = React.useMemo(() => ({
     pagination: {
@@ -349,6 +358,7 @@ export function DataTable<TData>({
     state: tableState,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onColumnOrderChange: setColumnOrder,
@@ -619,3 +629,5 @@ export function DataTable<TData>({
       </div>
   );
 }
+
+    
