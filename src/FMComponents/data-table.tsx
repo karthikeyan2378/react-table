@@ -685,7 +685,7 @@ export function DataTable<TData>({
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
           onPaginationToggle={setPaginationEnabled}
-          toolbarVisibility={toolbarVisibility}
+          toolbarVisibility={{...toolbarVisibility, aiSummary: false}}
         />
 
         <div 
