@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { makeData, newAlarm } from '../lib/data';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { DataTable } from '../FMComponents/data-table';
+import { DataTable, type ContextMenuItem } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { Button } from '../FMComponents/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../FMComponents/ui/dropdown-menu';
@@ -145,6 +145,17 @@ export default function Home() {
     return descendingCol ? [{ id: descendingCol[0], desc: true }] : [];
   }, []);
 
+  const contextMenuItems: ContextMenuItem<Alarm>[] = React.useMemo(() => [
+    {
+      label: 'View Details',
+      onClick: (row) => setDialogRow(row),
+    },
+    {
+      label: 'Copy Alarm ID',
+      onClick: (row) => navigator.clipboard.writeText(row.AlarmID),
+    },
+  ], []);
+
   const handleExportCsv = () => {
       const exportData = getExportableData(table, alarmConfig);
       if (!exportData) return;
@@ -278,16 +289,7 @@ export default function Home() {
                 initialColumnVisibility={initialColumnVisibility}
                 initialSorting={initialSorting}
                 onRowDoubleClick={setDialogRow}
-                renderRowContextMenu={(row) => (
-                    <DropdownMenuContent onContextMenu={(e) => e.preventDefault()}>
-                        <DropdownMenuItem onClick={() => setDialogRow(row)}>
-                            View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.AlarmID)}>
-                            Copy Alarm ID
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                )}
+                contextMenuItems={contextMenuItems}
                 globalFilter={globalFilter}
                 onGlobalFilterChange={setGlobalFilter}
                 onTableReady={setTable}

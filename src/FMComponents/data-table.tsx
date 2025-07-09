@@ -387,13 +387,19 @@ const reorderColumn = (
   return newColumnOrder;
 };
 
+export interface ContextMenuItem<TData> {
+  label: React.ReactNode;
+  onClick: (row: TData) => void;
+  separator?: boolean;
+}
+
 // Generic DataTable component props.
 interface DataTableProps<TData> {
   data: TData[];
   columns: ColumnDef<TData>[];
   getRowId: (row: TData) => string;
   onSelectedRowsChange: (rowIds: string[]) => void;
-  renderRowContextMenu?: (row: TData) => React.ReactNode;
+  contextMenuItems?: ContextMenuItem<TData>[];
   onRowDoubleClick?: (row: TData) => void;
   filterableColumns?: FilterableColumn[];
   initialColumnVisibility?: VisibilityState;
@@ -423,7 +429,7 @@ export function DataTable<TData>({
   columns,
   getRowId,
   onSelectedRowsChange,
-  renderRowContextMenu,
+  contextMenuItems,
   onRowDoubleClick,
   filterableColumns = [],
   initialColumnVisibility = {},
@@ -558,19 +564,21 @@ export function DataTable<TData>({
             </div>
         </div>
 
-        <DataTableToolbar 
-          table={table} 
-          filterableColumns={filterableColumns} 
-          globalFilter={globalFilter} 
-          onGlobalFilterChange={onGlobalFilterChange}
-          onAddRow={onAddRow}
-          isStreaming={isStreaming}
-          onToggleStreaming={onToggleStreaming}
-          onDeleteSelectedRows={onDeleteSelectedRows}
-          onExportCsv={onExportCsv}
-          onExportXlsx={onExportXlsx}
-          onExportPdf={onExportPdf}
-        />
+        <div className="relative z-30">
+            <DataTableToolbar 
+              table={table} 
+              filterableColumns={filterableColumns} 
+              globalFilter={globalFilter} 
+              onGlobalFilterChange={onGlobalFilterChange}
+              onAddRow={onAddRow}
+              isStreaming={isStreaming}
+              onToggleStreaming={onToggleStreaming}
+              onDeleteSelectedRows={onDeleteSelectedRows}
+              onExportCsv={onExportCsv}
+              onExportXlsx={onExportXlsx}
+              onExportPdf={onExportPdf}
+            />
+        </div>
 
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center space-x-2">
@@ -809,7 +817,18 @@ export function DataTable<TData>({
                     pointerEvents: "none",
                 }}
             />
-            {contextMenu?.row && renderRowContextMenu && renderRowContextMenu(contextMenu.row)}
+            {contextMenu?.row && contextMenuItems && contextMenuItems.length > 0 && (
+                <DropdownMenuContent onContextMenu={(e) => e.preventDefault()}>
+                    {contextMenuItems.map((item, index) => (
+                        <React.Fragment key={index}>
+                            <DropdownMenuItem onClick={() => item.onClick(contextMenu.row)}>
+                                {item.label}
+                            </DropdownMenuItem>
+                            {item.separator && <DropdownMenuSeparator />}
+                        </React.Fragment>
+                    ))}
+                </DropdownMenuContent>
+            )}
         </DropdownMenu>
       </div>
   );

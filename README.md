@@ -86,7 +86,7 @@ Pass your data and columns to the `DataTable` component. You must also provide a
 
 ```tsx
 import React from 'react';
-import { DataTable } from './FMComponents/data-table';
+import { DataTable, type ContextMenuItem } from './FMComponents/data-table';
 import { columns, type Payment } from './your-column-definitions';
 
 // Sample data
@@ -110,6 +110,17 @@ function MyPageComponent() {
   const handleDeleteRows = () => { /* ... logic to delete selected rows ... */ };
   const handleExportCsv = () => { /* ... logic to export CSV ... */ };
 
+  // Define context menu items
+  const contextMenuItems: ContextMenuItem<Payment>[] = [
+    {
+      label: 'View Details',
+      onClick: (rowData) => console.log('Viewing:', rowData),
+    },
+    {
+      label: 'Copy ID',
+      onClick: (rowData) => navigator.clipboard.writeText(rowData.id),
+    }
+  ];
 
   return (
     <DataTable
@@ -127,9 +138,7 @@ function MyPageComponent() {
       onDeleteSelectedRows={handleDeleteRows}
       onExportCsv={handleExportCsv}
       // ... other export handlers
-      renderRowContextMenu={(row) => (
-        <MyCustomContextMenu rowData={row} />
-      )}
+      contextMenuItems={contextMenuItems}
       tableTitle="My Custom Table"
       tableDescription="This is an example of the DataTable component."
       maxHeightWithPagination="70vh"
@@ -157,7 +166,7 @@ function MyPageComponent() {
 | `onAddRow`                   | `() => void`                      | Callback for adding a new row.                                                       |
 | `onDeleteSelectedRows`       | `() => void`                      | Callback for deleting selected rows.                                                 |
 | `onExportCsv`                | `() => void`                      | Callback for exporting data to CSV.                                                  |
-| `renderRowContextMenu`       | `(row: TData) => React.ReactNode` | A function that returns a JSX element for a row's context menu.                      |
+| `contextMenuItems`           | `ContextMenuItem<TData>[]`        | An array of objects defining items for the row's context menu. Each item should be an object with a `label` and an `onClick` callback. |
 | `tableTitle`                 | `React.ReactNode`                 | A title to display above the table.                                                  |
 | `tableDescription`           | `React.ReactNode`                 | A description to display below the title.                                            |
 | `maxHeightWithPagination`    | `string`                          | CSS `max-height` for the table when pagination is on. Default: `'60vh'`.             |
