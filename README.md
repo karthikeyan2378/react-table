@@ -3,7 +3,7 @@
 
 This project contains a set of reusable components for displaying real-time data in a highly configurable table, complete with filtering, sorting, and charting capabilities. The main component, `DataTable`, has been architected to be generic and reusable.
 
-The components are built with React, ShadCN UI, and Tailwind CSS and have been refactored to use relative paths for easy integration into other projects.
+The components are built with React and ShadCN UI and use the Tailwind CSS CDN for styling.
 
 ---
 
@@ -106,7 +106,7 @@ By following these steps, you can use the powerful, generic `DataTable` to displ
 
 If you want to use these components in a separate React application, you need to copy the files and set up the dependencies and styling.
 
-### Step 1: Copy Component Files and Configuration
+### Step 1: Copy Component Files
 
 Copy the following files and directories from this project into the `src` directory of your new project:
 
@@ -114,44 +114,24 @@ Copy the following files and directories from this project into the `src` direct
 -   `src/hooks`
 -   `src/lib`
 -   `src/config`
--   Copy `tailwind.config.ts` and `postcss.config.mjs` to the root of your new project.
 
 ### Step 2: Install Dependencies
 
-Install the necessary packages. Open a terminal in your new project's root directory and run the following commands:
+Install the necessary packages. Open a terminal in your new project's root directory and run the following command:
 
-**Install main dependencies:**
 ```bash
 npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns lucide-react recharts tailwind-merge tailwindcss-animate
 ```
 
-**Install Tailwind CSS development dependencies:**
-```bash
-npm install -D tailwindcss postcss autoprefixer
+### Step 3: Configure Styling via CDN
+
+This project uses the Tailwind CSS CDN for styling. Add the following script tag to the `<head>` of your main HTML file (e.g., `public/index.html` or your root layout component).
+
+```html
+<script src="https://cdn.tailwindcss.com"></script>
 ```
 
-### Step 3: Configure Styling
-
-The components rely on CSS variables for their color theme. Copy the contents of this project's `src/app/globals.css` file into your own global stylesheet. It contains the necessary `@tailwind` directives and the `:root` and `.dark` theme definitions.
-
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    --background: 222 47% 97%;
-    --foreground: 222 47% 11%;
-    --primary: 195 100% 50%;
-    /* ... (add all other CSS variables from the original globals.css) */
-  }
-
-  .dark {
-    /* Optional: Add dark mode variables if needed */
-  }
-}
-```
+Then, copy the contents of this project's `src/app/globals.css` into your own global stylesheet to get the base styles.
 
 ### Step 4: Add the Toaster Provider
 

@@ -135,7 +135,7 @@ export default function Home() {
             return (
               <div className="flex items-center justify-between w-full h-full">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">{config.label}</span>
+                  <span className="font-semibold text-gray-900">{config.label}</span>
                 </div>
                 <div className="flex items-center">
                   {column.getCanSort() && (
@@ -151,7 +151,7 @@ export default function Home() {
                       ) : column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="h-4 w-4" />
                       ) : (
-                        <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
+                        <ChevronsUpDown className="h-4 w-4 text-gray-500/50" />
                       )}
                     </div>
                   )}
@@ -376,13 +376,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-white text-gray-900">
       <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-primary">
+          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-blue-600">
             Real-Time Alarm Dashboard
           </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
+          <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-500">
             A config-driven data table for monitoring real-time alarm data with filtering, sorting, and charting.
           </p>
         </div>
@@ -424,9 +424,9 @@ export default function Home() {
             ))}
         </div>
         
-        <div className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm">
+        <div className="p-4 rounded-lg border bg-white text-gray-900 shadow-sm">
             <h2 className="text-lg font-semibold mb-2">Live Alarm Feed</h2>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-gray-500 mb-4">
                 This table is driven by a central configuration and supports client-side filtering, sorting, and pagination.
             </p>
             <DataTable
@@ -467,7 +467,7 @@ export default function Home() {
               <AlertDialogTitle>Item Details</AlertDialogTitle>
               <AlertDialogDescription>Viewing full data for the selected item.</AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="max-h-96 overflow-y-auto rounded-md border bg-muted p-4">
+            <div className="max-h-96 overflow-y-auto rounded-md border bg-gray-100 p-4">
               <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
             </div>
             <AlertDialogFooter>

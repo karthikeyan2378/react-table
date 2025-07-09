@@ -508,25 +508,25 @@ export function DataTable<TData>({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-sm text-muted-foreground ml-auto">
-            <span className="font-bold text-foreground">
+          <div className="text-sm text-gray-500 ml-auto">
+            <span className="font-bold text-gray-900">
               {table.getFilteredRowModel().rows.length.toLocaleString()}
             </span>{" "}
             of{" "}
-            <span className="font-bold text-foreground">
+            <span className="font-bold text-gray-900">
               {data.length.toLocaleString()}
             </span>{" "}
             rows
           </div>
         </div>
 
-        <div ref={tableContainerRef} className="rounded-md border overflow-auto relative max-h-[60vh]">
+        <div ref={tableContainerRef} className="rounded-md border border-gray-200 overflow-auto relative max-h-[60vh]">
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
-              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'hsl(var(--card))' }}>
+              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'white' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
                     key={headerGroup.id} 
-                    className="hover:bg-card flex w-full"
+                    className="hover:bg-white flex w-full"
                   >
                       {headerGroup.headers.map((header) => (
                         <TableHead 
@@ -566,8 +566,8 @@ export function DataTable<TData>({
                                 onMouseDown={header.getResizeHandler()}
                                 onTouchStart={header.getResizeHandler()}
                                 className={cn(
-                                  "w-1.5 h-full cursor-col-resize select-none touch-none shrink-0 bg-border/50 hover:bg-primary/80",
-                                  header.column.getIsResizing() ? "bg-primary" : ""
+                                  "w-1.5 h-full cursor-col-resize select-none touch-none shrink-0 bg-gray-200/50 hover:bg-blue-600/80",
+                                  header.column.getIsResizing() ? "bg-blue-600" : ""
                                 )}
                               />
                             )}
@@ -677,7 +677,7 @@ export function DataTable<TData>({
         
         {paginationEnabled && (
           <div className="flex items-center justify-between py-4">
-            <div className="flex-1 text-sm text-muted-foreground">
+            <div className="flex-1 text-sm text-gray-500">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
