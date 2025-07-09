@@ -1,3 +1,4 @@
+
 'use client';
 
 import { type ColumnDef } from '@tanstack/react-table';
@@ -95,7 +96,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
             return (
               <div className="flex items-center justify-between w-full h-full">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900">{config.label}</span>
+                  <span className="font-medium text-gray-800">{config.label}</span>
                 </div>
                 <div className="flex items-center">
                   {column.getCanSort() && (

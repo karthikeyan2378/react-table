@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -266,7 +267,7 @@ export default function Home() {
             ))}
         </div>
         
-        <div className="p-4 rounded-lg border bg-white text-gray-900 shadow-sm">
+        <div className="p-2 rounded-lg border border-gray-200 bg-white text-gray-900 shadow-md">
             <DataTable
                 tableContainerRef={tableContainerRef}
                 data={data}

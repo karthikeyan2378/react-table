@@ -30,6 +30,7 @@ import {
   FileText,
   FileSpreadsheet,
   File,
+  Search,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -203,12 +204,15 @@ function DataTableToolbar<TData>({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
-          <Input
-            placeholder="Search all columns..."
-            value={globalFilter ?? ""}
-            onChange={(event) => onGlobalFilterChange(event.target.value)}
-            className="h-8 w-[150px] lg:w-[250px]"
-          />
+          <div className="relative flex items-center">
+              <Search className="absolute left-2 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search all columns..."
+                value={globalFilter ?? ""}
+                onChange={(event) => onGlobalFilterChange(event.target.value)}
+                className="h-8 w-[150px] lg:w-[250px] pl-8"
+              />
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-8">
@@ -552,11 +556,11 @@ export function DataTable<TData>({
             }}
         >
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
-              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'white' }}>
+              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1 }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
                     key={headerGroup.id} 
-                    className="hover:bg-white flex w-full"
+                    className="flex w-full bg-gray-50 hover:bg-gray-50"
                   >
                       {headerGroup.headers.map((header) => (
                         <TableHead 
