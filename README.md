@@ -122,59 +122,21 @@ Install the necessary packages. Open a terminal in your new project's root direc
 npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns lucide-react recharts tailwind-merge tailwindcss-animate
 ```
 
-### Step 3: Configure Tailwind CSS
+### Step 3: Configure Styling
 
-Properly setting up Tailwind is essential for the components' styling to work correctly.
+**A. Add Tailwind CSS via CDN**
 
-**A. Create `tailwind.config.js`**
+For quick setup, add the Tailwind CSS CDN script to the `<head>` of your main layout file (e.g., `src/app/layout.tsx`).
 
-If you don't already have one, create a `tailwind.config.js` file at the root of your new project and add the following content.
-
-```js
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  darkMode: ["class"],
-  content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}', // Make sure this path covers all your component files
-  ],
-  prefix: "",
-  theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
-    extend: {
-      colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        // ... (add the rest of the colors from the original config)
-      },
-      // ... (add the rest of the theme extensions)
-    },
-  },
-  plugins: [require("tailwindcss-animate")],
-}
+```html
+<script src="https://cdn.tailwindcss.com"></script>
 ```
 
-**B. Update Global CSS File**
+**B. Add CSS Theme Variables**
 
-Open your main CSS file (e.g., `src/index.css`) and add the CSS variables for the color theme.
+The components rely on CSS variables for their color theme. Copy the contents of this project's `src/app/globals.css` file into your own global stylesheet. It contains the necessary `:root` and `.dark` theme definitions.
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @layer base {
   :root {
     --background: 222 47% 97%;
