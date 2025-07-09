@@ -417,6 +417,7 @@ export function DataTable<TData>({
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStartRowIndex, setDragStartRowIndex] = React.useState<number | null>(null);
   const lastClickedRowIndex = React.useRef<number | null>(null);
+  const prevDataLength = React.useRef(data.length);
 
   React.useEffect(() => {
     const handleMouseUp = () => {
@@ -466,6 +467,12 @@ export function DataTable<TData>({
     getRowId,
     initialState: tableInitialState,
   });
+
+  React.useEffect(() => {
+    if (!paginationEnabled) {
+      table.setPageSize(data.length);
+    }
+  }, [paginationEnabled, data.length, table]);
   
   React.useEffect(() => {
     if (onTableReady) {
@@ -488,6 +495,14 @@ export function DataTable<TData>({
     estimateSize: () => 53,
     overscan: 10,
   });
+
+  React.useEffect(() => {
+    // If rows are added, scroll to the top to show the new row
+    if (data.length > prevDataLength.current) {
+        rowVirtualizer.scrollToIndex(0, { align: 'start' });
+    }
+    prevDataLength.current = data.length; // Update the ref for the next render
+  }, [data.length, rowVirtualizer]);
 
   return (
       <div className="space-y-4">
