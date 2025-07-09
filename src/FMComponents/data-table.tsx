@@ -100,28 +100,17 @@ function DataTableFacetedFilter<TData>({
             {selectedValues?.size > 0 && (
               <>
                 <Separator orientation="vertical" className="mx-2 h-4" />
-                <div className="flex items-center space-x-1">
-                  {selectedValues.size > 2 ? (
-                    <Badge
-                      variant="secondary"
-                      className="rounded-sm px-1 font-normal"
-                    >
-                      {selectedValues.size} selected
-                    </Badge>
-                  ) : (
-                    options
-                      .filter((option) => selectedValues.has(option.value))
-                      .map((option) => (
-                        <Badge
-                          variant="secondary"
-                          key={option.value}
-                          className="rounded-sm px-1 font-normal"
-                        >
-                          {option.label}
-                        </Badge>
-                      ))
-                  )}
-                </div>
+                <Badge
+                  variant="secondary"
+                  className="rounded-sm px-1 font-normal"
+                >
+                  {selectedValues.size > 2
+                    ? `${selectedValues.size} selected`
+                    : options
+                        .filter((option) => selectedValues.has(option.value))
+                        .map((option) => option.label)
+                        .join(", ")}
+                </Badge>
               </>
             )}
           </Button>
@@ -165,7 +154,7 @@ function DataTableFacetedFilter<TData>({
       <Button
           variant="ghost"
           size="icon"
-          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
+          className="absolute right-1 top-0 bottom-0 my-auto h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
           onClick={onRemove}
       >
           <X className="h-4 w-4" />
@@ -240,7 +229,7 @@ function DataTableToolbar<TData>({
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex items-center justify-between gap-2 relative z-20">
       {/* Left side: Filters */}
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
         <div className="relative flex items-center">
@@ -292,7 +281,7 @@ function DataTableToolbar<TData>({
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
+                    className="absolute right-1 top-0 bottom-0 my-auto h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
                     onClick={() => handleFilterToggle(col.id, true)}
                 >
                     <X className="h-4 w-4" />
@@ -381,16 +370,18 @@ function DataTableToolbar<TData>({
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
             <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <Download className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent><p>Export Data</p></TooltipContent>
-              </Tooltip>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                          <Download className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent><p>Export Data</p></TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <DropdownMenuContent>
                   {onExportCsv && <DropdownMenuItem onClick={onExportCsv}><FileText className="mr-2 h-4 w-4" />Export as CSV</DropdownMenuItem>}
                   {onExportXlsx && <DropdownMenuItem onClick={onExportXlsx}><FileSpreadsheet className="mr-2 h-4 w-4" />Export as Excel</DropdownMenuItem>}
@@ -401,16 +392,18 @@ function DataTableToolbar<TData>({
 
           {toolbarVisibility.viewOptions !== false && (
             <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <SlidersHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent><p>View Options</p></TooltipContent>
-              </Tooltip>
+               <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                          <SlidersHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent><p>View Options</p></TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <DropdownMenuContent align="end" className="w-[200px]">
                 <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -653,26 +646,24 @@ export function DataTable<TData>({
             </div>
         </div>
 
-        <div className="relative z-10">
-            <DataTableToolbar 
-              table={table} 
-              filterableColumns={filterableColumns} 
-              globalFilter={globalFilter} 
-              onGlobalFilterChange={onGlobalFilterChange}
-              onAddRow={onAddRow}
-              isStreaming={isStreaming}
-              onToggleStreaming={onToggleStreaming}
-              onDeleteSelectedRows={onDeleteSelectedRows}
-              onExportCsv={onExportCsv}
-              onExportXlsx={onExportXlsx}
-              onExportPdf={onExportPdf}
-              sortingEnabled={sortingEnabled}
-              onSortingToggle={setSortingEnabled}
-              paginationEnabled={paginationEnabled}
-              onPaginationToggle={setPaginationEnabled}
-              toolbarVisibility={toolbarVisibility}
-            />
-        </div>
+        <DataTableToolbar 
+          table={table} 
+          filterableColumns={filterableColumns} 
+          globalFilter={globalFilter} 
+          onGlobalFilterChange={onGlobalFilterChange}
+          onAddRow={onAddRow}
+          isStreaming={isStreaming}
+          onToggleStreaming={onToggleStreaming}
+          onDeleteSelectedRows={onDeleteSelectedRows}
+          onExportCsv={onExportCsv}
+          onExportXlsx={onExportXlsx}
+          onExportPdf={onExportPdf}
+          sortingEnabled={sortingEnabled}
+          onSortingToggle={setSortingEnabled}
+          paginationEnabled={paginationEnabled}
+          onPaginationToggle={setPaginationEnabled}
+          toolbarVisibility={toolbarVisibility}
+        />
 
         <div 
             ref={tableContainerRef} 
@@ -682,7 +673,7 @@ export function DataTable<TData>({
             }}
         >
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
-              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1 }}>
+              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 10 }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
                     key={headerGroup.id} 
