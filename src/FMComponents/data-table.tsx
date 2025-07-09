@@ -329,6 +329,21 @@ export function DataTable<TData>({
   const [columnOrder, setColumnOrder] = React.useState<string[]>(() =>
     columns.map(c => c.id!).filter(Boolean)
   );
+  
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragStartRowIndex, setDragStartRowIndex] = React.useState<number | null>(null);
+  const lastClickedRowIndex = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    const handleMouseUp = () => {
+        setIsDragging(false);
+        setDragStartRowIndex(null);
+    };
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+        window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
 
   const tableState = React.useMemo(() => ({
     sorting,
@@ -361,6 +376,7 @@ export function DataTable<TData>({
     getFacetedUniqueValues: facetedUniqueValues,
     columnResizeMode: "onChange",
     enableSorting: sortingEnabled,
+    enableMultiRowSelection: true,
     getRowId,
     initialState: tableInitialState,
   });
@@ -486,7 +502,56 @@ export function DataTable<TData>({
                                     row: row.original
                                 });
                             }}
-                            onDoubleClick={() => setDialogRow(row.original)}
+                            onMouseDown={(e) => {
+                                e.preventDefault(); // Prevent text selection
+                                const rowIndex = virtualRow.index;
+                                
+                                setIsDragging(true);
+                                setDragStartRowIndex(rowIndex);
+
+                                if (e.shiftKey && lastClickedRowIndex.current !== null) {
+                                    const start = Math.min(lastClickedRowIndex.current, rowIndex);
+                                    const end = Math.max(lastClickedRowIndex.current, rowIndex);
+                                    
+                                    const newSelection = {}; // Shift-click replaces current selection
+                                    for(let i = start; i <= end; i++) {
+                                        const rowId = rows[i]?.id;
+                                        if (rowId) {
+                                            newSelection[rowId] = true;
+                                        }
+                                    }
+                                    table.setRowSelection(newSelection);
+                                } else if (e.metaKey || e.ctrlKey) {
+                                    const newSelection = { ...rowSelection };
+                                    if (newSelection[row.id]) {
+                                        delete newSelection[row.id];
+                                    } else {
+                                        newSelection[row.id] = true;
+                                    }
+                                    table.setRowSelection(newSelection);
+                                    lastClickedRowIndex.current = rowIndex;
+                                } else {
+                                    // Normal click
+                                    table.setRowSelection({ [row.id]: true });
+                                    lastClickedRowIndex.current = rowIndex;
+                                }
+                            }}
+                            onMouseEnter={() => {
+                                if (isDragging && dragStartRowIndex !== null) {
+                                    const rowIndex = virtualRow.index;
+                                    const start = Math.min(dragStartRowIndex, rowIndex);
+                                    const end = Math.max(dragStartRowIndex, rowIndex);
+
+                                    const newSelection = {}; // Drag select creates a new selection
+                                    for(let i = start; i <= end; i++) {
+                                        const rowId = rows[i]?.id;
+                                        if (rowId) {
+                                            newSelection[rowId] = true;
+                                        }
+                                    }
+                                    table.setRowSelection(newSelection);
+                                }
+                            }}
                             style={{
                               display: 'flex',
                               position: 'absolute',
@@ -495,6 +560,7 @@ export function DataTable<TData>({
                               left: 0,
                               width: '100%',
                               height: `${virtualRow.size}px`,
+                              cursor: 'pointer'
                             }}
                           >
                             {row.getVisibleCells().map((cell) => (
