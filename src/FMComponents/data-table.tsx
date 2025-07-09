@@ -24,13 +24,14 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Download,
-  Filter,
-  PlusCircle,
-  X,
-  FileText,
-  FileSpreadsheet,
   File,
+  FileSpreadsheet,
+  FileText,
+  Filter,
+  GripVertical,
+  PlusCircle,
   Search,
+  X,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -600,10 +601,12 @@ export function DataTable<TData>({
                                 onMouseDown={header.getResizeHandler()}
                                 onTouchStart={header.getResizeHandler()}
                                 className={cn(
-                                  "w-1.5 h-full cursor-col-resize select-none touch-none shrink-0 bg-gray-200/50 hover:bg-blue-600/80",
-                                  header.column.getIsResizing() ? "bg-blue-600" : ""
+                                  "flex items-center justify-center h-full cursor-col-resize select-none touch-none px-1",
+                                  header.column.getIsResizing() ? "bg-blue-200" : "hover:bg-gray-200"
                                 )}
-                              />
+                              >
+                                <GripVertical className="h-4 w-4 text-gray-400" />
+                              </div>
                             )}
                         </TableHead>
                       ))}
