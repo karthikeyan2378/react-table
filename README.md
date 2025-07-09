@@ -7,6 +7,19 @@ The components are built with React and ShadCN UI and use the Tailwind CSS CDN f
 
 ---
 
+## Features
+
+-   **Generic `DataTable` Component**: Render any data structure with a simple configuration.
+-   **Virtualization**: Handles thousands of rows smoothly using TanStack Virtual.
+-   **Client-Side Operations**: Fast filtering, sorting, and pagination.
+-   **Column Customization**: Resizing and reordering columns via drag-and-drop.
+-   **Advanced Selection**: Multi-row selection with Shift and Ctrl/Cmd keys, plus drag-to-select.
+-   **Data Export**: Export the current view to CSV, Excel, or PDF.
+-   **Config-Driven UI**: Table columns, filters, and charts are all driven by a central configuration file.
+-   **Context Menu**: Right-click on rows for custom actions.
+
+---
+
 ## How to Use the `DataTable` Component
 
 The `DataTable` component is generic and can be used to render any kind of data. All application-specific logic, such as column definitions and cell rendering, is passed in as props.
@@ -68,7 +81,7 @@ export const columns: ColumnDef<Payment>[] = [
 
 ### Step 3: Render the DataTable
 
-Pass your data and columns to the `DataTable` component. You must also provide a `getRowId` function that returns a unique identifier for each row.
+Pass your data and columns to the `DataTable` component. You must also provide a `getRowId` function that returns a unique identifier for each row, along with any other required state and handlers.
 
 ```tsx
 import React from 'react';
@@ -82,6 +95,19 @@ const myData: Payment[] = [
 
 function MyPageComponent() {
   const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([]);
+  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [isStreaming, setIsStreaming] = React.useState(false);
+
+  // Define filterable columns for the toolbar
+  const filterableColumns = [
+    { id: 'status', name: 'Status', type: 'categorical', options: [] },
+    { id: 'email', name: 'Email', type: 'text' },
+  ];
+  
+  const handleAddRow = () => { /* ... logic to add a new row ... */ };
+  const handleDeleteRows = () => { /* ... logic to delete selected rows ... */ };
+  const handleExportCsv = () => { /* ... logic to export CSV ... */ };
+
 
   return (
     <DataTable
@@ -89,7 +115,15 @@ function MyPageComponent() {
       columns={columns}
       getRowId={(row) => row.id}
       onSelectedRowsChange={setSelectedRowIds}
-      // You can also pass a function to render a context menu for each row
+      globalFilter={globalFilter}
+      onGlobalFilterChange={setGlobalFilter}
+      filterableColumns={filterableColumns}
+      isStreaming={isStreaming}
+      onToggleStreaming={() => setIsStreaming(prev => !prev)}
+      onAddRow={handleAddRow}
+      onDeleteSelectedRows={handleDeleteRows}
+      onExportCsv={handleExportCsv}
+      // ... other export handlers
       renderRowContextMenu={(row) => (
         <MyCustomContextMenu rowData={row} />
       )}
@@ -97,8 +131,6 @@ function MyPageComponent() {
   );
 }
 ```
-
-By following these steps, you can use the powerful, generic `DataTable` to display any data set with custom rendering, sorting, filtering, and more.
 
 ---
 
@@ -120,7 +152,7 @@ Copy the following files and directories from this project into the `src` direct
 Install the necessary packages. Open a terminal in your new project's root directory and run the following command:
 
 ```bash
-npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns lucide-react recharts tailwind-merge tailwindcss-animate
+npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns jspdf jspdf-autotable lucide-react recharts tailwind-merge xlsx
 ```
 
 ### Step 3: Configure Styling via CDN
@@ -130,8 +162,7 @@ This project uses the Tailwind CSS CDN for styling. Add the following script tag
 ```html
 <script src="https://cdn.tailwindcss.com"></script>
 ```
-
-Then, copy the contents of this project's `src/app/globals.css` into your own global stylesheet to get the base styles.
+**Note**: Because this project uses the Tailwind CDN, it does not support theme customization (e.g., `tailwind.config.ts`) or plugins like `tailwindcss-animate`. All styles use standard Tailwind classes.
 
 ### Step 4: Add the Toaster Provider
 
