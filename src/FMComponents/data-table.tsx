@@ -155,10 +155,12 @@ interface FilterableColumn {
 interface DataTableToolbarProps<TData> {
   table: ReactTable<TData>;
   filterableColumns: FilterableColumn[];
+  globalFilter: string;
+  onGlobalFilterChange: (value: string) => void;
 }
 
-function DataTableToolbar<TData>({ table, filterableColumns }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0 || !!table.getState().globalFilter;
+function DataTableToolbar<TData>({ table, filterableColumns, globalFilter, onGlobalFilterChange }: DataTableToolbarProps<TData>) {
+  const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
 
   const handleFilterToggle = (columnId: string, isActive?: boolean) => {
@@ -178,8 +180,8 @@ function DataTableToolbar<TData>({ table, filterableColumns }: DataTableToolbarP
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
         <Input
           placeholder="Search all columns..."
-          value={(table.getState().globalFilter as string) ?? ""}
-          onChange={(event) => table.setGlobalFilter(event.target.value)}
+          value={globalFilter ?? ""}
+          onChange={(event) => onGlobalFilterChange(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
         <DropdownMenu>
@@ -251,7 +253,7 @@ function DataTableToolbar<TData>({ table, filterableColumns }: DataTableToolbarP
             variant="ghost"
             onClick={() => {
               table.resetColumnFilters();
-              table.setGlobalFilter("");
+              onGlobalFilterChange("");
               setActiveFilters([]);
             }}
             className="h-8 px-2 lg:px-3"
@@ -294,6 +296,9 @@ interface DataTableProps<TData> {
   filterableColumns?: FilterableColumn[];
   initialColumnVisibility?: VisibilityState;
   initialSorting?: SortingState;
+  globalFilter: string;
+  onGlobalFilterChange: (value: string) => void;
+  onTableReady?: (table: ReactTable<TData>) => void;
 }
 
 // The generic DataTable component.
@@ -307,10 +312,12 @@ export function DataTable<TData>({
   filterableColumns = [],
   initialColumnVisibility = {},
   initialSorting = [],
+  globalFilter,
+  onGlobalFilterChange,
+  onTableReady,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; row: TData } | null>(null);
@@ -358,7 +365,7 @@ export function DataTable<TData>({
     state: tableState,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: onGlobalFilterChange,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onColumnOrderChange: setColumnOrder,
@@ -374,6 +381,12 @@ export function DataTable<TData>({
     getRowId,
     initialState: tableInitialState,
   });
+  
+  React.useEffect(() => {
+    if (onTableReady) {
+        onTableReady(table);
+    }
+  }, [onTableReady, table]);
 
   React.useEffect(() => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
@@ -393,7 +406,7 @@ export function DataTable<TData>({
 
   return (
       <div className="space-y-4">
-        <DataTableToolbar table={table} filterableColumns={filterableColumns} />
+        <DataTableToolbar table={table} filterableColumns={filterableColumns} globalFilter={globalFilter} onGlobalFilterChange={onGlobalFilterChange} />
 
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center space-x-2">

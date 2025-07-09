@@ -7,9 +7,9 @@ import { DataTable } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { Button } from '../FMComponents/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '../FMComponents/ui/dropdown-menu';
-import { ChevronDown, ArrowDown, ArrowUp, ChevronsUpDown, SlidersHorizontal, MoreVertical } from 'lucide-react';
+import { ChevronDown, ArrowDown, ArrowUp, ChevronsUpDown, SlidersHorizontal, MoreVertical, Download } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { type ColumnDef } from '@tanstack/react-table';
+import { type ColumnDef, type Table as ReactTable } from '@tanstack/react-table';
 import { Checkbox } from '../FMComponents/ui/checkbox';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../FMComponents/ui/tooltip';
@@ -25,6 +25,9 @@ import {
   AlertDialogTitle,
 } from '../FMComponents/ui/alert-dialog';
 import { Input } from '@/FMComponents/ui/input';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
@@ -49,6 +52,7 @@ export default function Home() {
   const [isPending, startTransition] = React.useTransition();
   const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
   const [globalFilter, setGlobalFilter] = React.useState('');
+  const [table, setTable] = React.useState<ReactTable<Alarm> | null>(null);
 
   const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
 
@@ -208,7 +212,7 @@ export default function Home() {
     });
 
     return [...staticColumns, ...dynamicColumns];
-  }, [getRowId]);
+  }, []);
 
   React.useEffect(() => {
     const initialData = makeData(100);
@@ -308,6 +312,89 @@ export default function Home() {
     return descendingCol ? [{ id: descendingCol[0], desc: true }] : [];
   }, []);
 
+  const getExportData = React.useCallback(() => {
+    if (!table) return null;
+
+    const visibleColumns = table.getVisibleFlatColumns().filter(
+        (col) => col.id !== 'select'
+    );
+
+    const headers = visibleColumns.map((col) => {
+        const config = alarmConfig.fields[col.id as keyof typeof alarmConfig.fields];
+        return config?.label || col.id;
+    });
+    
+    const body = table.getFilteredRowModel().rows.map((row) =>
+        visibleColumns.map((col) => {
+            const value = row.getValue(col.id);
+            if (value instanceof Date) {
+                return format(value, 'dd-MMM-yyyy HH:mm:ss');
+            }
+            return String(value ?? '');
+        })
+    );
+
+    return { headers, body };
+  }, [table]);
+
+  const handleExportCsv = () => {
+      const exportData = getExportData();
+      if (!exportData) return;
+      const { headers, body } = exportData;
+
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += headers.join(",") + "\r\n";
+      body.forEach(rowArray => {
+          const row = rowArray.map(item => `"${item.replace(/"/g, '""')}"`).join(",");
+          csvContent += row + "\r\n";
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "alarms.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  };
+
+  const handleExportXlsx = () => {
+      const exportData = getExportData();
+      if (!exportData) return;
+      const { headers, body } = exportData;
+      
+      const dataToExport = body.map(row => {
+          const rowObject: { [key: string]: string } = {};
+          headers.forEach((header, index) => {
+              rowObject[header] = row[index];
+          });
+          return rowObject;
+      });
+
+      const ws = XLSX.utils.json_to_sheet(dataToExport);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Alarms");
+      XLSX.writeFile(wb, "alarms.xlsx");
+  };
+  
+  const handleExportPdf = () => {
+    const exportData = getExportData();
+    if (!exportData) {
+      toast({ title: "Error", description: "Could not get data for PDF export.", variant: "destructive" });
+      return;
+    }
+    const { headers, body } = exportData;
+    
+    const doc = new jsPDF({ orientation: 'landscape' });
+    autoTable(doc, {
+        head: [headers],
+        body: body,
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [38, 109, 168] },
+    });
+    doc.save('alarms.pdf');
+  };
+
   if (!isClient) {
     return null;
   }
@@ -379,6 +466,19 @@ export default function Home() {
           >
             Delete Selected
           </Button>
+          <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                      <Download className="mr-2 h-4 w-4" />
+                      Export
+                  </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                  <DropdownMenuItem onClick={handleExportCsv} disabled={!table}>Export as CSV</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportXlsx} disabled={!table}>Export as Excel</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportPdf} disabled={!table}>Export as PDF</DropdownMenuItem>
+              </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
         <div className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm">
@@ -407,6 +507,7 @@ export default function Home() {
                 )}
                 globalFilter={globalFilter}
                 onGlobalFilterChange={setGlobalFilter}
+                onTableReady={setTable}
             />
         </div>
 
