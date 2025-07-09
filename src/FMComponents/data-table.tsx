@@ -174,6 +174,17 @@ function DataTableFacetedFilter<TData>({
   );
 }
 
+export interface ToolbarVisibility {
+  addRow?: boolean;
+  deleteRows?: boolean;
+  toggleStreaming?: boolean;
+  exportData?: boolean;
+  viewOptions?: boolean;
+  toggleSorting?: boolean;
+  togglePagination?: boolean;
+  toggleColumns?: boolean;
+}
+
 // A generic toolbar that receives filterable column definitions as props.
 interface FilterableColumn {
     id: string;
@@ -198,6 +209,7 @@ interface DataTableToolbarProps<TData> {
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
   onPaginationToggle: (enabled: boolean) => void;
+  toolbarVisibility: ToolbarVisibility;
 }
 
 function DataTableToolbar<TData>({ 
@@ -216,6 +228,7 @@ function DataTableToolbar<TData>({
   onSortingToggle,
   paginationEnabled,
   onPaginationToggle,
+  toolbarVisibility,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
@@ -340,7 +353,7 @@ function DataTableToolbar<TData>({
       {/* Right side: Actions & Settings */}
       <div className="flex items-center space-x-1">
         <TooltipProvider>
-          {onAddRow && (
+          {toolbarVisibility.addRow !== false && onAddRow && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" onClick={onAddRow}>
@@ -351,7 +364,7 @@ function DataTableToolbar<TData>({
             </Tooltip>
           )}
 
-          {onToggleStreaming && (
+          {toolbarVisibility.toggleStreaming !== false && onToggleStreaming && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" onClick={onToggleStreaming}>
@@ -362,7 +375,7 @@ function DataTableToolbar<TData>({
             </Tooltip>
           )}
 
-          {onDeleteSelectedRows && (
+          {toolbarVisibility.deleteRows !== false && onDeleteSelectedRows && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" onClick={onDeleteSelectedRows} disabled={selectedRowCount === 0}>
@@ -373,7 +386,7 @@ function DataTableToolbar<TData>({
             </Tooltip>
           )}
           
-          {(onExportCsv || onExportXlsx || onExportPdf) && (
+          {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
             <DropdownMenu>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -393,46 +406,56 @@ function DataTableToolbar<TData>({
             </DropdownMenu>
           )}
 
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                      <SlidersHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent><p>View Options</p></TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end" className="w-[200px]">
-              <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuCheckboxItem checked={sortingEnabled} onCheckedChange={onSortingToggle}>
-                  Enable Sorting
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem checked={paginationEnabled} onCheckedChange={onPaginationToggle}>
-                  Enable Pagination
-              </DropdownMenuCheckboxItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {table
-                  .getAllColumns()
-                  .filter((column) => column.getCanHide())
-                  .map((column) => {
-                      const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                      return (
-                      <DropdownMenuCheckboxItem
-                          key={column.id}
-                          checked={column.getIsVisible()}
-                          onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                      >
-                          {label}
-                      </DropdownMenuCheckboxItem>
-                      );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {toolbarVisibility.viewOptions !== false && (
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <SlidersHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent><p>View Options</p></TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {toolbarVisibility.toggleSorting !== false && (
+                  <DropdownMenuCheckboxItem checked={sortingEnabled} onCheckedChange={onSortingToggle}>
+                      Enable Sorting
+                  </DropdownMenuCheckboxItem>
+                )}
+                {toolbarVisibility.togglePagination !== false && (
+                  <DropdownMenuCheckboxItem checked={paginationEnabled} onCheckedChange={onPaginationToggle}>
+                      Enable Pagination
+                  </DropdownMenuCheckboxItem>
+                )}
+                {toolbarVisibility.toggleColumns !== false && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {table
+                        .getAllColumns()
+                        .filter((column) => column.getCanHide())
+                        .map((column) => {
+                            const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                            return (
+                            <DropdownMenuCheckboxItem
+                                key={column.id}
+                                checked={column.getIsVisible()}
+                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                            >
+                                {label}
+                            </DropdownMenuCheckboxItem>
+                            );
+                    })}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </TooltipProvider>
       </div>
     </div>
@@ -492,6 +515,7 @@ interface DataTableProps<TData> {
   maxHeightWithoutPagination?: string;
   initialRowsPerPage?: number;
   rowsPerPageOptions?: number[];
+  toolbarVisibility?: ToolbarVisibility;
 }
 
 // The generic DataTable component.
@@ -522,6 +546,7 @@ export function DataTable<TData>({
   maxHeightWithoutPagination = '80vh',
   initialRowsPerPage = 20,
   rowsPerPageOptions = [10, 20, 50, 100, 500, 1000],
+  toolbarVisibility = {},
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -635,7 +660,7 @@ export function DataTable<TData>({
             </div>
         </div>
 
-        <div className="relative z-30">
+        <div className="relative z-40">
             <DataTableToolbar 
               table={table} 
               filterableColumns={filterableColumns} 
@@ -652,6 +677,7 @@ export function DataTable<TData>({
               onSortingToggle={setSortingEnabled}
               paginationEnabled={paginationEnabled}
               onPaginationToggle={setPaginationEnabled}
+              toolbarVisibility={toolbarVisibility}
             />
         </div>
 

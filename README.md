@@ -18,6 +18,7 @@ The components are built with React and ShadCN UI and use the Tailwind CSS CDN f
 -   **Config-Driven UI**: Table columns, filters, and charts are all driven by a central configuration file.
 -   **Context Menu**: Right-click on rows for custom actions.
 -   **Configurable Pagination**: Customize the initial page size and the "rows per page" options.
+-   **Configurable Toolbar**: Show or hide individual toolbar controls like "Add Row" or "Export" via props.
 
 ---
 
@@ -86,7 +87,7 @@ Pass your data and columns to the `DataTable` component. You must also provide a
 
 ```tsx
 import React from 'react';
-import { DataTable, type ContextMenuItem } from './FMComponents/data-table';
+import { DataTable, type ContextMenuItem, type ToolbarVisibility } from './FMComponents/data-table';
 import { columns, type Payment } from './your-column-definitions';
 
 // Sample data
@@ -122,6 +123,15 @@ function MyPageComponent() {
     }
   ];
 
+  // Optionally, configure toolbar visibility
+  const toolbarVisibility: ToolbarVisibility = {
+    addRow: true,
+    deleteRows: true,
+    toggleStreaming: false, // Hide the streaming button
+    exportData: true,
+    viewOptions: true,
+  };
+
   return (
     <DataTable
       data={myData}
@@ -139,6 +149,7 @@ function MyPageComponent() {
       onExportCsv={handleExportCsv}
       // ... other export handlers
       contextMenuItems={contextMenuItems}
+      toolbarVisibility={toolbarVisibility}
       tableTitle="My Custom Table"
       tableDescription="This is an example of the DataTable component."
       maxHeightWithPagination="70vh"
@@ -151,28 +162,42 @@ function MyPageComponent() {
 
 ### DataTable Props
 
-| Prop                         | Type                              | Description                                                                          |
-| ---------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
-| `data`                       | `TData[]`                         | **Required.** The array of data to display.                                          |
-| `columns`                    | `ColumnDef<TData>[]`              | **Required.** The TanStack Table column definitions.                                 |
-| `getRowId`                   | `(row: TData) => string`          | **Required.** A function that returns a unique ID for each row.                      |
-| `tableContainerRef`          | `React.RefObject<HTMLDivElement>` | **Required.** A ref to the scrollable table container, for virtualization.           |
-| `onSelectedRowsChange`       | `(rowIds: string[]) => void`      | **Required.** Callback for when row selection changes.                               |
-| `globalFilter`               | `string`                          | **Required.** The current value of the global search filter.                         |
-| `onGlobalFilterChange`       | `(value: string) => void`         | **Required.** Callback for when the global filter value changes.                     |
-| `filterableColumns`          | `FilterableColumn[]`              | Defines columns that can be filtered via the toolbar.                                |
-| `isStreaming`                | `boolean`                         | Indicates if data is currently streaming.                                            |
-| `onToggleStreaming`          | `() => void`                      | Callback to toggle the data stream on or off.                                        |
-| `onAddRow`                   | `() => void`                      | Callback for adding a new row.                                                       |
-| `onDeleteSelectedRows`       | `() => void`                      | Callback for deleting selected rows.                                                 |
-| `onExportCsv`                | `() => void`                      | Callback for exporting data to CSV.                                                  |
-| `contextMenuItems`           | `ContextMenuItem<TData>[]`        | An array of objects defining items for the row's context menu. Each item should be an object with a `label` and an `onClick` callback. |
-| `tableTitle`                 | `React.ReactNode`                 | A title to display above the table.                                                  |
-| `tableDescription`           | `React.ReactNode`                 | A description to display below the title.                                            |
-| `maxHeightWithPagination`    | `string`                          | CSS `max-height` for the table when pagination is on. Default: `'60vh'`.             |
-| `maxHeightWithoutPagination` | `string`                          | CSS `max-height` for the table when pagination is off. Default: `'80vh'`.            |
-| `initialRowsPerPage`         | `number`                          | The number of rows to display per page initially. Default: `20`.                     |
-| `rowsPerPageOptions`         | `number[]`                        | An array of numbers for the "Rows per page" dropdown. Default: `[10, 20, 50, 100, 500, 1000]` |
+| Prop | Type | Description |
+| --- | --- | --- |
+| `data` | `TData[]` | **Required.** The array of data to display. |
+| `columns` | `ColumnDef<TData>[]` | **Required.** The TanStack Table column definitions. |
+| `getRowId` | `(row: TData) => string` | **Required.** A function that returns a unique ID for each row. |
+| `tableContainerRef` | `React.RefObject<HTMLDivElement>` | **Required.** A ref to the scrollable table container, for virtualization. |
+| `onSelectedRowsChange` | `(rowIds: string[]) => void` | **Required.** Callback for when row selection changes. |
+| `globalFilter` | `string` | **Required.** The current value of the global search filter. |
+| `onGlobalFilterChange` | `(value: string) => void` | **Required.** Callback for when the global filter value changes. |
+| `filterableColumns` | `FilterableColumn[]` | Defines columns that can be filtered via the toolbar. |
+| `isStreaming` | `boolean` | Indicates if data is currently streaming. |
+| `onToggleStreaming` | `() => void` | Callback to toggle the data stream on or off. |
+| `onAddRow` | `() => void` | Callback for adding a new row. |
+| `onDeleteSelectedRows` | `() => void` | Callback for deleting selected rows. |
+| `onExportCsv` | `() => void` | Callback for exporting data to CSV. |
+| `contextMenuItems` | `ContextMenuItem<TData>[]` | An array of objects defining items for the row's context menu. Each item should be an object with a `label` and an `onClick` callback. |
+| `toolbarVisibility` | `ToolbarVisibility` | An object to control the visibility of individual toolbar elements. Defaults to all visible. |
+| `tableTitle` | `React.ReactNode` | A title to display above the table. |
+| `tableDescription` | `React.ReactNode` | A description to display below the title. |
+| `maxHeightWithPagination`| `string` | CSS `max-height` for the table when pagination is on. Default: `'60vh'`. |
+| `maxHeightWithoutPagination` | `string` | CSS `max-height` for the table when pagination is off. Default: `'80vh'`. |
+| `initialRowsPerPage` | `number` | The number of rows to display per page initially. Default: `20`. |
+| `rowsPerPageOptions` | `number[]` | An array of numbers for the "Rows per page" dropdown. Default: `[10, 20, 50, 100, 500, 1000]` |
+
+### ToolbarVisibility Object
+
+The `toolbarVisibility` prop is an object with the following optional boolean properties. If a property is omitted, it defaults to `true`.
+
+-   `addRow`: Show the "Add Row" button.
+-   `deleteRows`: Show the "Delete Selected" button.
+-   `toggleStreaming`: Show the "Start/Stop Streaming" button.
+-   `exportData`: Show the "Export" dropdown menu.
+-   `viewOptions`: Show the "View Options" dropdown menu.
+-   `toggleSorting`: Show the "Enable Sorting" option within the View Options menu.
+-   `togglePagination`: Show the "Enable Pagination" option within the View Options menu.
+-   `toggleColumns`: Show the "Toggle Columns" list within the View Options menu.
 
 
 ---
