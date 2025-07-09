@@ -741,7 +741,7 @@ export function DataTable<TData>({
               <TableBody 
                 style={{ 
                     display: 'grid', 
-                    height: rows.length > 0 ? `${rowVirtualizer.getTotalSize()}px` : '96px', 
+                    height: rows.length > 0 ? `${rowVirtualizer.getTotalSize()}px` : '160px', 
                     position: 'relative' 
                 }}
               >
@@ -836,7 +836,7 @@ export function DataTable<TData>({
                   })
                 ) : (
                   <TableRow className="flex items-center justify-center w-full">
-                    <TableCell className="h-24">No results.</TableCell>
+                    <TableCell className="h-40">No results.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
