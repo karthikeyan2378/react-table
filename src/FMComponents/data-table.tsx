@@ -362,6 +362,7 @@ interface DataTableProps<TData> {
   globalFilter: string;
   onGlobalFilterChange: (value: string) => void;
   onTableReady?: (table: ReactTable<TData>) => void;
+  tableContainerRef: React.RefObject<HTMLDivElement>;
   onAddRow?: () => void;
   isStreaming?: boolean;
   onToggleStreaming?: () => void;
@@ -391,6 +392,7 @@ export function DataTable<TData>({
   globalFilter,
   onGlobalFilterChange,
   onTableReady,
+  tableContainerRef,
   onAddRow,
   isStreaming,
   onToggleStreaming,
@@ -489,7 +491,6 @@ export function DataTable<TData>({
     onSelectedRowsChange(selectedIds);
   }, [rowSelection, onSelectedRowsChange, table, getRowId]);
 
-  const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const { rows } = table.getRowModel();
 
   const rowVirtualizer = useVirtualizer({

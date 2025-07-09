@@ -98,6 +98,7 @@ function MyPageComponent() {
   const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
   const [isStreaming, setIsStreaming] = React.useState(false);
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Define filterable columns for the toolbar
   const filterableColumns = [
@@ -115,6 +116,7 @@ function MyPageComponent() {
       data={myData}
       columns={columns}
       getRowId={(row) => row.id}
+      tableContainerRef={tableContainerRef}
       onSelectedRowsChange={setSelectedRowIds}
       globalFilter={globalFilter}
       onGlobalFilterChange={setGlobalFilter}
@@ -145,6 +147,7 @@ function MyPageComponent() {
 | `data`                       | `TData[]`                         | **Required.** The array of data to display.                                          |
 | `columns`                    | `ColumnDef<TData>[]`              | **Required.** The TanStack Table column definitions.                                 |
 | `getRowId`                   | `(row: TData) => string`          | **Required.** A function that returns a unique ID for each row.                      |
+| `tableContainerRef`          | `React.RefObject<HTMLDivElement>` | **Required.** A ref to the scrollable table container, for virtualization.           |
 | `onSelectedRowsChange`       | `(rowIds: string[]) => void`      | **Required.** Callback for when row selection changes.                               |
 | `globalFilter`               | `string`                          | **Required.** The current value of the global search filter.                         |
 | `onGlobalFilterChange`       | `(value: string) => void`         | **Required.** Callback for when the global filter value changes.                     |
@@ -184,7 +187,7 @@ Install the necessary packages. Open a terminal in your new project's root direc
 
 **Production Dependencies:**
 ```bash
-npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns jspdf jspdf-autotable lucide-react recharts tailwind-merge xlsx
+npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns jspdf jspdf-autotable lucide-react recharts tailwind-merge exceljs
 ```
 
 **Development Dependencies (for TypeScript users):**

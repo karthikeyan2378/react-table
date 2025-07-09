@@ -21,7 +21,7 @@ import {
 } from '../FMComponents/ui/alert-dialog';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 
@@ -40,6 +40,7 @@ export default function Home() {
   const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
   const [globalFilter, setGlobalFilter] = React.useState('');
   const [table, setTable] = React.useState<ReactTable<Alarm> | null>(null);
+  const tableContainerRef = React.useRef<HTMLDivElement>(null);
 
   const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
   
@@ -74,7 +75,7 @@ export default function Home() {
       alarm.NetworkLastModifiedTimeLong = new Date();
       setData((oldData) => [alarm, ...oldData]);
     });
-  }, [startTransition]);
+  }, []);
 
   const deleteSelectedRows = () => {
     if (selectedRowIds.length === 0) {
@@ -164,10 +165,15 @@ export default function Home() {
       document.body.removeChild(link);
   };
 
-  const handleExportXlsx = () => {
+  const handleExportXlsx = async () => {
       const exportData = getExportableData(table, alarmConfig);
       if (!exportData) return;
       const { headers, body } = exportData;
+
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Alarms");
+
+      worksheet.columns = headers.map(header => ({ header: header, key: header, width: 25 }));
       
       const dataToExport = body.map(row => {
           const rowObject: { [key: string]: string } = {};
@@ -177,10 +183,16 @@ export default function Home() {
           return rowObject;
       });
 
-      const ws = XLSX.utils.json_to_sheet(dataToExport);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Alarms");
-      XLSX.writeFile(wb, "alarms.xlsx");
+      worksheet.addRows(dataToExport);
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "alarms.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
   };
   
   const handleExportPdf = () => {
@@ -256,6 +268,7 @@ export default function Home() {
         
         <div className="p-4 rounded-lg border bg-white text-gray-900 shadow-sm">
             <DataTable
+                tableContainerRef={tableContainerRef}
                 data={data}
                 columns={columns}
                 onSelectedRowsChange={setSelectedRowIds}
