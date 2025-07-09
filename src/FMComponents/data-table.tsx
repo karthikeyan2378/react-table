@@ -62,14 +62,6 @@ import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 
-// Memoize the row model functions to prevent them from being recreated on every render.
-const coreRowModel = getCoreRowModel();
-const facetedRowModel = getFacetedRowModel();
-const facetedUniqueValues = getFacetedUniqueValues();
-const filteredRowModel = getFilteredRowModel();
-const paginationRowModel = getPaginationRowModel();
-const sortedRowModel = getSortedRowModel();
-
 // A generic faceted filter component.
 interface DataTableFacetedFilterProps<TData> {
   column?: ReactTable<TData>['getColumn'];
@@ -360,12 +352,12 @@ export function DataTable<TData>({
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onColumnOrderChange: setColumnOrder,
-    getCoreRowModel: coreRowModel,
-    getSortedRowModel: sortedRowModel,
-    getFilteredRowModel: filteredRowModel,
-    getPaginationRowModel: paginationEnabled ? paginationRowModel : undefined,
-    getFacetedRowModel: facetedRowModel,
-    getFacetedUniqueValues: facetedUniqueValues,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: paginationEnabled ? getPaginationRowModel() : undefined,
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     columnResizeMode: "onChange",
     enableSorting: sortingEnabled,
     enableMultiRowSelection: true,
@@ -443,32 +435,27 @@ export function DataTable<TData>({
                           }}
                           onDragOver={(e) => e.preventDefault()}
                         >
-                           <div className="flex items-center h-full w-full">
-                              <div className="flex items-center pl-4 pr-1 py-3.5 h-full overflow-hidden">
-                                {header.isPlaceholder
-                                  ? null
-                                  : flexRender(
-                                      header.column.columnDef.header,
-                                      header.getContext()
-                                    )}
-                              </div>
-                              <div
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.setData('text/plain', header.id);
-                                  e.stopPropagation();
-                                }}
-                                className="cursor-grab p-1"
-                              >
-                                <MoreVertical className="h-4 w-4" />
-                              </div>
+                           <div 
+                              className="flex-grow flex items-center h-full overflow-hidden"
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('text/plain', header.id);
+                                e.stopPropagation();
+                              }}
+                            >
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
                             </div>
                             {header.column.getCanResize() && (
                               <div
                                 onMouseDown={header.getResizeHandler()}
                                 onTouchStart={header.getResizeHandler()}
                                 className={cn(
-                                  "h-full w-1.5 cursor-col-resize select-none touch-none shrink-0",
+                                  "w-1.5 h-full cursor-col-resize select-none touch-none shrink-0 bg-border/50 hover:bg-primary/80",
                                   header.column.getIsResizing() ? "bg-primary" : ""
                                 )}
                               />
