@@ -1,7 +1,6 @@
 
 import { genkit, GenerationCommonConfig } from 'genkit';
-import { googleAI } from 'genkit/googleai';
-import { defineJsonSchema } from 'genkit/zod';
+import { googleAI } from '@genkit-ai/googleai';
 
 const safetySettings: GenerationCommonConfig['safetySettings'] = [
     {

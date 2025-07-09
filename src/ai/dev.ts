@@ -1,6 +1,6 @@
 
 import { genkit } from 'genkit';
-import { googleAI } from 'genkit/googleai';
+import { googleAI } from '@genkit-ai/googleai';
 
 import './flows/summarize-alarms-flow';
 

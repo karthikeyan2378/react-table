@@ -72,6 +72,13 @@ import { Separator } from "./ui/separator";
 import { Checkbox } from './ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
+export interface FilterableColumn {
+  id: string;
+  name: string;
+  type: 'text' | 'categorical';
+  options?: { value: string; label: string }[];
+}
+
 // A generic faceted filter component.
 interface DataTableFacetedFilterProps<TData> {
   column?: ReactTable<TData>['getColumn'];

@@ -9,7 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit/zod';
+import { z } from 'zod';
 import { type Alarm } from '@/config/alarm-config';
 
 // We define a simpler schema for the flow input to avoid sending massive objects
@@ -24,12 +24,12 @@ const AlarmSummaryItemSchema = z.object({
   FlapCount: z.number(),
 });
 
-export const SummarizeAlarmsInputSchema = z.object({
+const SummarizeAlarmsInputSchema = z.object({
   alarms: z.array(AlarmSummaryItemSchema),
 });
 export type SummarizeAlarmsInput = z.infer<typeof SummarizeAlarmsInputSchema>;
 
-export const SummarizeAlarmsOutputSchema = z.object({
+const SummarizeAlarmsOutputSchema = z.object({
   analysis: z
     .string()
     .describe('A concise, expert-level analysis of the provided alarms.'),
