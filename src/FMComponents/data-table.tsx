@@ -493,6 +493,10 @@ export function DataTable<TData>({
                                 });
                             }}
                             onMouseDown={(e) => {
+                                const target = e.target as HTMLElement;
+                                if (target.closest('[role="checkbox"]')) {
+                                  return;
+                                }
                                 e.preventDefault(); // Prevent text selection
                                 const rowIndex = virtualRow.index;
                                 
@@ -629,5 +633,3 @@ export function DataTable<TData>({
       </div>
   );
 }
-
-    
