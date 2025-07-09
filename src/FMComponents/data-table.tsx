@@ -61,15 +61,6 @@ import { cn } from "../lib/utils";
 import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
 
 // Memoize the row model functions to prevent them from being recreated on every render.
 const coreRowModel = getCoreRowModel();
@@ -300,6 +291,7 @@ interface DataTableProps<TData> {
   getRowId: (row: TData) => string;
   onSelectedRowsChange: (rowIds: string[]) => void;
   renderRowContextMenu?: (row: TData) => React.ReactNode;
+  onRowDoubleClick?: (row: TData) => void;
   filterableColumns?: FilterableColumn[];
   initialColumnVisibility?: VisibilityState;
   initialSorting?: SortingState;
@@ -312,6 +304,7 @@ export function DataTable<TData>({
   getRowId,
   onSelectedRowsChange,
   renderRowContextMenu,
+  onRowDoubleClick,
   filterableColumns = [],
   initialColumnVisibility = {},
   initialSorting = [],
@@ -320,7 +313,6 @@ export function DataTable<TData>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
-  const [dialogRow, setDialogRow] = React.useState<TData | null>(null);
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; row: TData } | null>(null);
 
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
@@ -494,6 +486,7 @@ export function DataTable<TData>({
                         <TableRow
                             key={row.id}
                             data-state={row.getIsSelected() && "selected"}
+                            onDoubleClick={() => onRowDoubleClick?.(row.original)}
                             onContextMenu={(e) => { 
                                 e.preventDefault(); 
                                 setContextMenu({
@@ -636,21 +629,6 @@ export function DataTable<TData>({
             />
             {contextMenu?.row && renderRowContextMenu && renderRowContextMenu(contextMenu.row)}
         </DropdownMenu>
-
-        <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Item Details</AlertDialogTitle>
-              <AlertDialogDescription>Viewing full data for the selected item.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="max-h-96 overflow-y-auto rounded-md border bg-muted p-4">
-              <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDialogRow(null)}>Close</AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
   );
 }

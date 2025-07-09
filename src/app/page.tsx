@@ -16,6 +16,15 @@ import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../FMComponents/ui/tooltip';
 import { Badge } from '../FMComponents/ui/badge';
 import { cn } from '../lib/utils';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../FMComponents/ui/alert-dialog';
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
@@ -384,14 +393,9 @@ export default function Home() {
                 filterableColumns={filterableColumns}
                 initialColumnVisibility={initialColumnVisibility}
                 initialSorting={initialSorting}
+                onRowDoubleClick={setDialogRow}
                 renderRowContextMenu={(row) => (
-                    <DropdownMenuContent
-                        onContextMenu={(e) => e.preventDefault()}
-                        onDoubleClick={(e) => {
-                            e.preventDefault();
-                            setDialogRow(row);
-                        }}
-                    >
+                    <DropdownMenuContent onContextMenu={(e) => e.preventDefault()}>
                         <DropdownMenuItem onClick={() => setDialogRow(row)}>
                             View Details
                         </DropdownMenuItem>
@@ -402,6 +406,21 @@ export default function Home() {
                 )}
             />
         </div>
+
+        <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Item Details</AlertDialogTitle>
+              <AlertDialogDescription>Viewing full data for the selected item.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="max-h-96 overflow-y-auto rounded-md border bg-muted p-4">
+              <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setDialogRow(null)}>Close</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
