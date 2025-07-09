@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react";
@@ -520,7 +521,13 @@ export function DataTable<TData>({
           </div>
         </div>
 
-        <div ref={tableContainerRef} className="rounded-md border border-gray-200 overflow-auto relative max-h-[60vh]">
+        <div 
+            ref={tableContainerRef} 
+            className={cn(
+                "rounded-md border border-gray-200 overflow-auto relative",
+                paginationEnabled && "max-h-[60vh]"
+            )}
+        >
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
               <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'white' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
