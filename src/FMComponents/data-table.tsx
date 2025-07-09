@@ -225,7 +225,7 @@ function DataTableToolbar<TData>({
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 relative z-20">
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
           <div className="relative flex items-center">
