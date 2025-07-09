@@ -7,7 +7,7 @@ import { DataTable } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { Button } from '../FMComponents/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '../FMComponents/ui/dropdown-menu';
-import { ChevronDown, ArrowDown, ArrowUp, ChevronsUpDown, SlidersHorizontal, Download } from 'lucide-react';
+import { ChevronDown, ArrowDown, ArrowUp, ChevronsUpDown, SlidersHorizontal, Download, FileText, FileSpreadsheet, File } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { type ColumnDef, type Table as ReactTable } from '@tanstack/react-table';
 import { Checkbox } from '../FMComponents/ui/checkbox';
