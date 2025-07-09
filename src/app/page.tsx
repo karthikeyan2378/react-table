@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../FMComponents/ui/alert-dialog';
+import { Input } from '@/FMComponents/ui/input';
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
@@ -47,6 +48,7 @@ export default function Home() {
   const chartUpdateDebounceRef = React.useRef<NodeJS.Timeout>();
   const [isPending, startTransition] = React.useTransition();
   const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
   const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
 
@@ -206,7 +208,7 @@ export default function Home() {
     });
 
     return [...staticColumns, ...dynamicColumns];
-  }, []);
+  }, [getRowId]);
 
   React.useEffect(() => {
     const initialData = makeData(100);
@@ -233,7 +235,9 @@ export default function Home() {
 
   const addRow = React.useCallback(() => {
     startTransition(() => {
-      setData((oldData) => [newAlarm(), ...oldData]);
+      const alarm = newAlarm();
+      alarm.NetworkLastModifiedTimeLong = new Date();
+      setData((oldData) => [alarm, ...oldData]);
     });
   }, [startTransition]);
 
@@ -401,6 +405,8 @@ export default function Home() {
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 )}
+                globalFilter={globalFilter}
+                onGlobalFilterChange={setGlobalFilter}
             />
         </div>
 
