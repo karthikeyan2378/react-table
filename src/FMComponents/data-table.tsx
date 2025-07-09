@@ -28,6 +28,7 @@ import {
   FileSpreadsheet,
   FileText,
   Filter,
+  GripVertical,
   MoreVertical,
   PlusCircle,
   Search,
@@ -98,18 +99,27 @@ function DataTableFacetedFilter<TData>({
             {selectedValues?.size > 0 && (
               <>
                 <Separator orientation="vertical" className="mx-2 h-4" />
-                <div className="hidden space-x-1 lg:flex">
-                  {options
-                    .filter((option) => selectedValues.has(option.value))
-                    .map((option) => (
-                      <Badge
-                        variant="secondary"
-                        key={option.value}
-                        className="rounded-sm px-1 font-normal"
-                      >
-                        {option.label}
-                      </Badge>
-                    ))}
+                <div className="flex items-center space-x-1">
+                  {selectedValues.size > 2 ? (
+                    <Badge
+                      variant="secondary"
+                      className="rounded-sm px-1 font-normal"
+                    >
+                      {selectedValues.size} selected
+                    </Badge>
+                  ) : (
+                    options
+                      .filter((option) => selectedValues.has(option.value))
+                      .map((option) => (
+                        <Badge
+                          variant="secondary"
+                          key={option.value}
+                          className="rounded-sm px-1 font-normal"
+                        >
+                          {option.label}
+                        </Badge>
+                      ))
+                  )}
                 </div>
               </>
             )}
@@ -198,7 +208,7 @@ function DataTableToolbar<TData>({
   onExportXlsx,
   onExportPdf,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0 || !!table.getState().globalFilter;
+  const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
   const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
 
@@ -548,7 +558,7 @@ export function DataTable<TData>({
             </div>
         </div>
 
-        <div>
+        <div className="z-10 relative">
           <DataTableToolbar 
             table={table} 
             filterableColumns={filterableColumns} 
