@@ -558,21 +558,19 @@ export function DataTable<TData>({
             </div>
         </div>
 
-        <div className="z-10 relative">
-          <DataTableToolbar 
-            table={table} 
-            filterableColumns={filterableColumns} 
-            globalFilter={globalFilter} 
-            onGlobalFilterChange={onGlobalFilterChange}
-            onAddRow={onAddRow}
-            isStreaming={isStreaming}
-            onToggleStreaming={onToggleStreaming}
-            onDeleteSelectedRows={onDeleteSelectedRows}
-            onExportCsv={onExportCsv}
-            onExportXlsx={onExportXlsx}
-            onExportPdf={onExportPdf}
-          />
-        </div>
+        <DataTableToolbar 
+          table={table} 
+          filterableColumns={filterableColumns} 
+          globalFilter={globalFilter} 
+          onGlobalFilterChange={onGlobalFilterChange}
+          onAddRow={onAddRow}
+          isStreaming={isStreaming}
+          onToggleStreaming={onToggleStreaming}
+          onDeleteSelectedRows={onDeleteSelectedRows}
+          onExportCsv={onExportCsv}
+          onExportXlsx={onExportXlsx}
+          onExportPdf={onExportPdf}
+        />
 
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center space-x-2">
