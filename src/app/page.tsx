@@ -28,6 +28,7 @@ import { Input } from '@/FMComponents/ui/input';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { getExportableData } from '../lib/export';
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
@@ -312,33 +313,8 @@ export default function Home() {
     return descendingCol ? [{ id: descendingCol[0], desc: true }] : [];
   }, []);
 
-  const getExportData = React.useCallback(() => {
-    if (!table) return null;
-
-    const visibleColumns = table.getVisibleFlatColumns().filter(
-        (col) => col.id !== 'select'
-    );
-
-    const headers = visibleColumns.map((col) => {
-        const config = alarmConfig.fields[col.id as keyof typeof alarmConfig.fields];
-        return config?.label || col.id;
-    });
-    
-    const body = table.getFilteredRowModel().rows.map((row) =>
-        visibleColumns.map((col) => {
-            const value = row.getValue(col.id);
-            if (value instanceof Date) {
-                return format(value, 'dd-MMM-yyyy HH:mm:ss');
-            }
-            return String(value ?? '');
-        })
-    );
-
-    return { headers, body };
-  }, [table]);
-
   const handleExportCsv = () => {
-      const exportData = getExportData();
+      const exportData = getExportableData(table, alarmConfig);
       if (!exportData) return;
       const { headers, body } = exportData;
 
@@ -359,7 +335,7 @@ export default function Home() {
   };
 
   const handleExportXlsx = () => {
-      const exportData = getExportData();
+      const exportData = getExportableData(table, alarmConfig);
       if (!exportData) return;
       const { headers, body } = exportData;
       
@@ -378,7 +354,7 @@ export default function Home() {
   };
   
   const handleExportPdf = () => {
-    const exportData = getExportData();
+    const exportData = getExportableData(table, alarmConfig);
     if (!exportData) {
       toast({ title: "Error", description: "Could not get data for PDF export.", variant: "destructive" });
       return;
