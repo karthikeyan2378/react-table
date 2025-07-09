@@ -32,6 +32,10 @@ const filterableColumnsForPrompt = Object.entries(alarmConfig.fields)
         options: options?.map(opt => opt.value),
     }));
 
+export async function generateFilter(query: FilterInput): Promise<FilterOutput> {
+  return generateFilterFlow(query);
+}
+
 const generateFilterFlow = ai.defineFlow(
   {
     name: 'generateFilterFlow',
@@ -41,7 +45,7 @@ const generateFilterFlow = ai.defineFlow(
   async (query) => {
     const prompt = ai.definePrompt({
         name: 'filterGenerationPrompt',
-        model: 'googleai/gemini-2.0-flash-preview',
+        model: 'googleai/gemini-1.5-flash-latest',
         input: { schema: z.object({ query: z.string() }) },
         output: { schema: FilterOutputSchema },
         prompt: `You are an expert at converting natural language queries into structured JSON filters for a data table.
@@ -64,7 +68,3 @@ const generateFilterFlow = ai.defineFlow(
     return output ?? [];
   }
 );
-
-export async function generateFilter(query: FilterInput): Promise<FilterOutput> {
-  return generateFilterFlow(query);
-}
