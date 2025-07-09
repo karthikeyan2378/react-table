@@ -288,6 +288,8 @@ export default function Home() {
                 tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
                 maxHeightWithPagination="60vh"
                 maxHeightWithoutPagination="80vh"
+                initialRowsPerPage={50}
+                rowsPerPageOptions={[20, 50, 100, 200, 500]}
             />
         </div>
 

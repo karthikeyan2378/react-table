@@ -12,11 +12,12 @@ The components are built with React and ShadCN UI and use the Tailwind CSS CDN f
 -   **Generic `DataTable` Component**: Render any data structure with a simple configuration.
 -   **Virtualization**: Handles thousands of rows smoothly using TanStack Virtual.
 -   **Client-Side Operations**: Fast filtering, sorting, and pagination.
--   **Column Customization**: Resizing and reordering columns via drag-and-drop.
+-   **Column Customization**: Resizing, reordering, and hiding/showing columns.
 -   **Advanced Selection**: Multi-row selection with Shift and Ctrl/Cmd keys, plus drag-to-select.
 -   **Data Export**: Export the current view to CSV, Excel, or PDF.
 -   **Config-Driven UI**: Table columns, filters, and charts are all driven by a central configuration file.
 -   **Context Menu**: Right-click on rows for custom actions.
+-   **Configurable Pagination**: Customize the initial page size and the "rows per page" options.
 
 ---
 
@@ -127,10 +128,40 @@ function MyPageComponent() {
       renderRowContextMenu={(row) => (
         <MyCustomContextMenu rowData={row} />
       )}
+      tableTitle="My Custom Table"
+      tableDescription="This is an example of the DataTable component."
+      maxHeightWithPagination="70vh"
+      initialRowsPerPage={50}
+      rowsPerPageOptions={[25, 50, 100]}
     />
   );
 }
 ```
+
+### DataTable Props
+
+| Prop                         | Type                              | Description                                                                          |
+| ---------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ |
+| `data`                       | `TData[]`                         | **Required.** The array of data to display.                                          |
+| `columns`                    | `ColumnDef<TData>[]`              | **Required.** The TanStack Table column definitions.                                 |
+| `getRowId`                   | `(row: TData) => string`          | **Required.** A function that returns a unique ID for each row.                      |
+| `onSelectedRowsChange`       | `(rowIds: string[]) => void`      | **Required.** Callback for when row selection changes.                               |
+| `globalFilter`               | `string`                          | **Required.** The current value of the global search filter.                         |
+| `onGlobalFilterChange`       | `(value: string) => void`         | **Required.** Callback for when the global filter value changes.                     |
+| `filterableColumns`          | `FilterableColumn[]`              | Defines columns that can be filtered via the toolbar.                                |
+| `isStreaming`                | `boolean`                         | Indicates if data is currently streaming.                                            |
+| `onToggleStreaming`          | `() => void`                      | Callback to toggle the data stream on or off.                                        |
+| `onAddRow`                   | `() => void`                      | Callback for adding a new row.                                                       |
+| `onDeleteSelectedRows`       | `() => void`                      | Callback for deleting selected rows.                                                 |
+| `onExportCsv`                | `() => void`                      | Callback for exporting data to CSV.                                                  |
+| `renderRowContextMenu`       | `(row: TData) => React.ReactNode` | A function that returns a JSX element for a row's context menu.                      |
+| `tableTitle`                 | `React.ReactNode`                 | A title to display above the table.                                                  |
+| `tableDescription`           | `React.ReactNode`                 | A description to display below the title.                                            |
+| `maxHeightWithPagination`    | `string`                          | CSS `max-height` for the table when pagination is on. Default: `'60vh'`.             |
+| `maxHeightWithoutPagination` | `string`                          | CSS `max-height` for the table when pagination is off. Default: `'80vh'`.            |
+| `initialRowsPerPage`         | `number`                          | The number of rows to display per page initially. Default: `20`.                     |
+| `rowsPerPageOptions`         | `number[]`                        | An array of numbers for the "Rows per page" dropdown. Default: `[10, 20, 50, 100, 500, 1000]` |
+
 
 ---
 

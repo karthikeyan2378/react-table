@@ -373,6 +373,8 @@ interface DataTableProps<TData> {
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
   maxHeightWithoutPagination?: string;
+  initialRowsPerPage?: number;
+  rowsPerPageOptions?: number[];
 }
 
 // The generic DataTable component.
@@ -400,6 +402,8 @@ export function DataTable<TData>({
   tableDescription,
   maxHeightWithPagination = '60vh',
   maxHeightWithoutPagination = '80vh',
+  initialRowsPerPage = 20,
+  rowsPerPageOptions = [10, 20, 50, 100, 500, 1000],
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -440,9 +444,9 @@ export function DataTable<TData>({
 
   const tableInitialState = React.useMemo(() => ({
     pagination: {
-        pageSize: 20,
+        pageSize: initialRowsPerPage,
     },
-  }), []);
+  }), [initialRowsPerPage]);
   
   const table = useReactTable({
     data,
@@ -715,7 +719,7 @@ export function DataTable<TData>({
                 >
                   <SelectTrigger className="h-8 w-[70px]"><SelectValue placeholder={table.getState().pagination.pageSize} /></SelectTrigger>
                   <SelectContent side="top">
-                    {[10, 20, 50, 100, 500, 1000].map((pageSize) => (
+                    {rowsPerPageOptions.map((pageSize) => (
                       <SelectItem key={pageSize} value={`${pageSize}`}>{pageSize}</SelectItem>
                     ))}
                   </SelectContent>
