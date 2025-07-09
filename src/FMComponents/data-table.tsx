@@ -36,6 +36,7 @@ import {
   Square,
   Trash2,
   X,
+  Sparkles,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -106,10 +107,7 @@ function DataTableFacetedFilter<TData>({
                 >
                   {selectedValues.size > 2
                     ? `${selectedValues.size} selected`
-                    : options
-                        .filter((option) => selectedValues.has(option.value))
-                        .map((option) => option.label)
-                        .join(", ")}
+                    : Array.from(selectedValues).join(', ')}
                 </Badge>
               </>
             )}
@@ -154,7 +152,7 @@ function DataTableFacetedFilter<TData>({
       <Button
           variant="ghost"
           size="icon"
-          className="absolute right-1 top-0 bottom-0 my-auto h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
+          className="absolute right-0 top-0 bottom-0 my-auto h-full px-2 text-gray-500 hover:text-gray-800"
           onClick={onRemove}
       >
           <X className="h-4 w-4" />
@@ -172,6 +170,7 @@ export interface ToolbarVisibility {
   toggleSorting?: boolean;
   togglePagination?: boolean;
   toggleColumns?: boolean;
+  aiSummary?: boolean;
 }
 
 // A generic toolbar that receives filterable column definitions as props.
@@ -187,6 +186,7 @@ interface DataTableToolbarProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
+  onAiSummary?: () => void;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
@@ -206,6 +206,7 @@ function DataTableToolbar<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
+  onAiSummary,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -229,7 +230,7 @@ function DataTableToolbar<TData>({
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
-    <div className="flex items-center justify-between gap-2 relative z-20">
+    <div className="flex items-center justify-between gap-2 relative z-10">
       {/* Left side: Filters */}
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
         <div className="relative flex items-center">
@@ -266,7 +267,7 @@ function DataTableToolbar<TData>({
         {textFilterColumns.map((col) => {
           if (activeFilters.includes(col.id)) {
             return (
-              <div key={col.id} className="relative w-[150px] lg:w-[250px]">
+              <div key={col.id} className="relative w-[150px] lg:w-[250px] flex items-center">
                 <Input
                   placeholder={`Filter ${col.name.toLowerCase()}...`}
                   value={
@@ -281,7 +282,7 @@ function DataTableToolbar<TData>({
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute right-1 top-0 bottom-0 my-auto h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
+                    className="absolute right-0 top-0 bottom-0 my-auto h-full px-2 text-gray-500 hover:text-gray-800"
                     onClick={() => handleFilterToggle(col.id, true)}
                 >
                     <X className="h-4 w-4" />
@@ -335,6 +336,18 @@ function DataTableToolbar<TData>({
       {/* Right side: Actions & Settings */}
       <div className="flex items-center space-x-1">
         <TooltipProvider>
+          {toolbarVisibility.aiSummary !== false && onAiSummary && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8" onClick={onAiSummary}>
+                  <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
+                  AI Summary
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>Generate AI Summary</p></TooltipContent>
+            </Tooltip>
+          )}
+
           {toolbarVisibility.addRow !== false && onAddRow && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -495,6 +508,7 @@ interface DataTableProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
+  onAiSummary?: () => void;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -526,6 +540,7 @@ export function DataTable<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
+  onAiSummary,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -658,6 +673,7 @@ export function DataTable<TData>({
           onExportCsv={onExportCsv}
           onExportXlsx={onExportXlsx}
           onExportPdf={onExportPdf}
+          onAiSummary={onAiSummary}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
@@ -826,7 +842,7 @@ export function DataTable<TData>({
                     )
                   })
                 ) : (
-                  <TableRow className="flex items-center justify-center w-full h-full">
+                  <TableRow className="flex items-center justify-center w-full" style={{ height: '60px' }}>
                     <TableCell>No results.</TableCell>
                   </TableRow>
                 )}

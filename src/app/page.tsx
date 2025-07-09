@@ -10,7 +10,7 @@ import { Button } from '../FMComponents/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../FMComponents/ui/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
-import { type Table as ReactTable } from '@tanstack/react-table';
+import { type Table as ReactTable, type Row } from '@tanstack/react-table';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -25,6 +25,9 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
+import { AiSummaryModal } from '../FMComponents/ai-summary-modal';
+import { summarizeAlarms } from '../ai/flows/summarize-alarms-flow';
+
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
@@ -42,6 +45,9 @@ export default function Home() {
   const [globalFilter, setGlobalFilter] = React.useState('');
   const [table, setTable] = React.useState<ReactTable<Alarm> | null>(null);
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  const [isAiModalOpen, setIsAiModalOpen] = React.useState(false);
+  const [aiSummary, setAiSummary] = React.useState('');
+  const [isAiSummaryLoading, setIsAiSummaryLoading] = React.useState(false);
 
   const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
   
@@ -226,6 +232,35 @@ export default function Home() {
     doc.save('alarms.pdf');
   };
 
+  const handleGenerateSummary = async () => {
+    if (!table) return;
+    setIsAiSummaryLoading(true);
+    setAiSummary('');
+
+    try {
+      const visibleRows: Row<Alarm>[] = table.getFilteredRowModel().rows;
+      const dataToSummarize = visibleRows.map(row => row.original);
+      
+      if (dataToSummarize.length === 0) {
+        setAiSummary('There are no alarms to summarize.');
+        return;
+      }
+      
+      const summary = await summarizeAlarms({ alarms: dataToSummarize });
+      setAiSummary(summary.analysis);
+    } catch (error) {
+      console.error("Error generating summary:", error);
+      toast({
+        title: "AI Summary Failed",
+        description: "Could not generate a summary. Please try again.",
+        variant: "destructive",
+      });
+      setAiSummary("An error occurred while generating the summary.");
+    } finally {
+      setIsAiSummaryLoading(false);
+    }
+  };
+
   if (!isClient) {
     return null;
   }
@@ -301,6 +336,7 @@ export default function Home() {
                 onExportCsv={handleExportCsv}
                 onExportXlsx={handleExportXlsx}
                 onExportPdf={handleExportPdf}
+                onAiSummary={() => setIsAiModalOpen(true)}
                 tableTitle="Live Alarm Feed"
                 tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
                 maxHeightWithPagination="60vh"
@@ -324,6 +360,18 @@ export default function Home() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <AiSummaryModal
+            isOpen={isAiModalOpen}
+            onClose={() => {
+              setIsAiModalOpen(false);
+              setAiSummary('');
+            }}
+            summary={aiSummary}
+            isLoading={isAiSummaryLoading}
+            onGenerateSummary={handleGenerateSummary}
+        />
+
       </main>
     </div>
   );
