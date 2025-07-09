@@ -22,8 +22,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Download,
   Filter,
-  MoreVertical,
   PlusCircle,
   X,
 } from "lucide-react";
@@ -157,11 +157,31 @@ interface DataTableToolbarProps<TData> {
   filterableColumns: FilterableColumn[];
   globalFilter: string;
   onGlobalFilterChange: (value: string) => void;
+  onAddRow?: () => void;
+  isStreaming?: boolean;
+  onToggleStreaming?: () => void;
+  onDeleteSelectedRows?: () => void;
+  onExportCsv?: () => void;
+  onExportXlsx?: () => void;
+  onExportPdf?: () => void;
 }
 
-function DataTableToolbar<TData>({ table, filterableColumns, globalFilter, onGlobalFilterChange }: DataTableToolbarProps<TData>) {
+function DataTableToolbar<TData>({ 
+  table, 
+  filterableColumns, 
+  globalFilter, 
+  onGlobalFilterChange,
+  onAddRow,
+  isStreaming,
+  onToggleStreaming,
+  onDeleteSelectedRows,
+  onExportCsv,
+  onExportXlsx,
+  onExportPdf,
+}: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
+  const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
 
   const handleFilterToggle = (columnId: string, isActive?: boolean) => {
     if (isActive) {
@@ -176,96 +196,135 @@ function DataTableToolbar<TData>({ table, filterableColumns, globalFilter, onGlo
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
-        <Input
-          placeholder="Search all columns..."
-          value={globalFilter ?? ""}
-          onChange={(event) => onGlobalFilterChange(event.target.value)}
-          className="h-8 w-[150px] lg:w-[250px]"
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8">
-              <Filter className="mr-2 h-4 w-4 text-blue-500" />
-              Add Filter
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
+          <Input
+            placeholder="Search all columns..."
+            value={globalFilter ?? ""}
+            onChange={(event) => onGlobalFilterChange(event.target.value)}
+            className="h-8 w-[150px] lg:w-[250px]"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8">
+                <Filter className="mr-2 h-4 w-4 text-blue-500" />
+                Add Filter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {filterableColumns.map((col) => (
+                <DropdownMenuCheckboxItem
+                  key={col.id}
+                  checked={activeFilters.includes(col.id)}
+                  onCheckedChange={(checked) => handleFilterToggle(col.id, !checked)}
+                >
+                  {col.name}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {textFilterColumns.map((col) => {
+            if (activeFilters.includes(col.id)) {
+              return (
+                <div key={col.id} className="flex items-center gap-1">
+                  <Input
+                    placeholder={`Filter ${col.name.toLowerCase()}...`}
+                    value={
+                      (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
+                    }
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      table.getColumn(col.id)?.setFilterValue(value || undefined);
+                    }}
+                    className="h-8 w-[150px] lg:w-[250px]"
+                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              );
+            }
+            return null;
+          })}
+
+          {categoricalFilterColumns.map(col => {
+            if (activeFilters.includes(col.id) && table.getColumn(col.id) && col.options) {
+              return (
+                <div key={col.id} className="flex items-center gap-1">
+                  <DataTableFacetedFilter
+                    column={table.getColumn(col.id)!}
+                    title={col.name}
+                    options={col.options}
+                  />
+                   <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )
+            }
+            return null;
+          })}
+
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                table.resetColumnFilters();
+                onGlobalFilterChange("");
+                setActiveFilters([]);
+              }}
+              className="h-8 px-2 lg:px-3"
+            >
+              Reset
+              <X className="ml-2 h-4 w-4" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {filterableColumns.map((col) => (
-              <DropdownMenuCheckboxItem
-                key={col.id}
-                checked={activeFilters.includes(col.id)}
-                onCheckedChange={(checked) => handleFilterToggle(col.id, !checked)}
-              >
-                {col.name}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {textFilterColumns.map((col) => {
-          if (activeFilters.includes(col.id)) {
-            return (
-              <div key={col.id} className="flex items-center gap-1">
-                <Input
-                  placeholder={`Filter ${col.name.toLowerCase()}...`}
-                  value={
-                    (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
-                  }
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    table.getColumn(col.id)?.setFilterValue(value || undefined);
-                  }}
-                  className="h-8 w-[150px] lg:w-[250px]"
-                />
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            );
-          }
-          return null;
-        })}
-
-        {categoricalFilterColumns.map(col => {
-          if (activeFilters.includes(col.id) && table.getColumn(col.id) && col.options) {
-            return (
-              <div key={col.id} className="flex items-center gap-1">
-                <DataTableFacetedFilter
-                  column={table.getColumn(col.id)!}
-                  title={col.name}
-                  options={col.options}
-                />
-                 <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )
-          }
-          return null;
-        })}
-
-        {isFiltered && (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              table.resetColumnFilters();
-              onGlobalFilterChange("");
-              setActiveFilters([]);
-            }}
-            className="h-8 px-2 lg:px-3"
-          >
-            Reset
-            <X className="ml-2 h-4 w-4" />
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2 flex-wrap">
+        {onAddRow && <Button onClick={onAddRow}>Add Alarm</Button>}
+        {onToggleStreaming && (
+            <Button
+                variant="secondary"
+                onClick={onToggleStreaming}
+                className="w-[180px] justify-center"
+            >
+            {isStreaming ? '⏹ Stop Streaming' : '▶️ Start Streaming'}
           </Button>
+        )}
+        {onDeleteSelectedRows && (
+          <Button
+            variant="destructive"
+            onClick={onDeleteSelectedRows}
+            disabled={selectedRowCount === 0}
+          >
+            Delete Selected
+          </Button>
+        )}
+        {(onExportCsv || onExportXlsx || onExportPdf) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                {onExportCsv && <DropdownMenuItem onClick={onExportCsv}>Export as CSV</DropdownMenuItem>}
+                {onExportXlsx && <DropdownMenuItem onClick={onExportXlsx}>Export as Excel</DropdownMenuItem>}
+                {onExportPdf && <DropdownMenuItem onClick={onExportPdf}>Export as PDF</DropdownMenuItem>}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
     </div>
   );
 }
+
 
 // A pure helper function for reordering columns in an array.
 const reorderColumn = (
@@ -299,6 +358,13 @@ interface DataTableProps<TData> {
   globalFilter: string;
   onGlobalFilterChange: (value: string) => void;
   onTableReady?: (table: ReactTable<TData>) => void;
+  onAddRow?: () => void;
+  isStreaming?: boolean;
+  onToggleStreaming?: () => void;
+  onDeleteSelectedRows?: () => void;
+  onExportCsv?: () => void;
+  onExportXlsx?: () => void;
+  onExportPdf?: () => void;
 }
 
 // The generic DataTable component.
@@ -315,6 +381,13 @@ export function DataTable<TData>({
   globalFilter,
   onGlobalFilterChange,
   onTableReady,
+  onAddRow,
+  isStreaming,
+  onToggleStreaming,
+  onDeleteSelectedRows,
+  onExportCsv,
+  onExportXlsx,
+  onExportPdf,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -406,7 +479,19 @@ export function DataTable<TData>({
 
   return (
       <div className="space-y-4">
-        <DataTableToolbar table={table} filterableColumns={filterableColumns} globalFilter={globalFilter} onGlobalFilterChange={onGlobalFilterChange} />
+        <DataTableToolbar 
+          table={table} 
+          filterableColumns={filterableColumns} 
+          globalFilter={globalFilter} 
+          onGlobalFilterChange={onGlobalFilterChange}
+          onAddRow={onAddRow}
+          isStreaming={isStreaming}
+          onToggleStreaming={onToggleStreaming}
+          onDeleteSelectedRows={onDeleteSelectedRows}
+          onExportCsv={onExportCsv}
+          onExportXlsx={onExportXlsx}
+          onExportPdf={onExportPdf}
+        />
 
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center space-x-2">

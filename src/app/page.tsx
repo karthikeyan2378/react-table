@@ -7,7 +7,7 @@ import { DataTable } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { Button } from '../FMComponents/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '../FMComponents/ui/dropdown-menu';
-import { ChevronDown, ArrowDown, ArrowUp, ChevronsUpDown, SlidersHorizontal, MoreVertical, Download } from 'lucide-react';
+import { ChevronDown, ArrowDown, ArrowUp, ChevronsUpDown, SlidersHorizontal, Download } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { type ColumnDef, type Table as ReactTable } from '@tanstack/react-table';
 import { Checkbox } from '../FMComponents/ui/checkbox';
@@ -423,39 +423,6 @@ export default function Home() {
                 />
             ))}
         </div>
-
-        <div className="flex items-center gap-2 flex-wrap mb-4">
-          <Button onClick={addRow}>
-            Add Alarm
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => setIsStreaming((prev) => !prev)}
-            className="w-[180px] justify-center"
-          >
-            {isStreaming ? '⏹ Stop Streaming' : '▶️ Start Streaming'}
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={deleteSelectedRows}
-            disabled={selectedRowIds.length === 0}
-          >
-            Delete Selected
-          </Button>
-          <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                      <Download className="mr-2 h-4 w-4" />
-                      Export
-                  </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                  <DropdownMenuItem onClick={handleExportCsv} disabled={!table}>Export as CSV</DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportXlsx} disabled={!table}>Export as Excel</DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportPdf} disabled={!table}>Export as PDF</DropdownMenuItem>
-              </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
         
         <div className="p-4 rounded-lg border bg-card text-card-foreground shadow-sm">
             <h2 className="text-lg font-semibold mb-2">Live Alarm Feed</h2>
@@ -484,6 +451,13 @@ export default function Home() {
                 globalFilter={globalFilter}
                 onGlobalFilterChange={setGlobalFilter}
                 onTableReady={setTable}
+                onAddRow={addRow}
+                isStreaming={isStreaming}
+                onToggleStreaming={() => setIsStreaming((prev) => !prev)}
+                onDeleteSelectedRows={deleteSelectedRows}
+                onExportCsv={handleExportCsv}
+                onExportXlsx={handleExportXlsx}
+                onExportPdf={handleExportPdf}
             />
         </div>
 
