@@ -3,6 +3,8 @@
  * @fileOverview A flow for translating natural language queries into structured table filters.
  *
  * - generateFilter: A function that takes a user query and returns a filter object.
+ * - FilterInput - The input type for the generateFilter function.
+ * - FilterOutput - The return type for the generateFilter function.
  */
 
 import { ai } from '@/ai/genkit';
@@ -10,7 +12,7 @@ import { alarmConfig } from '@/config/alarm-config';
 import { z } from 'genkit';
 
 const FilterInputSchema = z.string();
-type FilterInput = z.infer<typeof FilterInputSchema>;
+export type FilterInput = z.infer<typeof FilterInputSchema>;
 
 const FilterOutputSchema = z.array(
     z.object({
@@ -18,7 +20,7 @@ const FilterOutputSchema = z.array(
         value: z.union([z.string(), z.array(z.string())]).describe('The value(s) to filter by.')
     })
 ).describe('An array of filter objects for react-table.');
-type FilterOutput = z.infer<typeof FilterOutputSchema>;
+export type FilterOutput = z.infer<typeof FilterOutputSchema>;
 
 // Extract filterable columns and their options from the alarm config
 const filterableColumnsForPrompt = Object.entries(alarmConfig.fields)
@@ -39,6 +41,7 @@ const generateFilterFlow = ai.defineFlow(
   async (query) => {
     const prompt = ai.definePrompt({
         name: 'filterGenerationPrompt',
+        model: 'googleai/gemini-2.0-flash-preview',
         input: { schema: z.object({ query: z.string() }) },
         output: { schema: FilterOutputSchema },
         prompt: `You are an expert at converting natural language queries into structured JSON filters for a data table.
