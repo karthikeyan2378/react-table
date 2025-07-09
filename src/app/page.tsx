@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -133,10 +132,8 @@ export default function Home() {
                 </div>
                 <div className="flex items-center">
                   {column.getCanSort() && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 p-0 hover:bg-transparent"
+                    <div
+                      className="flex items-center justify-center h-8 w-8 cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         column.toggleSorting(column.getIsSorted() === 'asc');
@@ -149,7 +146,7 @@ export default function Home() {
                       ) : (
                         <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />
                       )}
-                    </Button>
+                    </div>
                   )}
                 </div>
               </div>
