@@ -418,6 +418,7 @@ export function DataTable<TData>({
   const [dragStartRowIndex, setDragStartRowIndex] = React.useState<number | null>(null);
   const lastClickedRowIndex = React.useRef<number | null>(null);
   const prevDataLength = React.useRef(data.length);
+  const prevIsStreaming = React.useRef(isStreaming);
 
   React.useEffect(() => {
     const handleMouseUp = () => {
@@ -497,12 +498,17 @@ export function DataTable<TData>({
   });
 
   React.useEffect(() => {
-    // If rows are added, scroll to the top to show the new row
-    if (data.length > prevDataLength.current) {
-        rowVirtualizer.scrollToIndex(0, { align: 'start' });
+    const hasNewData = data.length > prevDataLength.current;
+    const justStartedStreaming = isStreaming && !prevIsStreaming.current;
+
+    // Scroll to top if streaming just started or if new rows are added.
+    if (justStartedStreaming || hasNewData) {
+      rowVirtualizer.scrollToIndex(0, { align: 'start' });
     }
-    prevDataLength.current = data.length; // Update the ref for the next render
-  }, [data.length, rowVirtualizer]);
+
+    prevDataLength.current = data.length;
+    prevIsStreaming.current = isStreaming;
+  }, [data.length, isStreaming, rowVirtualizer]);
 
   return (
       <div className="space-y-4">
