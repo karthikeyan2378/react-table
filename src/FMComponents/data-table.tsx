@@ -26,6 +26,9 @@ import {
   Filter,
   PlusCircle,
   X,
+  FileText,
+  FileSpreadsheet,
+  File,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -314,9 +317,9 @@ function DataTableToolbar<TData>({
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                {onExportCsv && <DropdownMenuItem onClick={onExportCsv}>Export as CSV</DropdownMenuItem>}
-                {onExportXlsx && <DropdownMenuItem onClick={onExportXlsx}>Export as Excel</DropdownMenuItem>}
-                {onExportPdf && <DropdownMenuItem onClick={onExportPdf}>Export as PDF</DropdownMenuItem>}
+                {onExportCsv && <DropdownMenuItem onClick={onExportCsv}><FileText className="mr-2 h-4 w-4" />Export as CSV</DropdownMenuItem>}
+                {onExportXlsx && <DropdownMenuItem onClick={onExportXlsx}><FileSpreadsheet className="mr-2 h-4 w-4" />Export as Excel</DropdownMenuItem>}
+                {onExportPdf && <DropdownMenuItem onClick={onExportPdf}><File className="mr-2 h-4 w-4" />Export as PDF</DropdownMenuItem>}
             </DropdownMenuContent>
           </DropdownMenu>
         )}
