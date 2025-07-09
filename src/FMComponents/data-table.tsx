@@ -28,10 +28,13 @@ import {
   FileSpreadsheet,
   FileText,
   Filter,
-  GripVertical,
   MoreVertical,
   PlusCircle,
   Search,
+  SlidersHorizontal,
+  Play,
+  Square,
+  Trash2,
   X,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -65,8 +68,6 @@ import {
 } from "./ui/table";
 import { cn } from "../lib/utils";
 import { Separator } from "./ui/separator";
-import { Switch } from "./ui/switch";
-import { Label } from "./ui/label";
 import { Checkbox } from './ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
@@ -193,6 +194,10 @@ interface DataTableToolbarProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
+  sortingEnabled: boolean;
+  onSortingToggle: (enabled: boolean) => void;
+  paginationEnabled: boolean;
+  onPaginationToggle: (enabled: boolean) => void;
 }
 
 function DataTableToolbar<TData>({ 
@@ -207,6 +212,10 @@ function DataTableToolbar<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
+  sortingEnabled,
+  onSortingToggle,
+  paginationEnabled,
+  onPaginationToggle,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
@@ -225,144 +234,206 @@ function DataTableToolbar<TData>({
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
-    <div className="flex flex-col gap-4 relative z-20">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
-          <div className="relative flex items-center">
-              <Search className="absolute left-2 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Search all columns..."
-                value={globalFilter ?? ""}
-                onChange={(event) => onGlobalFilterChange(event.target.value)}
-                className="h-8 w-[150px] lg:w-[250px] pl-8"
-              />
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8">
-                <Filter className="mr-2 h-4 w-4 text-blue-500" />
-                Add Filter
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
-              <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {filterableColumns.map((col) => (
-                <DropdownMenuCheckboxItem
-                  key={col.id}
-                  checked={activeFilters.includes(col.id)}
-                  onCheckedChange={(checked) => handleFilterToggle(col.id, !checked)}
-                >
-                  {col.name}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <div className="flex items-center justify-between gap-2">
+      {/* Left side: Filters */}
+      <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
+        <div className="relative flex items-center">
+            <Search className="absolute left-2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Search all columns..."
+              value={globalFilter ?? ""}
+              onChange={(event) => onGlobalFilterChange(event.target.value)}
+              className="h-8 w-[150px] lg:w-[250px] pl-8"
+            />
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              <Filter className="mr-2 h-4 w-4 text-blue-500" />
+              Add Filter
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
+            <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {filterableColumns.map((col) => (
+              <DropdownMenuCheckboxItem
+                key={col.id}
+                checked={activeFilters.includes(col.id)}
+                onCheckedChange={(checked) => handleFilterToggle(col.id, !checked)}
+              >
+                {col.name}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-          {textFilterColumns.map((col) => {
-            if (activeFilters.includes(col.id)) {
-              return (
-                <div key={col.id} className="relative w-[150px] lg:w-[250px]">
-                  <Input
-                    placeholder={`Filter ${col.name.toLowerCase()}...`}
-                    value={
-                      (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
-                    }
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      table.getColumn(col.id)?.setFilterValue(value || undefined);
-                    }}
-                    className="h-8 w-full pr-8"
-                  />
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
-                      onClick={() => handleFilterToggle(col.id, true)}
-                  >
-                      <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              );
-            }
-            return null;
-          })}
-
-          {categoricalFilterColumns.map(col => {
-            if (activeFilters.includes(col.id) && table.getColumn(col.id) && col.options) {
-              return (
-                <DataTableFacetedFilter
-                  key={col.id}
-                  column={table.getColumn(col.id)!}
-                  title={col.name}
-                  options={col.options}
-                  onRemove={() => handleFilterToggle(col.id, true)}
+        {textFilterColumns.map((col) => {
+          if (activeFilters.includes(col.id)) {
+            return (
+              <div key={col.id} className="relative w-[150px] lg:w-[250px]">
+                <Input
+                  placeholder={`Filter ${col.name.toLowerCase()}...`}
+                  value={
+                    (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
+                  }
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    table.getColumn(col.id)?.setFilterValue(value || undefined);
+                  }}
+                  className="h-8 w-full pr-8"
                 />
-              )
-            }
-            return null;
-          })}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
+                    onClick={() => handleFilterToggle(col.id, true)}
+                >
+                    <X className="h-4 w-4" />
+                </Button>
+              </div>
+            );
+          }
+          return null;
+        })}
 
-          {isFiltered && (
-             <TooltipProvider>
-                <Tooltip>
+        {categoricalFilterColumns.map(col => {
+          if (activeFilters.includes(col.id) && table.getColumn(col.id) && col.options) {
+            return (
+              <DataTableFacetedFilter
+                key={col.id}
+                column={table.getColumn(col.id)!}
+                title={col.name}
+                options={col.options}
+                onRemove={() => handleFilterToggle(col.id, true)}
+              />
+            )
+          }
+          return null;
+        })}
+
+        {isFiltered && (
+           <TooltipProvider>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          table.resetColumnFilters();
+                          onGlobalFilterChange("");
+                          setActiveFilters([]);
+                        }}
+                        className="h-8 w-8"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>Clear all filters</p>
+                  </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+        )}
+      </div>
+
+      {/* Right side: Actions & Settings */}
+      <div className="flex items-center space-x-1">
+        <TooltipProvider>
+          {onAddRow && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onAddRow}>
+                  <PlusCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>Add Alarm</p></TooltipContent>
+            </Tooltip>
+          )}
+
+          {onToggleStreaming && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onToggleStreaming}>
+                  {isStreaming ? <Square className="h-4 w-4 text-red-500" /> : <Play className="h-4 w-4 text-green-500" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</p></TooltipContent>
+            </Tooltip>
+          )}
+
+          {onDeleteSelectedRows && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onDeleteSelectedRows} disabled={selectedRowCount === 0}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>Delete Selected</p></TooltipContent>
+            </Tooltip>
+          )}
+          
+          {(onExportCsv || onExportXlsx || onExportPdf) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                  <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            table.resetColumnFilters();
-                            onGlobalFilterChange("");
-                            setActiveFilters([]);
-                          }}
-                          className="h-8 w-8"
-                        >
-                          <X className="h-4 w-4" />
+                        <Button variant="ghost" size="icon">
+                            <Download className="h-4 w-4" />
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                        <p>Clear all filters</p>
-                    </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                    <TooltipContent><p>Export Data</p></TooltipContent>
+                  </Tooltip>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                  {onExportCsv && <DropdownMenuItem onClick={onExportCsv}><FileText className="mr-2 h-4 w-4" />Export as CSV</DropdownMenuItem>}
+                  {onExportXlsx && <DropdownMenuItem onClick={onExportXlsx}><FileSpreadsheet className="mr-2 h-4 w-4" />Export as Excel</DropdownMenuItem>}
+                  {onExportPdf && <DropdownMenuItem onClick={onExportPdf}><File className="mr-2 h-4 w-4" />Export as PDF</DropdownMenuItem>}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
-        </div>
-      </div>
-      <div className="flex items-center gap-2 flex-wrap">
-        {onAddRow && <Button onClick={onAddRow}>Add Alarm</Button>}
-        {onToggleStreaming && (
-            <Button
-                variant="secondary"
-                onClick={onToggleStreaming}
-                className="w-[180px] justify-center"
-            >
-            {isStreaming ? '⏹ Stop Streaming' : '▶️ Start Streaming'}
-          </Button>
-        )}
-        {onDeleteSelectedRows && (
-          <Button
-            variant="destructive"
-            onClick={onDeleteSelectedRows}
-            disabled={selectedRowCount === 0}
-          >
-            Delete Selected
-          </Button>
-        )}
-        {(onExportCsv || onExportXlsx || onExportPdf) && (
+
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                {onExportCsv && <DropdownMenuItem onClick={onExportCsv}><FileText className="mr-2 h-4 w-4" />Export as CSV</DropdownMenuItem>}
-                {onExportXlsx && <DropdownMenuItem onClick={onExportXlsx}><FileSpreadsheet className="mr-2 h-4 w-4" />Export as Excel</DropdownMenuItem>}
-                {onExportPdf && <DropdownMenuItem onClick={onExportPdf}><File className="mr-2 h-4 w-4" />Export as PDF</DropdownMenuItem>}
-            </DropdownMenuContent>
+              <DropdownMenuTrigger asChild>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <SlidersHorizontal className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>View Options</p></TooltipContent>
+                </Tooltip>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem checked={sortingEnabled} onCheckedChange={onSortingToggle}>
+                    Enable Sorting
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem checked={paginationEnabled} onCheckedChange={onPaginationToggle}>
+                    Enable Pagination
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                        const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                        return (
+                        <DropdownMenuCheckboxItem
+                            key={column.id}
+                            checked={column.getIsVisible()}
+                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                        >
+                            {label}
+                        </DropdownMenuCheckboxItem>
+                        );
+                })}
+              </DropdownMenuContent>
           </DropdownMenu>
-        )}
+        </TooltipProvider>
       </div>
     </div>
   );
@@ -577,18 +648,11 @@ export function DataTable<TData>({
               onExportCsv={onExportCsv}
               onExportXlsx={onExportXlsx}
               onExportPdf={onExportPdf}
+              sortingEnabled={sortingEnabled}
+              onSortingToggle={setSortingEnabled}
+              paginationEnabled={paginationEnabled}
+              onPaginationToggle={setPaginationEnabled}
             />
-        </div>
-
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center space-x-2">
-            <Switch id="sorting-enable" checked={sortingEnabled} onCheckedChange={setSortingEnabled} />
-            <Label htmlFor="sorting-enable">Enable Sorting</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch id="pagination-enable" checked={paginationEnabled} onCheckedChange={setPaginationEnabled} />
-            <Label htmlFor="pagination-enable">Enable Pagination</Label>
-          </div>
         </div>
 
         <div 

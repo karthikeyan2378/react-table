@@ -5,8 +5,7 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import { Checkbox } from '../FMComponents/ui/checkbox';
 import { Button } from '../FMComponents/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuLabel, DropdownMenuSeparator } from '../FMComponents/ui/dropdown-menu';
-import { ArrowDown, ArrowUp, ChevronsUpDown, SlidersHorizontal } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../FMComponents/ui/tooltip';
 import { Badge } from '../FMComponents/ui/badge';
@@ -26,53 +25,11 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
       {
         id: "select",
         header: ({ table }) => (
-            <div className="flex items-center justify-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 -ml-2 hover:bg-transparent">
-                    <SlidersHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[200px]">
-                   <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
-                   <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem
-                        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    >
-                      Select/Deselect All
-                    </DropdownMenuCheckboxItem>
-                    {table.getState().sorting.length > 0 && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => table.resetSorting(true)}>
-                          Clear All Sorts
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {table
-                        .getAllColumns()
-                        .filter((column) => column.getCanHide())
-                        .map((column) => {
-                            const config = alarmConfig.fields[column.id as keyof typeof alarmConfig.fields];
-                            const label = column.id === 'select' ? 'Selection Checkbox' : (config?.label || column.id);
-                            return (
-                            <DropdownMenuCheckboxItem
-                                key={column.id}
-                                className="capitalize"
-                                checked={column.getIsVisible()}
-                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                            >
-                                {label}
-                            </DropdownMenuCheckboxItem>
-                            );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <Checkbox
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label="Select all rows"
+            />
         ),
         cell: ({ row }) => (
           <Checkbox
