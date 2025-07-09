@@ -180,10 +180,16 @@ Copy the following files and directories from this project into the `src` direct
 
 ### Step 2: Install Dependencies
 
-Install the necessary packages. Open a terminal in your new project's root directory and run the following command:
+Install the necessary packages. Open a terminal in your new project's root directory and run the following commands.
 
+**Production Dependencies:**
 ```bash
 npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns jspdf jspdf-autotable lucide-react recharts tailwind-merge xlsx
+```
+
+**Development Dependencies (for TypeScript users):**
+```bash
+npm install -D @types/node @types/react @types/react-dom typescript
 ```
 
 ### Step 3: Configure Styling via CDN
