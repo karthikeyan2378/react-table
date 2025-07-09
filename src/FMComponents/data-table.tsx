@@ -67,6 +67,7 @@ import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { Checkbox } from './ui/checkbox';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 // A generic faceted filter component.
 interface DataTableFacetedFilterProps<TData> {
@@ -221,7 +222,7 @@ function DataTableToolbar<TData>({
                 Add Filter
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
+            <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
               <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {filterableColumns.map((col) => (
@@ -239,7 +240,7 @@ function DataTableToolbar<TData>({
           {textFilterColumns.map((col) => {
             if (activeFilters.includes(col.id)) {
               return (
-                <div key={col.id} className="flex items-center gap-1">
+                <div key={col.id} className="relative w-[150px] lg:w-[250px]">
                   <Input
                     placeholder={`Filter ${col.name.toLowerCase()}...`}
                     value={
@@ -249,10 +250,15 @@ function DataTableToolbar<TData>({
                       const value = event.target.value;
                       table.getColumn(col.id)?.setFilterValue(value || undefined);
                     }}
-                    className="h-8 w-[150px] lg:w-[250px]"
+                    className="h-8 w-full pr-8"
                   />
-                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
-                    <X className="h-4 w-4" />
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
+                      onClick={() => handleFilterToggle(col.id, true)}
+                  >
+                      <X className="h-4 w-4" />
                   </Button>
                 </div>
               );
@@ -279,18 +285,27 @@ function DataTableToolbar<TData>({
           })}
 
           {isFiltered && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                table.resetColumnFilters();
-                onGlobalFilterChange("");
-                setActiveFilters([]);
-              }}
-              className="h-8 px-2 lg:px-3"
-            >
-              Reset
-              <X className="ml-2 h-4 w-4" />
-            </Button>
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            table.resetColumnFilters();
+                            onGlobalFilterChange("");
+                            setActiveFilters([]);
+                          }}
+                          className="h-8 w-8"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Clear all filters</p>
+                    </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
           )}
         </div>
       </div>
