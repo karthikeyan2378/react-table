@@ -186,13 +186,6 @@ export interface ToolbarVisibility {
 }
 
 // A generic toolbar that receives filterable column definitions as props.
-interface FilterableColumn {
-    id: string;
-    name: string;
-    type: 'text' | 'categorical';
-    options?: { label: string; value: string }[];
-}
-
 interface DataTableToolbarProps<TData> {
   table: ReactTable<TData>;
   filterableColumns: FilterableColumn[];
@@ -660,7 +653,7 @@ export function DataTable<TData>({
             </div>
         </div>
 
-        <div className="relative z-40">
+        <div className="relative z-10">
             <DataTableToolbar 
               table={table} 
               filterableColumns={filterableColumns} 
@@ -745,8 +738,14 @@ export function DataTable<TData>({
                   </TableRow>
                 ))}
               </TableHeader>
-              <TableBody style={{ display: 'grid', height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
-                {rowVirtualizer.getVirtualItems().length > 0 ? (
+              <TableBody 
+                style={{ 
+                    display: 'grid', 
+                    height: rows.length > 0 ? `${rowVirtualizer.getTotalSize()}px` : '96px', 
+                    position: 'relative' 
+                }}
+              >
+                {rows.length > 0 ? (
                   rowVirtualizer.getVirtualItems().map(virtualRow => {
                     const row = rows[virtualRow.index];
                     return (
@@ -836,8 +835,8 @@ export function DataTable<TData>({
                     )
                   })
                 ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">No results.</TableCell>
+                  <TableRow className="flex items-center justify-center w-full">
+                    <TableCell className="h-24">No results.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
