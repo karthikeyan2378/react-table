@@ -77,77 +77,89 @@ interface DataTableFacetedFilterProps<TData> {
     label: string;
     value: string;
   }[];
+  onRemove: () => void;
 }
 
 function DataTableFacetedFilter<TData>({
   column,
   title,
   options,
+  onRemove,
 }: DataTableFacetedFilterProps<TData>) {
   const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <PlusCircle className="mr-2 h-4 w-4 text-blue-500" />
-          {title}
-          {selectedValues?.size > 0 && (
+    <div className="relative">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="h-8 border-dashed pr-8">
+            <PlusCircle className="mr-2 h-4 w-4 text-blue-500" />
+            {title}
+            {selectedValues?.size > 0 && (
+              <>
+                <Separator orientation="vertical" className="mx-2 h-4" />
+                <div className="hidden space-x-1 lg:flex">
+                  {options
+                    .filter((option) => selectedValues.has(option.value))
+                    .map((option) => (
+                      <Badge
+                        variant="secondary"
+                        key={option.value}
+                        className="rounded-sm px-1 font-normal"
+                      >
+                        {option.label}
+                      </Badge>
+                    ))}
+                </div>
+              </>
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-[200px]" align="start">
+          {options.map((option) => {
+            const isSelected = selectedValues.has(option.value);
+            return (
+              <DropdownMenuCheckboxItem
+                key={option.value}
+                checked={isSelected}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    selectedValues.add(option.value);
+                  } else {
+                    selectedValues.delete(option.value);
+                  }
+                  const filterValues = Array.from(selectedValues);
+                  column?.setFilterValue(
+                    filterValues.length ? filterValues : undefined
+                  );
+                }}
+              >
+                <span>{option.label}</span>
+              </DropdownMenuCheckboxItem>
+            );
+          })}
+          {selectedValues.size > 0 && (
             <>
-              <Separator orientation="vertical" className="mx-2 h-4" />
-              <div className="hidden space-x-1 lg:flex">
-                {options
-                  .filter((option) => selectedValues.has(option.value))
-                  .map((option) => (
-                    <Badge
-                      variant="secondary"
-                      key={option.value}
-                      className="rounded-sm px-1 font-normal"
-                    >
-                      {option.label}
-                    </Badge>
-                  ))}
-              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => column?.setFilterValue(undefined)}
+                className="justify-center text-center"
+              >
+                Clear filters
+              </DropdownMenuItem>
             </>
           )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-[200px]" align="start">
-        {options.map((option) => {
-          const isSelected = selectedValues.has(option.value);
-          return (
-            <DropdownMenuCheckboxItem
-              key={option.value}
-              checked={isSelected}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  selectedValues.add(option.value);
-                } else {
-                  selectedValues.delete(option.value);
-                }
-                const filterValues = Array.from(selectedValues);
-                column?.setFilterValue(
-                  filterValues.length ? filterValues : undefined
-                );
-              }}
-            >
-              <span>{option.label}</span>
-            </DropdownMenuCheckboxItem>
-          );
-        })}
-        {selectedValues.size > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onSelect={() => column?.setFilterValue(undefined)}
-              className="justify-center text-center"
-            >
-              Clear filters
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button
+          variant="ghost"
+          size="icon"
+          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-gray-500 hover:text-gray-800"
+          onClick={onRemove}
+      >
+          <X className="h-4 w-4" />
+      </Button>
+    </div>
   );
 }
 
@@ -269,16 +281,13 @@ function DataTableToolbar<TData>({
           {categoricalFilterColumns.map(col => {
             if (activeFilters.includes(col.id) && table.getColumn(col.id) && col.options) {
               return (
-                <div key={col.id} className="flex items-center gap-1">
-                  <DataTableFacetedFilter
-                    column={table.getColumn(col.id)!}
-                    title={col.name}
-                    options={col.options}
-                  />
-                   <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleFilterToggle(col.id, true)}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+                <DataTableFacetedFilter
+                  key={col.id}
+                  column={table.getColumn(col.id)!}
+                  title={col.name}
+                  options={col.options}
+                  onRemove={() => handleFilterToggle(col.id, true)}
+                />
               )
             }
             return null;
@@ -539,19 +548,21 @@ export function DataTable<TData>({
             </div>
         </div>
 
-        <DataTableToolbar 
-          table={table} 
-          filterableColumns={filterableColumns} 
-          globalFilter={globalFilter} 
-          onGlobalFilterChange={onGlobalFilterChange}
-          onAddRow={onAddRow}
-          isStreaming={isStreaming}
-          onToggleStreaming={onToggleStreaming}
-          onDeleteSelectedRows={onDeleteSelectedRows}
-          onExportCsv={onExportCsv}
-          onExportXlsx={onExportXlsx}
-          onExportPdf={onExportPdf}
-        />
+        <div className="relative z-10">
+          <DataTableToolbar 
+            table={table} 
+            filterableColumns={filterableColumns} 
+            globalFilter={globalFilter} 
+            onGlobalFilterChange={onGlobalFilterChange}
+            onAddRow={onAddRow}
+            isStreaming={isStreaming}
+            onToggleStreaming={onToggleStreaming}
+            onDeleteSelectedRows={onDeleteSelectedRows}
+            onExportCsv={onExportCsv}
+            onExportXlsx={onExportXlsx}
+            onExportPdf={onExportPdf}
+          />
+        </div>
 
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center space-x-2">
