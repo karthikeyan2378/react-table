@@ -54,12 +54,10 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                     <DropdownMenuSeparator />
                     {table
                         .getAllColumns()
-                        .filter(
-                            (column) =>
-                            typeof column.accessorFn !== "undefined" && column.getCanHide()
-                        )
+                        .filter((column) => column.getCanHide())
                         .map((column) => {
                             const config = alarmConfig.fields[column.id as keyof typeof alarmConfig.fields];
+                            const label = column.id === 'select' ? 'Selection Checkbox' : (config?.label || column.id);
                             return (
                             <DropdownMenuCheckboxItem
                                 key={column.id}
@@ -67,7 +65,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                                 checked={column.getIsVisible()}
                                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
                             >
-                                {config?.label || column.id}
+                                {label}
                             </DropdownMenuCheckboxItem>
                             );
                     })}
@@ -83,7 +81,6 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           />
         ),
         enableSorting: false,
-        enableHiding: false,
         enableResizing: false,
         size: 60,
         minSize: 60,

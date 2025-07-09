@@ -728,6 +728,15 @@ export function DataTable<TData>({
           </div>
         )}
 
+        {!paginationEnabled && (
+          <div className="flex items-center py-4">
+            <div className="flex-1 text-sm text-gray-500">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+          </div>
+        )}
+
         <DropdownMenu
             open={!!contextMenu}
             onOpenChange={(isOpen) => {
