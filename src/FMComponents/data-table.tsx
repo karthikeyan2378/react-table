@@ -369,6 +369,10 @@ interface DataTableProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
+  tableTitle?: React.ReactNode;
+  tableDescription?: React.ReactNode;
+  maxHeightWithPagination?: string;
+  maxHeightWithoutPagination?: string;
 }
 
 // The generic DataTable component.
@@ -392,6 +396,10 @@ export function DataTable<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
+  tableTitle,
+  tableDescription,
+  maxHeightWithPagination = '60vh',
+  maxHeightWithoutPagination = '80vh',
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -483,6 +491,23 @@ export function DataTable<TData>({
 
   return (
       <div className="space-y-4">
+        <div className="flex items-start justify-between gap-4">
+            <div>
+                {tableTitle && <h2 className="text-lg font-semibold">{tableTitle}</h2>}
+                {tableDescription && <p className="text-sm text-gray-500 mt-1">{tableDescription}</p>}
+            </div>
+            <div className="text-sm text-gray-500 text-right shrink-0 pt-1">
+                <span className="font-bold text-gray-900">
+                    {table.getFilteredRowModel().rows.length.toLocaleString()}
+                </span>
+                {" "}of{" "}
+                <span className="font-bold text-gray-900">
+                    {data.length.toLocaleString()}
+                </span>
+                {" "}rows
+            </div>
+        </div>
+
         <DataTableToolbar 
           table={table} 
           filterableColumns={filterableColumns} 
@@ -508,25 +533,12 @@ export function DataTable<TData>({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-sm text-gray-500 ml-auto">
-            <span className="font-bold text-gray-900">
-              {table.getFilteredRowModel().rows.length.toLocaleString()}
-            </span>{" "}
-            of{" "}
-            <span className="font-bold text-gray-900">
-              {data.length.toLocaleString()}
-            </span>{" "}
-            rows
-          </div>
-        </div>
-
         <div 
             ref={tableContainerRef} 
-            className={cn(
-                "rounded-md border border-gray-200 overflow-auto relative",
-                paginationEnabled && "max-h-[60vh]"
-            )}
+            className="rounded-md border border-gray-200 overflow-auto relative"
+            style={{
+                maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
+            }}
         >
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
               <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 1, backgroundColor: 'white' }}>

@@ -255,10 +255,6 @@ export default function Home() {
         </div>
         
         <div className="p-4 rounded-lg border bg-white text-gray-900 shadow-sm">
-            <h2 className="text-lg font-semibold mb-2">Live Alarm Feed</h2>
-            <p className="text-sm text-gray-500 mb-4">
-                This table is driven by a central configuration and supports client-side filtering, sorting, and pagination.
-            </p>
             <DataTable
                 data={data}
                 columns={columns}
@@ -288,6 +284,10 @@ export default function Home() {
                 onExportCsv={handleExportCsv}
                 onExportXlsx={handleExportXlsx}
                 onExportPdf={handleExportPdf}
+                tableTitle="Live Alarm Feed"
+                tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
+                maxHeightWithPagination="60vh"
+                maxHeightWithoutPagination="80vh"
             />
         </div>
 
