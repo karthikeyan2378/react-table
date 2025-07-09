@@ -36,8 +36,7 @@ import {
   Square,
   Trash2,
   X,
-  Sparkles,
-  Bot,
+  Code,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -178,7 +177,7 @@ export interface ToolbarVisibility {
   toggleSorting?: boolean;
   togglePagination?: boolean;
   toggleColumns?: boolean;
-  aiSearch?: boolean;
+  aiGenerateCode?: boolean;
 }
 
 // A generic toolbar that receives filterable column definitions as props.
@@ -194,48 +193,12 @@ interface DataTableToolbarProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
-  onAiSearch?: (query: string) => Promise<void>;
-  aiSearchIsLoading?: boolean;
+  onAiGenerateCode?: () => void;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
   onPaginationToggle: (enabled: boolean) => void;
   toolbarVisibility: ToolbarVisibility;
-}
-
-function AiSearch<TData>({ 
-    onAiSearch, 
-    isLoading 
-} : { 
-    onAiSearch?: (query: string) => Promise<void>, 
-    isLoading?: boolean 
-}) {
-    const [query, setQuery] = React.useState('');
-
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (onAiSearch && query.trim()) {
-            await onAiSearch(query);
-        }
-    };
-
-    return (
-        <form onSubmit={handleSearch} className="flex items-center gap-2">
-            <div className="relative flex items-center">
-                <Bot className="absolute left-2 h-4 w-4 text-gray-500" />
-                <Input
-                    placeholder="Filter with AI..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="h-8 w-[150px] lg:w-[250px] pl-8"
-                    disabled={isLoading}
-                />
-            </div>
-            <Button type="submit" size="sm" className="h-8" disabled={isLoading || !query.trim()}>
-                {isLoading ? 'Thinking...' : 'Search'}
-            </Button>
-        </form>
-    );
 }
 
 function DataTableToolbar<TData>({ 
@@ -250,8 +213,7 @@ function DataTableToolbar<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
-  onAiSearch,
-  aiSearchIsLoading,
+  onAiGenerateCode,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -293,9 +255,6 @@ function DataTableToolbar<TData>({
                 className="h-8 w-[150px] lg:w-[250px] pl-8"
               />
           </div>
-        {toolbarVisibility.aiSearch !== false && onAiSearch && (
-            <AiSearch onAiSearch={onAiSearch} isLoading={aiSearchIsLoading} />
-        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
@@ -418,6 +377,17 @@ function DataTableToolbar<TData>({
               <TooltipContent><p>Delete Selected</p></TooltipContent>
             </Tooltip>
           )}
+
+          {toolbarVisibility.aiGenerateCode !== false && onAiGenerateCode && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onAiGenerateCode} disabled={selectedRowCount === 0}>
+                  <Code className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>AI Generate Code</p></TooltipContent>
+            </Tooltip>
+          )}
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
             <DropdownMenu>
@@ -529,7 +499,7 @@ interface DataTableProps<TData> {
   data: TData[];
   columns: ColumnDef<TData>[];
   getRowId: (row: TData) => string;
-  onSelectedRowsChange: (rowIds: string[]) => void;
+  onSelectedRowsChange: (rows: TData[]) => void;
   contextMenuItems?: ContextMenuItem<TData>[];
   onRowDoubleClick?: (row: TData) => void;
   filterableColumns?: FilterableColumn[];
@@ -546,8 +516,7 @@ interface DataTableProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
-  onAiSearch?: (query: string) => Promise<void>;
-  aiSearchIsLoading?: boolean;
+  onAiGenerateCode?: () => void;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -581,8 +550,7 @@ export function DataTable<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
-  onAiSearch,
-  aiSearchIsLoading,
+  onAiGenerateCode,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -672,9 +640,8 @@ export function DataTable<TData>({
 
   React.useEffect(() => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedIds = selectedRows.map(row => getRowId(row.original));
-    onSelectedRowsChange(selectedIds);
-  }, [rowSelection, onSelectedRowsChange, table, getRowId]);
+    onSelectedRowsChange(selectedRows.map(row => row.original));
+  }, [rowSelection, onSelectedRowsChange, table]);
 
   const { rows } = table.getRowModel();
 
@@ -716,8 +683,7 @@ export function DataTable<TData>({
           onExportCsv={onExportCsv}
           onExportXlsx={onExportXlsx}
           onExportPdf={onExportPdf}
-          onAiSearch={onAiSearch}
-          aiSearchIsLoading={aiSearchIsLoading}
+          onAiGenerateCode={onAiGenerateCode}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
