@@ -284,18 +284,17 @@ function DataTableToolbar<TData>({
     <div className="flex items-center justify-between gap-2 relative z-10 flex-wrap">
       {/* Left side: Filters */}
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
-        {toolbarVisibility.aiSearch !== false && onAiSearch ? (
+          <div className="relative flex items-center">
+              <Search className="absolute left-2 h-4 w-4 text-gray-500" />
+              <Input
+                placeholder="Search all columns..."
+                value={globalFilter ?? ""}
+                onChange={(event) => onGlobalFilterChange(event.target.value)}
+                className="h-8 w-[150px] lg:w-[250px] pl-8"
+              />
+          </div>
+        {toolbarVisibility.aiSearch !== false && onAiSearch && (
             <AiSearch onAiSearch={onAiSearch} isLoading={aiSearchIsLoading} />
-        ) : (
-            <div className="relative flex items-center">
-                <Search className="absolute left-2 h-4 w-4 text-gray-500" />
-                <Input
-                  placeholder="Search all columns..."
-                  value={globalFilter ?? ""}
-                  onChange={(event) => onGlobalFilterChange(event.target.value)}
-                  className="h-8 w-[150px] lg:w-[250px] pl-8"
-                />
-            </div>
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
