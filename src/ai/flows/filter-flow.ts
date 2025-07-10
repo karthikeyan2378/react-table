@@ -41,11 +41,18 @@ ${validColumnIds.join(', ')}
 
 The 'value' must always be a single string.
 
-IMPORTANT: For categorical columns like 'Severity' or 'AlarmName', if the user asks for multiple values (e.g., "critical or major alarms"), you MUST generate a separate filter object for EACH value.
+IMPORTANT: For categorical columns like 'Severity' or 'AlarmName', if the user asks for multiple values (e.g., "critical or major alarms"), you MUST generate a separate filter object for EACH value. This creates an OR condition for that column.
 For example, for the query "show me critical and major alarms", the output should be:
 [
   { "id": "Severity", "value": "Critical" },
   { "id": "Severity", "value": "Major" }
+]
+
+For queries that combine different columns (e.g., "critical alarms named Link Down"), you MUST generate a separate filter object for each column. This creates an AND condition between columns.
+For example, for the query "critical alarms named Link Down", the output should be:
+[
+  { "id": "Severity", "value": "Critical" },
+  { "id": "AlarmName", "value": "Link Down" }
 ]
 
 For text columns, the 'value' should be a single string to search for.
