@@ -561,8 +561,9 @@ interface DataTableProps<TData> {
   toolbarVisibility?: ToolbarVisibility;
   columnFilters: ColumnFiltersState;
   onColumnFiltersChange: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
-  showCharts?: boolean;
-  onToggleCharts?: (enabled: boolean) => void;
+  showCharts: boolean;
+  initialShowCharts?: boolean;
+  onToggleCharts: (enabled: boolean) => void;
 }
 
 /**
@@ -600,8 +601,8 @@ export function DataTable<TData>({
   toolbarVisibility = {},
   columnFilters,
   onColumnFiltersChange,
-  showCharts = true,
-  onToggleCharts = () => {},
+  showCharts,
+  onToggleCharts,
 }: DataTableProps<TData>) {
   // State for sorting, column visibility, row selection, and context menu.
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);

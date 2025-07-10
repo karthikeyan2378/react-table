@@ -410,7 +410,8 @@ export default function Home() {
                         onExportXlsx={handleExportXlsx}
                         onExportPdf={handleExportPdf}
                         showCharts={showCharts}
-                        onToggleCharts={() => setShowCharts((prev) => !prev)}
+                        initialShowCharts={false}
+                        onToggleCharts={setShowCharts}
                         tableTitle="Live Alarm Feed"
                         tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
                         maxHeightWithPagination="60vh"
