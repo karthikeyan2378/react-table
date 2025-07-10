@@ -29,6 +29,7 @@ import {
   FileText,
   Filter,
   MoreVertical,
+  PieChart,
   PlusCircle,
   Search,
   SlidersHorizontal,
@@ -399,6 +400,17 @@ function DataTableToolbar<TData>({
               <TooltipContent><p>Delete Selected</p></TooltipContent>
             </Tooltip>
           )}
+
+          {toolbarVisibility.toggleCharts !== false && (
+             <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={() => onToggleCharts(!showCharts)}>
+                  <PieChart className={cn("h-4 w-4", showCharts && "text-blue-500")} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>{showCharts ? 'Hide Charts' : 'Show Charts'}</p></TooltipContent>
+            </Tooltip>
+          )}
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
             <DropdownMenu>
@@ -439,11 +451,6 @@ function DataTableToolbar<TData>({
               <DropdownMenuContent align="end" className="w-[200px]">
                 <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {toolbarVisibility.toggleCharts !== false && (
-                  <DropdownMenuCheckboxItem checked={showCharts} onCheckedChange={onToggleCharts}>
-                    Show Charts
-                  </DropdownMenuCheckboxItem>
-                )}
                 {toolbarVisibility.toggleSorting !== false && (
                   <DropdownMenuCheckboxItem checked={sortingEnabled} onCheckedChange={onSortingToggle}>
                       Enable Sorting
