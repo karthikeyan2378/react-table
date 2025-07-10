@@ -63,7 +63,7 @@ const filterFlow = ai.defineFlow(
   },
   async ({ query }) => {
     // Call the pre-defined prompt.
-    const { output } = await prompt({ query });
+    const { output } = await filterPrompt({ query });
     return output ?? [];
   }
 );
