@@ -25,6 +25,7 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
+import { generateFilter } from '@/ai/flows/filter-flow';
 
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
@@ -230,6 +231,30 @@ export default function Home() {
     doc.save('alarms.pdf');
   };
 
+  const handleAiSearch = async (query: string) => {
+    if (!query) {
+      setColumnFilters([]);
+      return;
+    }
+    startTransition(async () => {
+      try {
+        const filters = await generateFilter(query);
+        setColumnFilters(filters);
+        toast({
+          title: "AI Filter Applied",
+          description: "The table has been filtered based on your query.",
+        });
+      } catch (error) {
+        console.error("AI search failed:", error);
+        toast({
+          title: "AI Search Error",
+          description: "Could not apply the filter. Please try a different query.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
   if (!isClient) {
     return null;
   }
@@ -307,6 +332,8 @@ export default function Home() {
                 onExportCsv={handleExportCsv}
                 onExportXlsx={handleExportXlsx}
                 onExportPdf={handleExportPdf}
+                onAiSearch={handleAiSearch}
+                isAiSearching={isPending}
                 tableTitle="Live Alarm Feed"
                 tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
                 maxHeightWithPagination="60vh"
@@ -336,3 +363,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

@@ -36,7 +36,8 @@ import {
   Square,
   Trash2,
   X,
-  Code,
+  Wand2,
+  Loader2,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -168,6 +169,53 @@ function DataTableFacetedFilter<TData>({
   );
 }
 
+// AI Search Input Component
+const AiSearchInput = ({
+  onSearch,
+  isSearching,
+}: {
+  onSearch: (query: string) => void;
+  isSearching: boolean;
+}) => {
+  const [query, setQuery] = React.useState("");
+
+  const handleSearch = () => {
+    onSearch(query);
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <div className="relative flex items-center">
+        <Wand2 className="absolute left-2 h-4 w-4 text-gray-500" />
+        <Input
+          placeholder="AI search..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSearch();
+            }
+          }}
+          className="h-8 w-[150px] lg:w-[250px] pl-8"
+        />
+      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" className="h-8 w-8" onClick={handleSearch} disabled={isSearching}>
+              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Apply AI Filter</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
+
 export interface ToolbarVisibility {
   addRow?: boolean;
   deleteRows?: boolean;
@@ -192,6 +240,8 @@ interface DataTableToolbarProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
+  onAiSearch?: (query: string) => void;
+  isAiSearching?: boolean;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
@@ -211,6 +261,8 @@ function DataTableToolbar<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
+  onAiSearch,
+  isAiSearching = false,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -234,6 +286,7 @@ function DataTableToolbar<TData>({
     table.resetColumnFilters();
     onGlobalFilterChange("");
     setActiveFilters([]);
+    if (onAiSearch) onAiSearch(""); // Clear AI search as well
   };
 
   const textFilterColumns = filterableColumns.filter(col => col.type === 'text');
@@ -252,6 +305,11 @@ function DataTableToolbar<TData>({
                 className="h-8 w-[150px] lg:w-[250px] pl-8"
               />
           </div>
+          
+          {onAiSearch && (
+            <AiSearchInput onSearch={onAiSearch} isSearching={isAiSearching} />
+          )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-8">
@@ -502,6 +560,8 @@ interface DataTableProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
+  onAiSearch?: (query: string) => void;
+  isAiSearching?: boolean;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -535,6 +595,8 @@ export function DataTable<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
+  onAiSearch,
+  isAiSearching,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -667,6 +729,8 @@ export function DataTable<TData>({
           onExportCsv={onExportCsv}
           onExportXlsx={onExportXlsx}
           onExportPdf={onExportPdf}
+          onAiSearch={onAiSearch}
+          isAiSearching={isAiSearching}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
@@ -922,3 +986,5 @@ export function DataTable<TData>({
       </div>
   );
 }
+
+    
