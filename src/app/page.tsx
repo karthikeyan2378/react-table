@@ -40,8 +40,6 @@ type ChartableColumn = keyof typeof alarmConfig.fields;
 export default function Home() {
   // State for the main data array for the table.
   const [data, setData] = React.useState<Alarm[]>([]);
-  // State for the data used by the charts. It's a debounced copy of `data`.
-  const [chartData, setChartData] = React.useState<Alarm[]>([]);
   // State to control the real-time data streaming.
   const [isStreaming, setIsStreaming] = React.useState(false);
   // State to hold the currently selected rows from the data table.
@@ -52,8 +50,6 @@ export default function Home() {
   const [activeCharts, setActiveCharts] = React.useState<ChartableColumn[]>(['Severity']);
   // Toast hook for displaying notifications.
   const { toast } = useToast();
-  // Ref to manage the debouncing of chart data updates.
-  const chartUpdateDebounceRef = React.useRef<NodeJS.Timeout>();
   // React transition for non-blocking UI updates when adding new rows.
   const [isPending, startTransition] = React.useTransition();
   // State to hold the row data for the details dialog.
@@ -85,31 +81,8 @@ export default function Home() {
   React.useEffect(() => {
     const initialData = makeData(100);
     setData(initialData);
-    setChartData(initialData);
     setIsClient(true);
   }, []);
-
-  /**
-   * Effect to debounce chart data updates.
-   * When the main `data` state changes, this effect waits for 1 second
-   * before updating the `chartData` state to avoid performance issues
-   * from too frequent re-renders of the charts.
-   */
-  React.useEffect(() => {
-    if (chartUpdateDebounceRef.current) {
-      clearTimeout(chartUpdateDebounceRef.current);
-    }
-    
-    chartUpdateDebounceRef.current = setTimeout(() => {
-      setChartData(table?.getFilteredRowModel().rows.map(r => r.original) ?? []);
-    }, 1000);
-
-    return () => {
-      if (chartUpdateDebounceRef.current) {
-        clearTimeout(chartUpdateDebounceRef.current);
-      }
-    }
-  }, [data, columnFilters, globalFilter, table]);
 
   /**
    * Callback to add a new alarm row to the table.
@@ -397,7 +370,7 @@ export default function Home() {
                             key={columnId}
                             columnId={columnId}
                             label={alarmConfig.fields[columnId].label}
-                            data={chartData}
+                            data={data}
                             onRemove={handleRemoveChart}
                             onFilter={handleChartFilter}
                             activeFilters={(activeFilter?.value as string[]) || []}

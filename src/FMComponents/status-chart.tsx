@@ -161,10 +161,10 @@ const ColumnChartComponent = ({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="h-[250px] w-full p-0">
+      <CardContent className="h-[200px] w-full p-0">
         <ResponsiveContainer width="100%" height="100%">
           {finalChartType === 'bar' ? (
-            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 75 }}>
+            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={1} tick={{ fontSize: 12 }} />
               <YAxis />
@@ -196,18 +196,8 @@ const ColumnChartComponent = ({
                 innerRadius={finalChartType === 'doughnut' ? 40 : 0}
                 fill="#8884d8"
                 labelLine={false}
+                label={false}
                 onClick={(payload) => onFilter(columnId, payload.name)}
-                label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-                  if (percent < 0.05) return null; // Hide labels for very small slices
-                  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                  const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
-                  const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
-                  return (
-                    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central">
-                      {`%${(percent * 100).toFixed(0)}`}
-                    </text>
-                  );
-                }}
               >
                 {chartData.map((entry, index) => {
                   const isSelected = activeFilters.includes(entry.name);
