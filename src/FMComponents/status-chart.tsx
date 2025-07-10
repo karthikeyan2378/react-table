@@ -177,8 +177,9 @@ const ColumnChartComponent = ({
                         key={`cell-${index}`} 
                         fill={getColor(entry.name, index)} 
                         cursor="pointer" 
-                        stroke={isSelected ? '#000000' : 'none'}
+                        stroke={isSelected ? '#A9A9A9' : 'none'}
                         strokeWidth={2}
+                        style={{ outline: 'none' }}
                       />
                     )
                 })}
@@ -206,8 +207,9 @@ const ColumnChartComponent = ({
                       key={`cell-${index}`} 
                       fill={getColor(entry.name, index)} 
                       cursor="pointer" 
-                      stroke={isSelected ? '#000000' : 'none'}
+                      stroke={isSelected ? '#A9A9A9' : 'none'}
                       strokeWidth={2}
+                      style={{ outline: 'none' }}
                     />
                   )
                 })}
