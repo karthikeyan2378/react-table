@@ -185,6 +185,21 @@ export default function Home() {
   const handleRemoveChart = (columnId: ChartableColumn) => {
     setActiveCharts(activeCharts.filter((id) => id !== columnId));
   };
+
+  /**
+   * Handles the click-to-filter action from a chart.
+   * It adds or replaces the filter for the given column in the table's filter state.
+   * @param columnId The ID of the column to filter.
+   * @param value The value to filter by.
+   */
+  const handleChartFilter = (columnId: string, value: string) => {
+    setColumnFilters((prevFilters) => {
+      // Remove any existing filter for this column
+      const otherFilters = prevFilters.filter((f) => f.id !== columnId);
+      // Add the new filter
+      return [...otherFilters, { id: columnId, value }];
+    });
+  };
   
   /**
    * Memoized list of columns that are filterable in the toolbar.
@@ -366,6 +381,7 @@ export default function Home() {
                         label={alarmConfig.fields[columnId].label}
                         data={chartData}
                         onRemove={handleRemoveChart}
+                        onFilter={handleChartFilter}
                     />
                 ))}
             </div>

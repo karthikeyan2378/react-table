@@ -1,4 +1,6 @@
 
+type ChartType = 'pie' | 'bar' | 'doughnut';
+
 const config = {
   fields: {
     Severity: {
@@ -16,6 +18,17 @@ const config = {
         { value: 'Indeterminate', label: 'Indeterminate' },
         { value: 'Cleared', label: 'Cleared' },
       ],
+      chartConfig: {
+        defaultChartType: 'pie' as ChartType,
+        colors: {
+          'Critical': '#EF4444', // red-500
+          'Major': '#F97316',    // orange-500
+          'Minor': '#EAB308',    // yellow-500
+          'Warning': '#3B82F6',  // blue-500
+          'Indeterminate': '#6B7280', // gray-500
+          'Cleared': '#22C55E',  // green-500
+        }
+      }
     },
     ObjectLabel: {
       label: 'Object Label',
@@ -44,6 +57,9 @@ const config = {
         { value: 'CPU Overload', label: 'CPU Overload' },
         { value: 'Packet Loss', label: 'Packet Loss' },
       ],
+      chartConfig: {
+        defaultChartType: 'bar' as ChartType,
+      }
     },
     NetworkRaisedTimeLong: {
       label: 'Network Raised Time',
@@ -77,6 +93,9 @@ const config = {
         { value: 'ME', label: 'ME' },
         { value: 'Equipment', label: 'Equipment' },
       ],
+      chartConfig: {
+        defaultChartType: 'doughnut' as ChartType,
+      }
     },
     EMSName: {
       label: 'EMS Name',
@@ -168,7 +187,20 @@ const config = {
   },
 };
 
-export const alarmConfig = config;
+// This type assertion is a bit complex, but it correctly infers the types for the config object.
+// It maps over the fields and adds the optional chartConfig property to them.
+type ConfigWithChartConfig = {
+  fields: {
+    [K in keyof typeof config.fields]: (typeof config.fields)[K] & {
+      chartConfig?: {
+        defaultChartType?: ChartType;
+        colors?: Record<string, string>;
+      };
+    };
+  };
+};
+
+export const alarmConfig: ConfigWithChartConfig = config;
 
 export type Alarm = {
   [K in keyof typeof config.fields]: (typeof config.fields)[K] extends { columnType: 'dateTime' }

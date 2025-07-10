@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -32,30 +32,32 @@ interface ColumnChartProps {
   data: Alarm[];
   /** Callback function to remove the chart from the dashboard. */
   onRemove: (columnId: ChartableColumn) => void;
-  /** The initial type of chart to display. Defaults to 'pie'. */
-  initialChartType?: ChartType;
+  /** Callback to apply a filter to the data table when a chart segment is clicked. */
+  onFilter: (columnId: string, value: string) => void;
 }
 
 /**
-* An array of colors used for the segments in pie, doughnut, and bar charts.
+* An array of default colors used for the segments in charts if no specific colors are configured.
 */
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1943'];
+const DEFAULT_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1943'];
 
 /**
  * A reusable chart component that can display data distribution for a specific column
- * as a pie, doughnut, or bar chart.
+ * as a pie, doughnut, or bar chart. It supports configuration for colors and chart types
+ * and allows filtering the main data table by clicking on chart segments.
  */
 const ColumnChartComponent = ({
   columnId,
   label,
   data,
   onRemove,
-  initialChartType = 'pie',
+  onFilter,
 }: ColumnChartProps) => {
+  const columnConfig = alarmConfig.fields[columnId];
+  const initialChartType = columnConfig.chartConfig?.defaultChartType || 'pie';
+  
   // State to manage the current chart type being displayed.
   const [chartType, setChartType] = React.useState<ChartType>(initialChartType);
-
-  const columnConfig = alarmConfig.fields[columnId];
 
   /**
    * Memoized calculation of chart data.
@@ -91,6 +93,22 @@ const ColumnChartComponent = ({
       return Object.entries(counts).map(([name, value]) => ({ name, value }));
     }
   }, [data, columnId, columnConfig.columnType]);
+  
+  /**
+   * Retrieves the color for a specific data entry.
+   * It first checks for a color configured in `alarm-config.ts`.
+   * If not found, it falls back to the `DEFAULT_COLORS` array.
+   * @param entryName The name of the data entry (e.g., 'Critical').
+   * @param index The index of the data entry in the chartData array.
+   * @returns The hex color code.
+   */
+  const getColor = (entryName: string, index: number) => {
+    const configuredColors = columnConfig.chartConfig?.colors;
+    if (configuredColors && configuredColors[entryName]) {
+      return configuredColors[entryName];
+    }
+    return DEFAULT_COLORS[index % DEFAULT_COLORS.length];
+  };
 
   /**
    * Icon component for the currently selected chart type.
@@ -102,6 +120,7 @@ const ColumnChartComponent = ({
   }[chartType];
   
   const isNumerical = columnConfig.columnType === 'numerical';
+  // Numerical charts are always bars, otherwise use the state-managed chart type.
   const finalChartType = isNumerical ? 'bar' : chartType;
 
   return (
@@ -109,7 +128,7 @@ const ColumnChartComponent = ({
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{label} Distribution</CardTitle>
         <div className="flex items-center gap-1">
-          {/* Dropdown to switch between chart types */}
+          {/* Dropdown to switch between chart types, hidden for numerical charts */}
           {!isNumerical && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -142,14 +161,14 @@ const ColumnChartComponent = ({
       <CardContent className="h-[300px] w-full p-0">
         <ResponsiveContainer width="100%" height="100%">
           {finalChartType === 'bar' ? (
-            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
+            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 75 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={1} tick={{ fontSize: 12 }} />
               <YAxis />
               <RechartsTooltip />
-              <Bar dataKey="value" fill="#8884d8">
+              <Bar dataKey="value" onClick={(payload) => onFilter(columnId, payload.name)}>
                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={getColor(entry.name, index)} cursor="pointer" />
                 ))}
               </Bar>
             </BarChart>
@@ -165,6 +184,7 @@ const ColumnChartComponent = ({
                 innerRadius={finalChartType === 'doughnut' ? 40 : 0}
                 fill="#8884d8"
                 labelLine={false}
+                onClick={(payload) => onFilter(columnId, payload.name)}
                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
                   if (percent < 0.05) return null; // Hide labels for very small slices
                   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -178,11 +198,10 @@ const ColumnChartComponent = ({
                 }}
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={getColor(entry.name, index)} cursor="pointer" />
                 ))}
               </Pie>
               <RechartsTooltip />
-              <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ right: -10 }} />
             </PieChart>
           )}
         </ResponsiveContainer>
