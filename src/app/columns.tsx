@@ -1,7 +1,7 @@
 
 'use client';
 
-import { type ColumnDef } from '@tanstack/react-table';
+import { type ColumnDef, type ColumnFiltersState } from '@tanstack/react-table';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import { Checkbox } from '../FMComponents/ui/checkbox';
 import { Button } from '../FMComponents/ui/button';
@@ -78,12 +78,20 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
               </div>
             )
         },
-        cell: ({ row, table }) => {
+        cell: ({ row, table, column }) => {
           const value = row.getValue(key) as any;
-          const globalFilter = (table.options.meta as any)?.globalFilter || '';
+          const { globalFilter, columnFilters } = (table.options.meta || {}) as { globalFilter?: string; columnFilters?: ColumnFiltersState };
 
-          const cellText = String(value ?? '');
-          const highlightedContent = highlightText(cellText, globalFilter);
+          const columnFilter = (columnFilters?.find(f => f.id === column.id)?.value || '') as string;
+          
+          let highlightedContent: React.ReactNode = String(value ?? '');
+          
+          if (globalFilter) {
+            highlightedContent = highlightText(highlightedContent, globalFilter);
+          }
+          if (columnFilter) {
+            highlightedContent = highlightText(highlightedContent, columnFilter);
+          }
           
           if (config.columnType === 'dateTime' && value instanceof Date) {
             try {
@@ -92,8 +100,8 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                 return (
                   <TooltipProvider>
                   <Tooltip>
-                    <TooltipTrigger asChild><span className="block truncate">{format(value, formatString)}</span></TooltipTrigger>
-                    <TooltipContent><p>{format(value, formatString)}</p></TooltipContent>
+                    <TooltipTrigger asChild><span className="block truncate">{formattedDate}</span></TooltipTrigger>
+                    <TooltipContent><p>{formattedDate}</p></TooltipContent>
                   </Tooltip>
                   </TooltipProvider>
                 );
@@ -123,7 +131,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                         {highlightedContent}
                     </span>
                 </TooltipTrigger>
-                <TooltipContent><p>{cellText}</p></TooltipContent>
+                <TooltipContent><p>{String(value ?? '')}</p></TooltipContent>
               </Tooltip>
             </TooltipProvider>
           );
