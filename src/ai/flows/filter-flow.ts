@@ -1,9 +1,9 @@
-
 'use server';
 /**
  * @fileOverview An AI flow for converting natural language into table filters.
  *
  * - generateFilter - A function that takes a user's query and returns a structured filter object.
+ * - FilterOutput - The type of the structured filter object array.
  */
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
@@ -25,19 +25,13 @@ export async function generateFilter(query: string): Promise<FilterOutput> {
   return filterFlow({ query });
 }
 
-const filterFlow = ai.defineFlow(
-  {
-    name: 'filterFlow',
-    inputSchema: z.object({ query: z.string() }),
-    outputSchema: FilterOutputSchema,
-  },
-  async ({ query }) => {
-    const prompt = ai.definePrompt({
-      name: 'filterPrompt',
-      input: { schema: z.object({ query: z.string() }) },
-      output: { schema: FilterOutputSchema },
-      model: 'googleai/gemini-1.5-flash-latest',
-      prompt: `You are an expert at converting natural language queries into structured JSON filters for a data table.
+// Define the prompt once, outside the flow execution.
+const filterPrompt = ai.definePrompt({
+  name: 'filterPrompt',
+  input: { schema: z.object({ query: z.string() }) },
+  output: { schema: FilterOutputSchema },
+  model: 'googleai/gemini-1.5-flash-latest',
+  prompt: `You are an expert at converting natural language queries into structured JSON filters for a data table.
 The user will provide a query about filtering alarms.
 You must convert their query into a JSON array of filter objects.
 Each object must have an 'id' and a 'value'.
@@ -52,9 +46,17 @@ For text columns, the 'value' should be a single string to search for.
 Analyze the user's query: "{{{query}}}"
 
 Return only the JSON array of filter objects.`,
-    });
+});
 
-    const { output } = await prompt({ query });
+const filterFlow = ai.defineFlow(
+  {
+    name: 'filterFlow',
+    inputSchema: z.object({ query: z.string() }),
+    outputSchema: FilterOutputSchema,
+  },
+  async ({ query }) => {
+    // Call the pre-defined prompt.
+    const { output } = await filterPrompt({ query });
     return output ?? [];
   }
 );
