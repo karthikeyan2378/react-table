@@ -9,7 +9,7 @@ import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../FMComponents/ui/tooltip';
 import { Badge } from '../FMComponents/ui/badge';
-import { cn, highlightText } from '../lib/utils';
+import { cn, highlightText } from '../lib/utils.tsx';
 
 const severityColors: Record<string, string> = {
   Critical: "bg-red-500",
