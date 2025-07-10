@@ -413,7 +413,7 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-8">
             {/* Charts Column */}
             {showCharts && (
-              <div className="lg:w-1/3 space-y-4">
+              <div className="lg:w-1/3 lg:order-first w-full order-last space-y-4">
                   <div className="flex flex-wrap items-center gap-4">
                       <h2 className="text-xl font-semibold">Visualizations</h2>
                       <div className="relative inline-block text-left">
@@ -456,7 +456,7 @@ export default function Home() {
             )}
 
             {/* Data Table Column */}
-            <div className={showCharts ? "lg:w-2/3" : "w-full"}>
+            <div className={showCharts ? "lg:w-2/3 w-full" : "w-full"}>
                 <div className="p-2 rounded-lg border border-gray-200 bg-white text-gray-900 shadow-md">
                     <DataTable
                         tableContainerRef={tableContainerRef}

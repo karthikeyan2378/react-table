@@ -693,6 +693,7 @@ export function DataTable<TData>({
     getRowId,
     initialState: tableInitialState,
     meta: {
+      globalFilter,
       updateData: (rowIndex: number, columnId: string, value: unknown) => {
         // This is a placeholder for a more robust update mechanism.
         // In a real app, you'd likely call an API here.

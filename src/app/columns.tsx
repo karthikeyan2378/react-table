@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../FMComponents/ui/tooltip';
 import { Badge } from '../FMComponents/ui/badge';
 import { cn } from '../lib/utils';
+import Highlighter from 'react-highlight-words';
 
 const severityColors: Record<string, string> = {
   Critical: "bg-red-500",
@@ -77,12 +78,24 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
               </div>
             )
         },
-        cell: ({ row }) => {
+        cell: ({ row, table }) => {
           const value = row.getValue(key) as any;
+          const globalFilter = (table.options.meta as any)?.globalFilter || '';
+
+          const cellText = String(value ?? '');
+          const highlighter = (
+            <Highlighter
+              highlightClassName="bg-yellow-300 rounded-sm px-0.5"
+              searchWords={[globalFilter]}
+              autoEscape={true}
+              textToHighlight={cellText}
+            />
+          );
           
           if (config.columnType === 'dateTime' && value instanceof Date) {
             try {
                 const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
+                const formattedDate = format(value, formatString);
                 return (
                   <TooltipProvider>
                   <Tooltip>
@@ -112,8 +125,12 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           return (
             <TooltipProvider>
              <Tooltip>
-                <TooltipTrigger asChild><span className="block truncate">{String(value ?? '')}</span></TooltipTrigger>
-                <TooltipContent><p>{String(value ?? '')}</p></TooltipContent>
+                <TooltipTrigger asChild>
+                    <span className="block truncate">
+                        {highlighter}
+                    </span>
+                </TooltipTrigger>
+                <TooltipContent><p>{cellText}</p></TooltipContent>
               </Tooltip>
             </TooltipProvider>
           );
