@@ -1,12 +1,5 @@
 
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
 import * as React from 'react';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
 
 /**
  * A utility function to highlight occurrences of a search term within a text.

@@ -68,7 +68,7 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { cn } from "../lib/utils.tsx";
+import { cn } from "../lib/cn";
 import { Separator } from "./ui/separator";
 import { Checkbox } from './ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
