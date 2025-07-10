@@ -9,8 +9,7 @@ import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../FMComponents/ui/tooltip';
 import { Badge } from '../FMComponents/ui/badge';
-import { cn } from '../lib/utils';
-import Highlighter from 'react-highlight-words';
+import { cn, highlightText } from '../lib/utils';
 
 const severityColors: Record<string, string> = {
   Critical: "bg-red-500",
@@ -83,14 +82,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           const globalFilter = (table.options.meta as any)?.globalFilter || '';
 
           const cellText = String(value ?? '');
-          const highlighter = (
-            <Highlighter
-              highlightClassName="bg-yellow-300 rounded-sm px-0.5"
-              searchWords={[globalFilter]}
-              autoEscape={true}
-              textToHighlight={cellText}
-            />
-          );
+          const highlightedContent = highlightText(cellText, globalFilter);
           
           if (config.columnType === 'dateTime' && value instanceof Date) {
             try {
@@ -127,7 +119,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
              <Tooltip>
                 <TooltipTrigger asChild>
                     <span className="block truncate">
-                        {highlighter}
+                        {highlightedContent}
                     </span>
                 </TooltipTrigger>
                 <TooltipContent><p>{cellText}</p></TooltipContent>
