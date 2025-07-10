@@ -17,8 +17,12 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
   const escapeRegExp = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   const highlightPattern = Array.isArray(highlight)
-    ? highlight.map(escapeRegExp).join('|')
+    ? highlight.filter(Boolean).map(escapeRegExp).join('|')
     : escapeRegExp(highlight);
+  
+  if (!highlightPattern) {
+    return text;
+  }
 
   const highlightRegex = new RegExp(`(${highlightPattern})`, 'gi');
 
@@ -29,7 +33,7 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
       const parts = node.split(highlightRegex);
       return parts.map((part, i) =>
         highlightRegex.test(part) ? (
-          <span key={i} className="bg-yellow-300 rounded-sm px-0.5">
+          <span key={i} className="bg-[#f3e22f7a] rounded-sm px-0.5">
             {part}
           </span>
         ) : (
