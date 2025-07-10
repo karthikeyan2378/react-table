@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -331,75 +332,80 @@ export default function Home() {
           </p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-4 mb-4">
-            <h2 className="text-xl font-semibold">Visualizations</h2>
-             <div className="relative inline-block text-left">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                            Add Chart
-                            <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        {summarizableColumns.map((key) => (
-                            <DropdownMenuItem
-                              key={key}
-                              onClick={() => handleAddChart(key)}
-                              disabled={activeCharts.includes(key)}
-                            >
-                              {alarmConfig.fields[key].label}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+        <div className="flex flex-col lg:flex-row gap-8">
+            {/* Charts Column */}
+            <div className="lg:w-1/3 space-y-4">
+                <div className="flex flex-wrap items-center gap-4">
+                    <h2 className="text-xl font-semibold">Visualizations</h2>
+                    <div className="relative inline-block text-left">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    Add Chart
+                                    <ChevronDown className="ml-2 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                {summarizableColumns.map((key) => (
+                                    <DropdownMenuItem
+                                    key={key}
+                                    onClick={() => handleAddChart(key)}
+                                    disabled={activeCharts.includes(key)}
+                                    >
+                                    {alarmConfig.fields[key].label}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                </div>
+                {activeCharts.map((columnId) => (
+                    <ColumnChart
+                        key={columnId}
+                        columnId={columnId}
+                        label={alarmConfig.fields[columnId].label}
+                        data={chartData}
+                        onRemove={handleRemoveChart}
+                    />
+                ))}
             </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            {activeCharts.map((columnId) => (
-                <ColumnChart
-                    key={columnId}
-                    columnId={columnId}
-                    label={alarmConfig.fields[columnId].label}
-                    data={chartData}
-                    onRemove={handleRemoveChart}
-                />
-            ))}
-        </div>
-        
-        <div className="p-2 rounded-lg border border-gray-200 bg-white text-gray-900 shadow-md">
-            <DataTable
-                tableContainerRef={tableContainerRef}
-                data={data}
-                columns={columns}
-                onSelectedRowsChange={setSelectedRows}
-                getRowId={getRowId}
-                filterableColumns={filterableColumns}
-                initialColumnVisibility={initialColumnVisibility}
-                initialSorting={initialSorting}
-                onRowDoubleClick={setDialogRow}
-                contextMenuItems={contextMenuItems}
-                globalFilter={globalFilter}
-                onGlobalFilterChange={setGlobalFilter}
-                columnFilters={columnFilters}
-                onColumnFiltersChange={setColumnFilters}
-                onTableReady={setTable}
-                onAddRow={addRow}
-                isStreaming={isStreaming}
-                onToggleStreaming={() => setIsStreaming((prev) => !prev)}
-                onDeleteSelectedRows={deleteSelectedRows}
-                onExportCsv={handleExportCsv}
-                onExportXlsx={handleExportXlsx}
-                onExportPdf={handleExportPdf}
-                tableTitle="Live Alarm Feed"
-                tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
-                maxHeightWithPagination="60vh"
-                maxHeightWithoutPagination="80vh"
-                initialRowsPerPage={50}
-                rowsPerPageOptions={[20, 50, 100, 200, 500]}
-                toolbarVisibility={{}}
-            />
+            {/* Data Table Column */}
+            <div className="lg:w-2/3">
+                <div className="p-2 rounded-lg border border-gray-200 bg-white text-gray-900 shadow-md">
+                    <DataTable
+                        tableContainerRef={tableContainerRef}
+                        data={data}
+                        columns={columns}
+                        onSelectedRowsChange={setSelectedRows}
+                        getRowId={getRowId}
+                        filterableColumns={filterableColumns}
+                        initialColumnVisibility={initialColumnVisibility}
+                        initialSorting={initialSorting}
+                        onRowDoubleClick={setDialogRow}
+                        contextMenuItems={contextMenuItems}
+                        globalFilter={globalFilter}
+                        onGlobalFilterChange={setGlobalFilter}
+                        columnFilters={columnFilters}
+                        onColumnFiltersChange={setColumnFilters}
+                        onTableReady={setTable}
+                        onAddRow={addRow}
+                        isStreaming={isStreaming}
+                        onToggleStreaming={() => setIsStreaming((prev) => !prev)}
+                        onDeleteSelectedRows={deleteSelectedRows}
+                        onExportCsv={handleExportCsv}
+                        onExportXlsx={handleExportXlsx}
+                        onExportPdf={handleExportPdf}
+                        tableTitle="Live Alarm Feed"
+                        tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
+                        maxHeightWithPagination="60vh"
+                        maxHeightWithoutPagination="80vh"
+                        initialRowsPerPage={50}
+                        rowsPerPageOptions={[20, 50, 100, 200, 500]}
+                        toolbarVisibility={{}}
+                    />
+                </div>
+            </div>
         </div>
 
         <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>

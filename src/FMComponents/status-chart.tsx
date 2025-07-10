@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -54,19 +55,42 @@ const ColumnChartComponent = ({
   // State to manage the current chart type being displayed.
   const [chartType, setChartType] = React.useState<ChartType>(initialChartType);
 
+  const columnConfig = alarmConfig.fields[columnId];
+
   /**
    * Memoized calculation of chart data.
    * It processes the raw `data` prop and aggregates it into a format
    * suitable for Recharts, counting occurrences of each unique value in the specified column.
+   * For numerical columns, it groups data into bins.
    */
   const chartData = React.useMemo(() => {
-    const counts: { [key: string]: number } = {};
-    for (const row of data) {
-      const value = String(row[columnId]);
-      counts[value] = (counts[value] || 0) + 1;
+    if (columnConfig.columnType === 'numerical') {
+      const values = data.map(row => Number(row[columnId])).filter(v => !isNaN(v));
+      if (values.length === 0) return [];
+      
+      const max = Math.max(...values);
+      const binCount = Math.min(10, Math.floor(Math.sqrt(values.length)));
+      const binSize = Math.ceil(max / binCount) || 1;
+      
+      const bins: { [key: string]: number } = {};
+
+      for (const value of values) {
+        const binStart = Math.floor(value / binSize) * binSize;
+        const binEnd = binStart + binSize - 1;
+        const binName = `${binStart}-${binEnd}`;
+        bins[binName] = (bins[binName] || 0) + 1;
+      }
+      return Object.entries(bins).map(([name, value]) => ({ name, value }));
+
+    } else {
+      const counts: { [key: string]: number } = {};
+      for (const row of data) {
+        const value = String(row[columnId]);
+        counts[value] = (counts[value] || 0) + 1;
+      }
+      return Object.entries(counts).map(([name, value]) => ({ name, value }));
     }
-    return Object.entries(counts).map(([name, value]) => ({ name, value }));
-  }, [data, columnId]);
+  }, [data, columnId, columnConfig.columnType]);
 
   /**
    * Icon component for the currently selected chart type.
@@ -76,6 +100,9 @@ const ColumnChartComponent = ({
     bar: BarChart2,
     doughnut: Donut,
   }[chartType];
+  
+  const isNumerical = columnConfig.columnType === 'numerical';
+  const finalChartType = isNumerical ? 'bar' : chartType;
 
   return (
     <Card className="h-auto">
@@ -83,27 +110,29 @@ const ColumnChartComponent = ({
         <CardTitle className="text-sm font-medium">{label} Distribution</CardTitle>
         <div className="flex items-center gap-1">
           {/* Dropdown to switch between chart types */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <ChartIcon className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setChartType('pie')}>
-                <PieChartIcon className="mr-2 h-4 w-4" />
-                Pie Chart
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setChartType('doughnut')}>
-                <Donut className="mr-2 h-4 w-4" />
-                Doughnut Chart
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setChartType('bar')}>
-                <BarChart2 className="mr-2 h-4 w-4" />
-                Bar Chart
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {!isNumerical && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <ChartIcon className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setChartType('pie')}>
+                  <PieChartIcon className="mr-2 h-4 w-4" />
+                  Pie Chart
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setChartType('doughnut')}>
+                  <Donut className="mr-2 h-4 w-4" />
+                  Doughnut Chart
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setChartType('bar')}>
+                  <BarChart2 className="mr-2 h-4 w-4" />
+                  Bar Chart
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           {/* Button to remove the chart */}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onRemove(columnId)}>
             <XIcon className="h-4 w-4" />
@@ -112,10 +141,10 @@ const ColumnChartComponent = ({
       </CardHeader>
       <CardContent className="h-[300px] w-full p-0">
         <ResponsiveContainer width="100%" height="100%">
-          {chartType === 'bar' ? (
-            <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 75 }}>
+          {finalChartType === 'bar' ? (
+            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 60 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={1} />
+              <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={1} tick={{ fontSize: 12 }} />
               <YAxis />
               <RechartsTooltip />
               <Bar dataKey="value" fill="#8884d8">
@@ -133,7 +162,7 @@ const ColumnChartComponent = ({
                 cx="50%"
                 cy="50%"
                 outerRadius={80}
-                innerRadius={chartType === 'doughnut' ? 40 : 0}
+                innerRadius={finalChartType === 'doughnut' ? 40 : 0}
                 fill="#8884d8"
                 labelLine={false}
                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
