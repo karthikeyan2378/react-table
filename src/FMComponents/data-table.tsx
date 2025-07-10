@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react";
@@ -188,6 +189,7 @@ export interface ToolbarVisibility {
   toggleSorting?: boolean;
   togglePagination?: boolean;
   toggleColumns?: boolean;
+  toggleCharts?: boolean;
 }
 
 /**
@@ -210,6 +212,8 @@ interface DataTableToolbarProps<TData> {
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
   onPaginationToggle: (enabled: boolean) => void;
+  showCharts: boolean;
+  onToggleCharts: (enabled: boolean) => void;
   toolbarVisibility: ToolbarVisibility;
 }
 
@@ -233,6 +237,8 @@ function DataTableToolbar<TData>({
   onSortingToggle,
   paginationEnabled,
   onPaginationToggle,
+  showCharts,
+  onToggleCharts,
   toolbarVisibility,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
@@ -433,6 +439,11 @@ function DataTableToolbar<TData>({
               <DropdownMenuContent align="end" className="w-[200px]">
                 <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {toolbarVisibility.toggleCharts !== false && (
+                  <DropdownMenuCheckboxItem checked={showCharts} onCheckedChange={onToggleCharts}>
+                    Show Charts
+                  </DropdownMenuCheckboxItem>
+                )}
                 {toolbarVisibility.toggleSorting !== false && (
                   <DropdownMenuCheckboxItem checked={sortingEnabled} onCheckedChange={onSortingToggle}>
                       Enable Sorting
@@ -543,6 +554,8 @@ interface DataTableProps<TData> {
   toolbarVisibility?: ToolbarVisibility;
   columnFilters: ColumnFiltersState;
   onColumnFiltersChange: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
+  showCharts?: boolean;
+  onToggleCharts?: (enabled: boolean) => void;
 }
 
 /**
@@ -579,7 +592,9 @@ export function DataTable<TData>({
   rowsPerPageOptions = [10, 20, 50, 100, 500, 1000],
   toolbarVisibility = {},
   columnFilters,
-  onColumnFiltersChange
+  onColumnFiltersChange,
+  showCharts = true,
+  onToggleCharts = () => {},
 }: DataTableProps<TData>) {
   // State for sorting, column visibility, row selection, and context menu.
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
@@ -719,6 +734,8 @@ export function DataTable<TData>({
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
           onPaginationToggle={setPaginationEnabled}
+          showCharts={showCharts}
+          onToggleCharts={onToggleCharts}
           toolbarVisibility={toolbarVisibility}
         />
 

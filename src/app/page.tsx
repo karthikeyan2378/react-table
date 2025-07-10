@@ -62,6 +62,8 @@ export default function Home() {
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   // State for column-specific filters.
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  // State to manage the visibility of the charts panel.
+  const [showCharts, setShowCharts] = React.useState(true);
 
   /**
    * Memoized callback to get a unique ID for each row.
@@ -338,49 +340,51 @@ export default function Home() {
         
         <div className="flex flex-col lg:flex-row gap-8">
             {/* Charts Column */}
-            <div className="lg:w-1/3 space-y-4">
-                <div className="flex flex-wrap items-center gap-4">
-                    <h2 className="text-xl font-semibold">Visualizations</h2>
-                    <div className="relative inline-block text-left">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline">
-                                    Add Chart
-                                    <ChevronDown className="ml-2 h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                {summarizableColumns.map((key) => (
-                                    <DropdownMenuItem
-                                    key={key}
-                                    onClick={() => handleAddChart(key)}
-                                    disabled={activeCharts.includes(key)}
-                                    >
-                                    {alarmConfig.fields[key].label}
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                </div>
-                {activeCharts.map((columnId) => {
-                    const activeFilter = columnFilters.find(f => f.id === columnId);
-                    return (
-                        <ColumnChart
-                            key={columnId}
-                            columnId={columnId}
-                            label={alarmConfig.fields[columnId].label}
-                            data={data}
-                            onRemove={handleRemoveChart}
-                            onFilter={handleChartFilter}
-                            activeFilters={(activeFilter?.value as string[]) || []}
-                        />
-                    );
-                })}
-            </div>
+            {showCharts && (
+              <div className="lg:w-1/3 space-y-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                      <h2 className="text-xl font-semibold">Visualizations</h2>
+                      <div className="relative inline-block text-left">
+                          <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                  <Button variant="outline">
+                                      Add Chart
+                                      <ChevronDown className="ml-2 h-4 w-4" />
+                                  </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                  {summarizableColumns.map((key) => (
+                                      <DropdownMenuItem
+                                      key={key}
+                                      onClick={() => handleAddChart(key)}
+                                      disabled={activeCharts.includes(key)}
+                                      >
+                                      {alarmConfig.fields[key].label}
+                                      </DropdownMenuItem>
+                                  ))}
+                              </DropdownMenuContent>
+                          </DropdownMenu>
+                      </div>
+                  </div>
+                  {activeCharts.map((columnId) => {
+                      const activeFilter = columnFilters.find(f => f.id === columnId);
+                      return (
+                          <ColumnChart
+                              key={columnId}
+                              columnId={columnId}
+                              label={alarmConfig.fields[columnId].label}
+                              data={data}
+                              onRemove={handleRemoveChart}
+                              onFilter={handleChartFilter}
+                              activeFilters={(activeFilter?.value as string[]) || []}
+                          />
+                      );
+                  })}
+              </div>
+            )}
 
             {/* Data Table Column */}
-            <div className="lg:w-2/3">
+            <div className={showCharts ? "lg:w-2/3" : "w-full"}>
                 <div className="p-2 rounded-lg border border-gray-200 bg-white text-gray-900 shadow-md">
                     <DataTable
                         tableContainerRef={tableContainerRef}
@@ -405,13 +409,15 @@ export default function Home() {
                         onExportCsv={handleExportCsv}
                         onExportXlsx={handleExportXlsx}
                         onExportPdf={handleExportPdf}
+                        showCharts={showCharts}
+                        onToggleCharts={() => setShowCharts((prev) => !prev)}
                         tableTitle="Live Alarm Feed"
                         tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
                         maxHeightWithPagination="60vh"
                         maxHeightWithoutPagination="80vh"
                         initialRowsPerPage={50}
                         rowsPerPageOptions={[20, 50, 100, 200, 500]}
-                        toolbarVisibility={{}}
+                        toolbarVisibility={{ toggleCharts: true }}
                     />
                 </div>
             </div>
