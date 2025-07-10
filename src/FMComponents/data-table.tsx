@@ -72,6 +72,7 @@ import { cn } from "../lib/cn";
 import { Separator } from "./ui/separator";
 import { Checkbox } from './ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { highlightText } from '../lib/utils.tsx';
 
 /**
  * Interface defining the structure for a filterable column.
@@ -298,7 +299,7 @@ function DataTableToolbar<TData>({
                 checked={activeFilters.includes(col.id)}
                 onCheckedChange={(checked) => handleFilterToggle(col.id, !checked)}
               >
-                {col.name}
+                {highlightText(col.name, globalFilter)}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>

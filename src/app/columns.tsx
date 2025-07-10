@@ -107,7 +107,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
               <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <Badge className={cn("capitalize text-white", severityColors[value] || 'bg-gray-400')}>{value}</Badge>
+                  <Badge className={cn("capitalize text-white", severityColors[value] || 'bg-gray-400')}>{highlightedContent}</Badge>
                 </TooltipTrigger>
                 <TooltipContent><p>Severity: {value}</p></TooltipContent>
               </Tooltip>
