@@ -188,17 +188,33 @@ export default function Home() {
 
   /**
    * Handles the click-to-filter action from a chart.
-   * It adds or replaces the filter for the given column in the table's filter state.
+   * It adds or removes a value from the filter for the given column,
+   * supporting multi-selection.
    * @param columnId The ID of the column to filter.
-   * @param value The value to filter by.
+   * @param value The value to add or remove from the filter.
    */
   const handleChartFilter = (columnId: string, value: string) => {
-    setColumnFilters((prevFilters) => {
-      // Remove any existing filter for this column
-      const otherFilters = prevFilters.filter((f) => f.id !== columnId);
-      // Add the new filter
-      return [...otherFilters, { id: columnId, value }];
-    });
+      setColumnFilters((prevFilters) => {
+          const existingFilter = prevFilters.find(f => f.id === columnId);
+          const otherFilters = prevFilters.filter(f => f.id !== columnId);
+
+          if (!existingFilter) {
+              // No filter for this column yet, create a new one
+              return [...otherFilters, { id: columnId, value: [value] }];
+          }
+
+          const currentValues = (existingFilter.value as string[]) || [];
+          const newValues = currentValues.includes(value)
+              ? currentValues.filter(v => v !== value) // Value exists, remove it (deselect)
+              : [...currentValues, value]; // Value doesn't exist, add it (select)
+
+          if (newValues.length === 0) {
+              // If no values are left, remove the filter for this column entirely
+              return otherFilters;
+          }
+
+          return [...otherFilters, { id: columnId, value: newValues }];
+      });
   };
   
   /**
@@ -374,16 +390,20 @@ export default function Home() {
                         </DropdownMenu>
                     </div>
                 </div>
-                {activeCharts.map((columnId) => (
-                    <ColumnChart
-                        key={columnId}
-                        columnId={columnId}
-                        label={alarmConfig.fields[columnId].label}
-                        data={chartData}
-                        onRemove={handleRemoveChart}
-                        onFilter={handleChartFilter}
-                    />
-                ))}
+                {activeCharts.map((columnId) => {
+                    const activeFilter = columnFilters.find(f => f.id === columnId);
+                    return (
+                        <ColumnChart
+                            key={columnId}
+                            columnId={columnId}
+                            label={alarmConfig.fields[columnId].label}
+                            data={chartData}
+                            onRemove={handleRemoveChart}
+                            onFilter={handleChartFilter}
+                            activeFilters={(activeFilter?.value as string[]) || []}
+                        />
+                    );
+                })}
             </div>
 
             {/* Data Table Column */}

@@ -34,6 +34,8 @@ interface ColumnChartProps {
   onRemove: (columnId: ChartableColumn) => void;
   /** Callback to apply a filter to the data table when a chart segment is clicked. */
   onFilter: (columnId: string, value: string) => void;
+  /** An array of currently active filter values for this column. */
+  activeFilters: string[];
 }
 
 /**
@@ -52,6 +54,7 @@ const ColumnChartComponent = ({
   data,
   onRemove,
   onFilter,
+  activeFilters = [],
 }: ColumnChartProps) => {
   const columnConfig = alarmConfig.fields[columnId];
   const initialChartType = columnConfig.chartConfig?.defaultChartType || 'pie';
@@ -158,7 +161,7 @@ const ColumnChartComponent = ({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="h-[300px] w-full p-0">
+      <CardContent className="h-[250px] w-full p-0">
         <ResponsiveContainer width="100%" height="100%">
           {finalChartType === 'bar' ? (
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 75 }}>
@@ -167,9 +170,18 @@ const ColumnChartComponent = ({
               <YAxis />
               <RechartsTooltip />
               <Bar dataKey="value" onClick={(payload) => onFilter(columnId, payload.name)}>
-                 {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getColor(entry.name, index)} cursor="pointer" />
-                ))}
+                 {chartData.map((entry, index) => {
+                    const isSelected = activeFilters.includes(entry.name);
+                    return (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={getColor(entry.name, index)} 
+                        cursor="pointer" 
+                        stroke={isSelected ? '#000000' : 'none'}
+                        strokeWidth={2}
+                      />
+                    )
+                })}
               </Bar>
             </BarChart>
           ) : (
@@ -197,9 +209,18 @@ const ColumnChartComponent = ({
                   );
                 }}
               >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getColor(entry.name, index)} cursor="pointer" />
-                ))}
+                {chartData.map((entry, index) => {
+                  const isSelected = activeFilters.includes(entry.name);
+                  return (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={getColor(entry.name, index)} 
+                      cursor="pointer" 
+                      stroke={isSelected ? '#000000' : 'none'}
+                      strokeWidth={2}
+                    />
+                  )
+                })}
               </Pie>
               <RechartsTooltip />
             </PieChart>
