@@ -37,6 +37,7 @@ import {
   Square,
   Trash2,
   X,
+  Edit,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 
@@ -183,6 +184,7 @@ function DataTableFacetedFilter<TData>({
  */
 export interface ToolbarVisibility {
   addRow?: boolean;
+  updateRow?: boolean;
   deleteRows?: boolean;
   toggleStreaming?: boolean;
   exportData?: boolean;
@@ -203,6 +205,7 @@ interface DataTableToolbarProps<TData> {
   globalFilter: string;
   onGlobalFilterChange: (value: string) => void;
   onAddRow?: () => void;
+  onUpdateRow?: () => void;
   isStreaming?: boolean;
   onToggleStreaming?: () => void;
   onDeleteSelectedRows?: () => void;
@@ -228,6 +231,7 @@ function DataTableToolbar<TData>({
   globalFilter, 
   onGlobalFilterChange,
   onAddRow,
+  onUpdateRow,
   isStreaming,
   onToggleStreaming,
   onDeleteSelectedRows,
@@ -376,6 +380,17 @@ function DataTableToolbar<TData>({
                 </Button>
               </TooltipTrigger>
               <TooltipContent><p>Add Alarm</p></TooltipContent>
+            </Tooltip>
+          )}
+
+           {toolbarVisibility.updateRow !== false && onUpdateRow && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={onUpdateRow} disabled={selectedRowCount !== 1}>
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p>Update Alarm</p></TooltipContent>
             </Tooltip>
           )}
 
@@ -546,6 +561,7 @@ interface DataTableProps<TData> {
   onTableReady?: (table: ReactTable<TData>) => void;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   onAddRow?: () => void;
+  onUpdateRow?: () => void;
   isStreaming?: boolean;
   onToggleStreaming?: () => void;
   onDeleteSelectedRows?: () => void;
@@ -586,6 +602,7 @@ export function DataTable<TData>({
   onTableReady,
   tableContainerRef,
   onAddRow,
+  onUpdateRow,
   isStreaming,
   onToggleStreaming,
   onDeleteSelectedRows,
@@ -675,14 +692,23 @@ export function DataTable<TData>({
     enableMultiRowSelection: true,
     getRowId,
     initialState: tableInitialState,
+    meta: {
+      updateData: (rowIndex: number, columnId: string, value: unknown) => {
+        // This is a placeholder for a more robust update mechanism.
+        // In a real app, you'd likely call an API here.
+        console.log("Updating data at index", rowIndex, "for column", columnId, "with value", value);
+      }
+    }
   });
 
   // Effect to adjust page size when pagination is disabled.
   React.useEffect(() => {
     if (!paginationEnabled) {
       table.setPageSize(data.length);
+    } else {
+      table.setPageSize(initialRowsPerPage);
     }
-  }, [paginationEnabled, data.length, table]);
+  }, [paginationEnabled, data.length, table, initialRowsPerPage]);
   
   // Effect to notify the parent component when the table instance is ready.
   React.useEffect(() => {
@@ -732,6 +758,7 @@ export function DataTable<TData>({
           globalFilter={globalFilter} 
           onGlobalFilterChange={onGlobalFilterChange}
           onAddRow={onAddRow}
+          onUpdateRow={onUpdateRow}
           isStreaming={isStreaming}
           onToggleStreaming={onToggleStreaming}
           onDeleteSelectedRows={onDeleteSelectedRows}

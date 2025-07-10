@@ -8,11 +8,12 @@ import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMCom
 import { ColumnChart } from '../FMComponents/status-chart';
 import { Button } from '../FMComponents/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../FMComponents/ui/dropdown-menu';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Edit } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { type Table as ReactTable, type ColumnFiltersState } from '@tanstack/react-table';
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -20,6 +21,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../FMComponents/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '../FMComponents/ui/dialog';
+import { Label } from '../FMComponents/ui/label';
+import { Textarea } from '../FMComponents/ui/textarea';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
@@ -64,12 +75,23 @@ export default function Home() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   // State to manage the visibility of the charts panel.
   const [showCharts, setShowCharts] = React.useState(true);
+  // State to manage the update dialog visibility.
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
+  // State to hold the data of the row being updated.
+  const [rowToUpdate, setRowToUpdate] = React.useState<Alarm | null>(null);
 
   /**
    * Memoized callback to get a unique ID for each row.
    * Required by TanStack Table for row identification.
+   * It dynamically finds the column marked with `isRecId: true` in the config.
    */
-  const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
+  const getRowId = React.useCallback((row: Alarm) => {
+    const recIdKey = Object.keys(alarmConfig.fields).find(
+      (key) => alarmConfig.fields[key as keyof typeof alarmConfig.fields].isRecId
+    );
+    // Fallback to a default key if no recId is found, though one should always be configured.
+    return recIdKey ? row[recIdKey as keyof Alarm] : row.AlarmID;
+  }, []);
   
   /**
    * Memoized columns definition for the data table.
@@ -99,6 +121,39 @@ export default function Home() {
   }, []);
 
   /**
+   * Opens the update dialog and pre-fills it with the selected row's data.
+   */
+  const handleUpdateRow = () => {
+    if (selectedRows.length !== 1) {
+      toast({
+        title: "Invalid selection",
+        description: "Please select exactly one row to update.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setRowToUpdate(selectedRows[0]);
+    setIsUpdateDialogOpen(true);
+  };
+
+  /**
+   * Updates the data in the main state array after a row is edited.
+   * @param updatedRow The row data that has been modified.
+   */
+  const onRowUpdate = (updatedRow: Alarm) => {
+    const recId = getRowId(updatedRow);
+    setData(currentData =>
+      currentData.map(row => (getRowId(row) === recId ? updatedRow : row))
+    );
+    setIsUpdateDialogOpen(false);
+    setRowToUpdate(null);
+    toast({
+      title: "Row Updated",
+      description: "The alarm has been successfully updated."
+    });
+  };
+
+  /**
    * Deletes the currently selected rows from the table.
    */
   const deleteSelectedRows = () => {
@@ -110,9 +165,9 @@ export default function Home() {
       })
       return;
     }
-    const selectedRowIds = selectedRows.map(r => r.AlarmID);
+    const selectedRowIds = selectedRows.map(r => getRowId(r));
     setData((oldData) =>
-      oldData.filter((row) => !selectedRowIds.includes(row.AlarmID))
+      oldData.filter((row) => !selectedRowIds.includes(getRowId(row)))
     );
     setSelectedRows([]);
     toast({
@@ -239,9 +294,26 @@ export default function Home() {
     },
     {
       label: 'Copy Alarm ID',
-      onClick: (row) => navigator.clipboard.writeText(row.AlarmID),
+      onClick: (row) => {
+        const recId = getRowId(row);
+        navigator.clipboard.writeText(recId);
+        toast({ title: 'Copied!', description: `Row ID ${recId} copied to clipboard.` });
+      }
     },
-  ], []);
+     {
+      label: (
+        <div className="flex items-center">
+          <Edit className="mr-2 h-4 w-4" />
+          Update Alarm
+        </div>
+      ),
+      onClick: (row) => {
+        setRowToUpdate(row);
+        setIsUpdateDialogOpen(true);
+      },
+      separator: true,
+    },
+  ], [getRowId, toast]);
 
   /**
    * Exports the visible table data to a CSV file.
@@ -366,14 +438,14 @@ export default function Home() {
                           </DropdownMenu>
                       </div>
                   </div>
-                  {activeCharts.map((columnId) => {
+                   {activeCharts.map((columnId) => {
                       const activeFilter = columnFilters.find(f => f.id === columnId);
                       return (
                           <ColumnChart
                               key={columnId}
                               columnId={columnId}
                               label={alarmConfig.fields[columnId].label}
-                              data={data}
+                              data={data} // Pass full dataset to chart
                               onRemove={handleRemoveChart}
                               onFilter={handleChartFilter}
                               activeFilters={(activeFilter?.value as string[]) || []}
@@ -403,6 +475,7 @@ export default function Home() {
                         onColumnFiltersChange={setColumnFilters}
                         onTableReady={setTable}
                         onAddRow={addRow}
+                        onUpdateRow={handleUpdateRow}
                         isStreaming={isStreaming}
                         onToggleStreaming={() => setIsStreaming((prev) => !prev)}
                         onDeleteSelectedRows={deleteSelectedRows}
@@ -418,12 +491,16 @@ export default function Home() {
                         maxHeightWithoutPagination="80vh"
                         initialRowsPerPage={50}
                         rowsPerPageOptions={[20, 50, 100, 200, 500]}
-                        toolbarVisibility={{ toggleCharts: true }}
+                        toolbarVisibility={{ 
+                          toggleCharts: true,
+                          updateRow: true,
+                         }}
                     />
                 </div>
             </div>
         </div>
 
+        {/* View Details Dialog */}
         <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -438,6 +515,34 @@ export default function Home() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Update Row Dialog */}
+        <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Update Alarm</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="additionalText" className="text-right">
+                  Additional Text
+                </Label>
+                <Textarea
+                  id="additionalText"
+                  defaultValue={rowToUpdate?.AdditionalText}
+                  onChange={(e) => setRowToUpdate(prev => prev ? { ...prev, AdditionalText: e.target.value } : null)}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button onClick={() => rowToUpdate && onRowUpdate(rowToUpdate)}>Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
       </main>
     </div>

@@ -179,6 +179,7 @@ const config = {
     AlarmID: {
       label: 'Alarm ID',
       isColumnToHide: true,
+      isRecId: true, // Designates this field as the unique record identifier for a row.
     },
     IsSuppressed: {
       label: 'Is Suppressed',
@@ -187,25 +188,54 @@ const config = {
   },
 };
 
-// This type assertion is a bit complex, but it correctly infers the types for the config object.
-// It maps over the fields and adds the optional chartConfig property to them.
-type ConfigWithChartConfig = {
-  fields: {
-    [K in keyof typeof config.fields]: (typeof config.fields)[K] & {
-      chartConfig?: {
+/**
+ * The base configuration for a single field in the alarm data.
+ */
+type FieldConfig = {
+    label: string;
+    isColumnToFreeze?: boolean;
+    isSummarizedColumn?: boolean;
+    isFilterable?: boolean;
+    columnSize?: number;
+    columnType?: 'categorical' | 'dateTime' | 'numerical' | 'text';
+    options?: { value: string; label: string }[];
+    sortOrder?: 'ASCENDING' | 'DESCENDING';
+    isColumnToHide?: boolean;
+    formatType?: string;
+    /** A unique property that identifies a column as the record ID for a row. Only one field should have this property set to true. */
+    isRecId?: boolean;
+    chartConfig?: {
         defaultChartType?: ChartType;
         colors?: Record<string, string>;
-      };
     };
+};
+
+/**
+ * A mapped type that enforces the structure of the configuration object,
+ * ensuring all fields conform to the `FieldConfig` type.
+ */
+type ConfigWithChartConfig = {
+  fields: {
+    [K in keyof typeof config.fields]: FieldConfig;
   };
 };
 
 export const alarmConfig: ConfigWithChartConfig = config;
 
+/**
+ * A dynamically generated type for a single Alarm record.
+ * It infers the data type of each field based on its `columnType` in the configuration.
+ * - `dateTime` -> `Date`
+ * - `numerical` -> `number`
+ * - All others -> `string`
+ */
 export type Alarm = {
   [K in keyof typeof config.fields]: (typeof config.fields)[K] extends { columnType: 'dateTime' }
     ? Date
     : (typeof config.fields)[K] extends { columnType: 'numerical' }
     ? number
     : string;
-} & { AlarmID: string };
+} & { 
+    /** This is here to ensure AlarmID is always part of the type, even if not explicitly defined with a specific type. */
+    AlarmID: string 
+};

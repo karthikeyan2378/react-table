@@ -39,6 +39,7 @@ declare module 'lucide-react' {
     export const PieChart: LucideIcon;
     export const BarChart2: LucideIcon;
     export const Donut: LucideIcon;
+    export const Edit: LucideIcon;
   }
   
     
