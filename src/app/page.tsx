@@ -25,7 +25,7 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
-import { generateFilter } from '@/ai/flows/filter-flow';
+import { generateFilter } from '../ai/flows/filter-flow';
 
 
 type ChartableColumn = keyof typeof alarmConfig.fields;
