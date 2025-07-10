@@ -58,5 +58,3 @@ Return only the JSON array of filter objects.`,
     return output ?? [];
   }
 );
-
-    
