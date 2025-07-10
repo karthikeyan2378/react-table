@@ -14,7 +14,7 @@ const validColumnIds = Object.keys(alarmConfig.fields);
 
 const FilterSchema = z.object({
   id: z.enum(validColumnIds as [string, ...string[]]).describe('The column ID to filter on.'),
-  value: z.union([z.string(), z.array(z.string())]).describe('The value(s) to filter by.'),
+  value: z.string().describe('The value to filter by. For categorical columns, use a single value per object.'),
 });
 
 const FilterOutputSchema = z.array(FilterSchema);
@@ -39,8 +39,15 @@ Each object must have an 'id' and a 'value'.
 The 'id' must be one of the following valid column names:
 ${validColumnIds.join(', ')}
 
-The 'value' should be a string or an array of strings.
-For categorical columns like 'Severity' or 'AlarmName', if the user asks for multiple values (e.g., "critical or major"), the 'value' must be an array of those strings.
+The 'value' must always be a single string.
+
+IMPORTANT: For categorical columns like 'Severity' or 'AlarmName', if the user asks for multiple values (e.g., "critical or major alarms"), you MUST generate a separate filter object for EACH value.
+For example, for the query "show me critical and major alarms", the output should be:
+[
+  { "id": "Severity", "value": "Critical" },
+  { "id": "Severity", "value": "Major" }
+]
+
 For text columns, the 'value' should be a single string to search for.
 
 Analyze the user's query: "{{{query}}}"
@@ -56,7 +63,7 @@ const filterFlow = ai.defineFlow(
   },
   async ({ query }) => {
     // Call the pre-defined prompt.
-    const { output } = await filterPrompt({ query });
+    const { output } = await prompt({ query });
     return output ?? [];
   }
 );
