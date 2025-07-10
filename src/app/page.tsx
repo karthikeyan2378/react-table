@@ -45,6 +45,7 @@ export default function Home() {
   const [table, setTable] = React.useState<ReactTable<Alarm> | null>(null);
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [aiSearchEnabled, setAiSearchEnabled] = React.useState(true);
 
 
   const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
@@ -334,6 +335,8 @@ export default function Home() {
                 onExportPdf={handleExportPdf}
                 onAiSearch={handleAiSearch}
                 isAiSearching={isPending}
+                aiSearchEnabled={aiSearchEnabled}
+                onAiSearchToggle={setAiSearchEnabled}
                 tableTitle="Live Alarm Feed"
                 tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
                 maxHeightWithPagination="60vh"
@@ -363,5 +366,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

@@ -225,6 +225,7 @@ export interface ToolbarVisibility {
   toggleSorting?: boolean;
   togglePagination?: boolean;
   toggleColumns?: boolean;
+  toggleAiSearch?: boolean;
 }
 
 // A generic toolbar that receives filterable column definitions as props.
@@ -242,6 +243,8 @@ interface DataTableToolbarProps<TData> {
   onExportPdf?: () => void;
   onAiSearch?: (query: string) => void;
   isAiSearching?: boolean;
+  aiSearchEnabled: boolean;
+  onAiSearchToggle: (enabled: boolean) => void;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
@@ -263,6 +266,8 @@ function DataTableToolbar<TData>({
   onExportPdf,
   onAiSearch,
   isAiSearching = false,
+  aiSearchEnabled,
+  onAiSearchToggle,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -306,7 +311,7 @@ function DataTableToolbar<TData>({
               />
           </div>
           
-          {onAiSearch && (
+          {onAiSearch && aiSearchEnabled && (
             <AiSearchInput onSearch={onAiSearch} isSearching={isAiSearching} />
           )}
 
@@ -482,6 +487,11 @@ function DataTableToolbar<TData>({
                       Enable Pagination
                   </DropdownMenuCheckboxItem>
                 )}
+                 {toolbarVisibility.toggleAiSearch !== false && onAiSearch && (
+                  <DropdownMenuCheckboxItem checked={aiSearchEnabled} onCheckedChange={onAiSearchToggle}>
+                      Enable AI Search
+                  </DropdownMenuCheckboxItem>
+                )}
                 {toolbarVisibility.toggleColumns !== false && (
                   <>
                     <DropdownMenuSeparator />
@@ -562,6 +572,8 @@ interface DataTableProps<TData> {
   onExportPdf?: () => void;
   onAiSearch?: (query: string) => void;
   isAiSearching?: boolean;
+  aiSearchEnabled: boolean;
+  onAiSearchToggle: (enabled: boolean) => void;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -597,6 +609,8 @@ export function DataTable<TData>({
   onExportPdf,
   onAiSearch,
   isAiSearching,
+  aiSearchEnabled,
+  onAiSearchToggle,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -731,6 +745,8 @@ export function DataTable<TData>({
           onExportPdf={onExportPdf}
           onAiSearch={onAiSearch}
           isAiSearching={isAiSearching}
+          aiSearchEnabled={aiSearchEnabled}
+          onAiSearchToggle={onAiSearchToggle}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
@@ -986,5 +1002,3 @@ export function DataTable<TData>({
       </div>
   );
 }
-
-    
