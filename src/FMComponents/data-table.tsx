@@ -96,6 +96,7 @@ interface DataTableFacetedFilterProps<TData> {
     value: string;
   }[];
   onRemove: () => void;
+  globalFilter?: string;
 }
 
 /**
@@ -107,6 +108,7 @@ function DataTableFacetedFilter<TData>({
   title,
   options,
   onRemove,
+  globalFilter = '',
 }: DataTableFacetedFilterProps<TData>) {
   const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
 
@@ -151,7 +153,7 @@ function DataTableFacetedFilter<TData>({
                   );
                 }}
               >
-                <span>{option.label}</span>
+                <span>{highlightText(option.label, globalFilter)}</span>
               </DropdownMenuCheckboxItem>
             );
           })}
@@ -343,6 +345,7 @@ function DataTableToolbar<TData>({
                 title={col.name}
                 options={col.options}
                 onRemove={() => handleFilterToggle(col.id, true)}
+                globalFilter={globalFilter}
               />
             )
           }
