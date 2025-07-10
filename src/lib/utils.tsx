@@ -3,17 +3,24 @@ import * as React from 'react';
 
 /**
  * A utility function to highlight occurrences of a search term within a text.
- * It can handle both string and ReactNode inputs, allowing for chained highlighting.
+ * It can handle both string and ReactNode inputs, and the highlight term can be a string or an array of strings.
  * @param text The text or ReactNode to search within.
- * @param highlight The search term to highlight.
+ * @param highlight The search term(s) to highlight.
  * @returns A ReactNode with the highlighted text.
  */
-export function highlightText(text: React.ReactNode, highlight: string): React.ReactNode {
-  if (!highlight.trim()) {
+export function highlightText(text: React.ReactNode, highlight: string | string[]): React.ReactNode {
+  if (!highlight || (typeof highlight === 'string' && !highlight.trim()) || (Array.isArray(highlight) && highlight.length === 0)) {
     return text;
   }
 
-  const highlightRegex = new RegExp(`(${highlight})`, 'gi');
+  // Sanitize each part of the highlight term to escape special regex characters.
+  const escapeRegExp = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  const highlightPattern = Array.isArray(highlight)
+    ? highlight.map(escapeRegExp).join('|')
+    : escapeRegExp(highlight);
+
+  const highlightRegex = new RegExp(`(${highlightPattern})`, 'gi');
 
   const highlightNode = (node: React.ReactNode): React.ReactNode => {
     if (typeof node === 'string') {

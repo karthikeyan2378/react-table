@@ -81,7 +81,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           const value = row.getValue(key) as any;
           const { globalFilter, columnFilters } = (table.options.meta || {}) as { globalFilter?: string; columnFilters?: ColumnFiltersState };
 
-          const columnFilterValue = columnFilters?.find(f => f.id === column.id)?.value;
+          const columnFilterValue = columnFilters?.find(f => f.id === column.id)?.value as string | string[] | undefined;
           
           let highlightedContent: React.ReactNode = String(value ?? '');
           
@@ -89,8 +89,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
             highlightedContent = highlightText(highlightedContent, globalFilter);
           }
 
-          // Only apply column-specific highlight if the filter value is a string
-          if (typeof columnFilterValue === 'string' && columnFilterValue) {
+          if (columnFilterValue) {
             highlightedContent = highlightText(highlightedContent, columnFilterValue);
           }
           
