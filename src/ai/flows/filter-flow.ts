@@ -22,19 +22,19 @@ const FilterOutputSchema = z.array(FilterSchema);
 export type FilterOutput = z.infer<typeof FilterOutputSchema>;
 
 export async function generateFilter(query: string): Promise<FilterOutput> {
-  return filterFlow(query);
+  return filterFlow({ query });
 }
 
 const filterFlow = ai.defineFlow(
   {
     name: 'filterFlow',
-    inputSchema: z.string(),
+    inputSchema: z.object({ query: z.string() }),
     outputSchema: FilterOutputSchema,
   },
-  async (query) => {
+  async ({ query }) => {
     const prompt = ai.definePrompt({
       name: 'filterPrompt',
-      input: { schema: z.string() },
+      input: { schema: z.object({ query: z.string() }) },
       output: { schema: FilterOutputSchema },
       model: 'googleai/gemini-1.5-flash-latest',
       prompt: `You are an expert at converting natural language queries into structured JSON filters for a data table.
@@ -49,12 +49,12 @@ The 'value' should be a string or an array of strings.
 For categorical columns like 'Severity' or 'AlarmName', if the user asks for multiple values (e.g., "critical or major"), the 'value' must be an array of those strings.
 For text columns, the 'value' should be a single string to search for.
 
-Analyze the user's query: "${query}"
+Analyze the user's query: "{{{query}}}"
 
 Return only the JSON array of filter objects.`,
     });
 
-    const { output } = await prompt(query);
+    const { output } = await prompt({ query });
     return output ?? [];
   }
 );
