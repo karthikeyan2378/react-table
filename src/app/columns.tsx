@@ -4,7 +4,6 @@
 import { type ColumnDef, type ColumnFiltersState } from '@tanstack/react-table';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import { Checkbox } from '../FMComponents/ui/checkbox';
-import { Button } from '../FMComponents/ui/button';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../FMComponents/ui/tooltip';
@@ -82,15 +81,17 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           const value = row.getValue(key) as any;
           const { globalFilter, columnFilters } = (table.options.meta || {}) as { globalFilter?: string; columnFilters?: ColumnFiltersState };
 
-          const columnFilter = (columnFilters?.find(f => f.id === column.id)?.value || '') as string;
+          const columnFilterValue = columnFilters?.find(f => f.id === column.id)?.value;
           
           let highlightedContent: React.ReactNode = String(value ?? '');
           
           if (globalFilter) {
             highlightedContent = highlightText(highlightedContent, globalFilter);
           }
-          if (columnFilter) {
-            highlightedContent = highlightText(highlightedContent, columnFilter);
+
+          // Only apply column-specific highlight if the filter value is a string
+          if (typeof columnFilterValue === 'string' && columnFilterValue) {
+            highlightedContent = highlightText(highlightedContent, columnFilterValue);
           }
           
           if (config.columnType === 'dateTime' && value instanceof Date) {
@@ -139,8 +140,8 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         size: config.columnSize || 150,
         minSize: 120,
         filterFn: (row, id, filterValue) => {
-          if (config.columnType === 'categorical') {
-            return (filterValue as any[]).includes(row.getValue(id));
+          if (Array.isArray(filterValue) && filterValue.length > 0) {
+            return filterValue.includes(row.getValue(id));
           }
           return String(row.getValue(id)).toLowerCase().includes(String(filterValue).toLowerCase());
         }

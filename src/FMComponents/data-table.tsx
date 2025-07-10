@@ -699,11 +699,6 @@ export function DataTable<TData>({
     meta: {
       globalFilter,
       columnFilters,
-      updateData: (rowIndex: number, columnId: string, value: unknown) => {
-        // This is a placeholder for a more robust update mechanism.
-        // In a real app, you'd likely call an API here.
-        console.log("Updating data at index", rowIndex, "for column", columnId, "with value", value);
-      }
     }
   });
 
