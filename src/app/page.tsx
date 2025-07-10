@@ -1,10 +1,9 @@
-
 'use client';
 
 import * as React from 'react';
 import { makeData, newAlarm } from '../lib/data';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { DataTable, type ContextMenuItem, type ToolbarVisibility, type FilterableColumn } from '../FMComponents/data-table';
+import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { Button } from '../FMComponents/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../FMComponents/ui/dropdown-menu';
@@ -27,29 +26,61 @@ import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 
 
+/**
+ * The type definition for columns that can be used to generate charts.
+ * This is derived from the keys of the `alarmConfig.fields`.
+ */
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
+/**
+ * The main page component for the Alarm Dashboard application.
+ * It manages the state for the data table, charts, and user interactions.
+ */
 export default function Home() {
+  // State for the main data array for the table.
   const [data, setData] = React.useState<Alarm[]>([]);
+  // State for the data used by the charts. It's a debounced copy of `data`.
   const [chartData, setChartData] = React.useState<Alarm[]>([]);
+  // State to control the real-time data streaming.
   const [isStreaming, setIsStreaming] = React.useState(false);
+  // State to hold the currently selected rows from the data table.
   const [selectedRows, setSelectedRows] = React.useState<Alarm[]>([]);
+  // State to ensure the component only renders on the client, avoiding hydration issues.
   const [isClient, setIsClient] = React.useState(false);
+  // State to manage which charts are currently visible. Defaults to 'Severity'.
   const [activeCharts, setActiveCharts] = React.useState<ChartableColumn[]>(['Severity']);
+  // Toast hook for displaying notifications.
   const { toast } = useToast();
+  // Ref to manage the debouncing of chart data updates.
   const chartUpdateDebounceRef = React.useRef<NodeJS.Timeout>();
+  // React transition for non-blocking UI updates when adding new rows.
   const [isPending, startTransition] = React.useTransition();
+  // State to hold the row data for the details dialog.
   const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
+  // State for the global search filter across all columns.
   const [globalFilter, setGlobalFilter] = React.useState('');
+  // State to hold the TanStack Table instance once it's initialized.
   const [table, setTable] = React.useState<ReactTable<Alarm> | null>(null);
+  // Ref for the scrollable container of the data table, used by the virtualizer.
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
+  // State for column-specific filters.
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
-
+  /**
+   * Memoized callback to get a unique ID for each row.
+   * Required by TanStack Table for row identification.
+   */
   const getRowId = React.useCallback((row: Alarm) => row.AlarmID, []);
   
+  /**
+   * Memoized columns definition for the data table.
+   */
   const columns = React.useMemo(() => getColumns(), []);
 
+  /**
+   * Effect to initialize the component on the client-side.
+   * Generates initial data and sets `isClient` to true.
+   */
   React.useEffect(() => {
     const initialData = makeData(100);
     setData(initialData);
@@ -57,13 +88,19 @@ export default function Home() {
     setIsClient(true);
   }, []);
 
+  /**
+   * Effect to debounce chart data updates.
+   * When the main `data` state changes, this effect waits for 1 second
+   * before updating the `chartData` state to avoid performance issues
+   * from too frequent re-renders of the charts.
+   */
   React.useEffect(() => {
     if (chartUpdateDebounceRef.current) {
       clearTimeout(chartUpdateDebounceRef.current);
     }
     
     chartUpdateDebounceRef.current = setTimeout(() => {
-      setChartData(data);
+      setChartData(table?.getFilteredRowModel().rows.map(r => r.original) ?? []);
     }, 1000);
 
     return () => {
@@ -71,8 +108,12 @@ export default function Home() {
         clearTimeout(chartUpdateDebounceRef.current);
       }
     }
-  }, [data]);
+  }, [data, columnFilters, globalFilter, table]);
 
+  /**
+   * Callback to add a new alarm row to the table.
+   * Uses React's `startTransition` to prevent the UI from blocking.
+   */
   const addRow = React.useCallback(() => {
     startTransition(() => {
       const alarm = newAlarm();
@@ -81,6 +122,9 @@ export default function Home() {
     });
   }, []);
 
+  /**
+   * Deletes the currently selected rows from the table.
+   */
   const deleteSelectedRows = () => {
     if (selectedRows.length === 0) {
       toast({
@@ -101,6 +145,10 @@ export default function Home() {
     })
   };
 
+  /**
+   * Effect to handle the data streaming functionality.
+   * When `isStreaming` is true, it adds a new row every second.
+   */
   React.useEffect(() => {
     if (!isStreaming) return;
     const interval = setInterval(() => {
@@ -109,22 +157,38 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [isStreaming, addRow]);
 
+  /**
+   * Memoized list of columns that are suitable for summarization in charts.
+   * Derived from the `alarmConfig`.
+   */
   const summarizableColumns = React.useMemo(() => {
     return Object.entries(alarmConfig.fields)
       .filter(([, config]) => config.isSummarizedColumn)
       .map(([key]) => key as ChartableColumn);
   }, []);
 
+  /**
+   * Adds a new chart to the dashboard if it's not already active.
+   * @param columnId The ID of the column to create a chart for.
+   */
   const handleAddChart = (columnId: ChartableColumn) => {
     if (!activeCharts.includes(columnId)) {
       setActiveCharts([...activeCharts, columnId]);
     }
   };
 
+  /**
+   * Removes a chart from the dashboard.
+   * @param columnId The ID of the column chart to remove.
+   */
   const handleRemoveChart = (columnId: ChartableColumn) => {
     setActiveCharts(activeCharts.filter((id) => id !== columnId));
   };
   
+  /**
+   * Memoized list of columns that are filterable in the toolbar.
+   * Derived from the `alarmConfig`.
+   */
   const filterableColumns: FilterableColumn[] = React.useMemo(() => {
     return Object.entries(alarmConfig.fields)
       .filter(([, config]) => config.isFilterable)
@@ -136,6 +200,10 @@ export default function Home() {
       }));
   }, []);
 
+  /**
+   * Memoized object defining the initial visibility of columns.
+   * Hides columns marked with `isColumnToHide` in the `alarmConfig`.
+   */
   const initialColumnVisibility = React.useMemo(() => {
     return Object.entries(alarmConfig.fields)
       .filter(([, config]) => config.isColumnToHide)
@@ -145,11 +213,18 @@ export default function Home() {
       }, {} as any);
   }, []);
   
+  /**
+   * Memoized initial sorting state for the table.
+   * Sorts by the column marked with `sortOrder: 'DESCENDING'` in the `alarmConfig`.
+   */
   const initialSorting = React.useMemo(() => {
     const descendingCol = Object.entries(alarmConfig.fields).find(([,config]) => config.sortOrder === 'DESCENDING');
     return descendingCol ? [{ id: descendingCol[0], desc: true }] : [];
   }, []);
 
+  /**
+   * Memoized array of context menu items for table rows.
+   */
   const contextMenuItems: ContextMenuItem<Alarm>[] = React.useMemo(() => [
     {
       label: 'View Details',
@@ -161,6 +236,9 @@ export default function Home() {
     },
   ], []);
 
+  /**
+   * Exports the visible table data to a CSV file.
+   */
   const handleExportCsv = () => {
       const exportData = getExportableData(table, alarmConfig);
       if (!exportData) return;
@@ -182,6 +260,9 @@ export default function Home() {
       document.body.removeChild(link);
   };
 
+  /**
+   * Exports the visible table data to an Excel (XLSX) file.
+   */
   const handleExportXlsx = async () => {
       const exportData = getExportableData(table, alarmConfig);
       if (!exportData) return;
@@ -212,6 +293,9 @@ export default function Home() {
       document.body.removeChild(link);
   };
   
+  /**
+   * Exports the visible table data to a PDF file.
+   */
   const handleExportPdf = () => {
     const exportData = getExportableData(table, alarmConfig);
     if (!exportData) {
@@ -230,6 +314,7 @@ export default function Home() {
     doc.save('alarms.pdf');
   };
 
+  // Prevent rendering on the server.
   if (!isClient) {
     return null;
   }

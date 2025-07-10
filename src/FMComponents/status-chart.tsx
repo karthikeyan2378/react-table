@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -9,20 +8,42 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { X as XIcon, PieChart as PieChartIcon, BarChart2, Donut } from 'lucide-react';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 
+/**
+ * Defines the types of charts that can be rendered.
+ */
 type ChartType = 'pie' | 'bar' | 'doughnut';
+
+/**
+ * Defines the columns from the alarm data that are suitable for charting.
+ * It's derived from the keys of the `alarmConfig.fields`.
+ */
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
-
+/**
+ * Props for the ColumnChart component.
+ */
 interface ColumnChartProps {
+  /** The ID of the column to visualize, e.g., 'Severity' or 'ObjectType'. */
   columnId: ChartableColumn;
+  /** The user-friendly label for the chart title. */
   label: string;
+  /** The array of alarm data to be processed for the chart. */
   data: Alarm[];
+  /** Callback function to remove the chart from the dashboard. */
   onRemove: (columnId: ChartableColumn) => void;
+  /** The initial type of chart to display. Defaults to 'pie'. */
   initialChartType?: ChartType;
 }
 
+/**
+* An array of colors used for the segments in pie, doughnut, and bar charts.
+*/
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1943'];
 
+/**
+ * A reusable chart component that can display data distribution for a specific column
+ * as a pie, doughnut, or bar chart.
+ */
 const ColumnChartComponent = ({
   columnId,
   label,
@@ -30,8 +51,14 @@ const ColumnChartComponent = ({
   onRemove,
   initialChartType = 'pie',
 }: ColumnChartProps) => {
+  // State to manage the current chart type being displayed.
   const [chartType, setChartType] = React.useState<ChartType>(initialChartType);
 
+  /**
+   * Memoized calculation of chart data.
+   * It processes the raw `data` prop and aggregates it into a format
+   * suitable for Recharts, counting occurrences of each unique value in the specified column.
+   */
   const chartData = React.useMemo(() => {
     const counts: { [key: string]: number } = {};
     for (const row of data) {
@@ -41,6 +68,9 @@ const ColumnChartComponent = ({
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [data, columnId]);
 
+  /**
+   * Icon component for the currently selected chart type.
+   */
   const ChartIcon = {
     pie: PieChartIcon,
     bar: BarChart2,
@@ -52,6 +82,7 @@ const ColumnChartComponent = ({
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{label} Distribution</CardTitle>
         <div className="flex items-center gap-1">
+          {/* Dropdown to switch between chart types */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -73,6 +104,7 @@ const ColumnChartComponent = ({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {/* Button to remove the chart */}
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onRemove(columnId)}>
             <XIcon className="h-4 w-4" />
           </Button>
@@ -105,7 +137,7 @@ const ColumnChartComponent = ({
                 fill="#8884d8"
                 labelLine={false}
                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-                  if (percent < 0.05) return null;
+                  if (percent < 0.05) return null; // Hide labels for very small slices
                   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
                   const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
                   const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
@@ -130,4 +162,7 @@ const ColumnChartComponent = ({
   );
 }
 
+/**
+ * Memoized version of the ColumnChartComponent to prevent unnecessary re-renders.
+ */
 export const ColumnChart = React.memo(ColumnChartComponent);

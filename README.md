@@ -1,4 +1,3 @@
-
 # Real-Time Alarm Dashboard Components
 
 This project contains a set of reusable components for displaying real-time data in a highly configurable table, complete with filtering, sorting, and charting capabilities. The main component, `DataTable`, has been architected to be generic and reusable.
@@ -168,16 +167,20 @@ function MyPageComponent() {
 | `columns` | `ColumnDef<TData>[]` | **Required.** The TanStack Table column definitions. |
 | `getRowId` | `(row: TData) => string` | **Required.** A function that returns a unique ID for each row. |
 | `tableContainerRef` | `React.RefObject<HTMLDivElement>` | **Required.** A ref to the scrollable table container, for virtualization. |
-| `onSelectedRowsChange` | `(rowIds: string[]) => void` | **Required.** Callback for when row selection changes. |
+| `onSelectedRowsChange` | `(rows: TData[]) => void` | **Required.** Callback for when row selection changes. |
 | `globalFilter` | `string` | **Required.** The current value of the global search filter. |
 | `onGlobalFilterChange` | `(value: string) => void` | **Required.** Callback for when the global filter value changes. |
+| `columnFilters` | `ColumnFiltersState` | **Required.** State for column-specific filters. |
+| `onColumnFiltersChange` | `React.Dispatch<React.SetStateAction<ColumnFiltersState>>` | **Required.** Callback to update column-specific filters. |
 | `filterableColumns` | `FilterableColumn[]` | Defines columns that can be filtered via the toolbar. |
 | `isStreaming` | `boolean` | Indicates if data is currently streaming. |
 | `onToggleStreaming` | `() => void` | Callback to toggle the data stream on or off. |
 | `onAddRow` | `() => void` | Callback for adding a new row. |
 | `onDeleteSelectedRows` | `() => void` | Callback for deleting selected rows. |
 | `onExportCsv` | `() => void` | Callback for exporting data to CSV. |
-| `contextMenuItems` | `ContextMenuItem<TData>[]` | An array of objects defining items for the row's context menu. Each item should be an object with a `label` and an `onClick` callback. |
+| `onExportXlsx` | `() => void` | Callback for exporting data to XLSX. |
+| `onExportPdf` | `() => void` | Callback for exporting data to PDF. |
+| `contextMenuItems` | `ContextMenuItem<TData>[]` | An array of objects defining items for the row's context menu. |
 | `toolbarVisibility` | `ToolbarVisibility` | An object to control the visibility of individual toolbar elements. Defaults to all visible. |
 | `tableTitle` | `React.ReactNode` | A title to display above the table. |
 | `tableDescription` | `React.ReactNode` | A description to display below the title. |
@@ -185,6 +188,8 @@ function MyPageComponent() {
 | `maxHeightWithoutPagination` | `string` | CSS `max-height` for the table when pagination is off. Default: `'80vh'`. |
 | `initialRowsPerPage` | `number` | The number of rows to display per page initially. Default: `20`. |
 | `rowsPerPageOptions` | `number[]` | An array of numbers for the "Rows per page" dropdown. Default: `[10, 20, 50, 100, 500, 1000]` |
+| `onTableReady` | `(table: ReactTable<TData>) => void` | Callback that provides the table instance once it's initialized. |
+
 
 ### ToolbarVisibility Object
 

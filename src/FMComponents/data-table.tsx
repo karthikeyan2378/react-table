@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from "react";
@@ -71,6 +70,9 @@ import { Separator } from "./ui/separator";
 import { Checkbox } from './ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
+/**
+ * Interface defining the structure for a filterable column.
+ */
 export interface FilterableColumn {
   id: string;
   name: string;
@@ -78,7 +80,10 @@ export interface FilterableColumn {
   options?: { value: string; label: string }[];
 }
 
-// A generic faceted filter component.
+/**
+ * Props for the DataTableFacetedFilter component.
+ * @template TData The type of data in the table.
+ */
 interface DataTableFacetedFilterProps<TData> {
   column?: ReactTable<TData>['getColumn'];
   title?: string;
@@ -89,6 +94,10 @@ interface DataTableFacetedFilterProps<TData> {
   onRemove: () => void;
 }
 
+/**
+ * A generic faceted filter component for categorical data.
+ * It displays a dropdown with checkboxes for filtering.
+ */
 function DataTableFacetedFilter<TData>({
   column,
   title,
@@ -167,6 +176,9 @@ function DataTableFacetedFilter<TData>({
   );
 }
 
+/**
+ * Interface to control the visibility of various toolbar elements.
+ */
 export interface ToolbarVisibility {
   addRow?: boolean;
   deleteRows?: boolean;
@@ -178,7 +190,10 @@ export interface ToolbarVisibility {
   toggleColumns?: boolean;
 }
 
-// A generic toolbar that receives filterable column definitions as props.
+/**
+ * Props for the DataTableToolbar component.
+ * @template TData The type of data in the table.
+ */
 interface DataTableToolbarProps<TData> {
   table: ReactTable<TData>;
   filterableColumns: FilterableColumn[];
@@ -198,6 +213,10 @@ interface DataTableToolbarProps<TData> {
   toolbarVisibility: ToolbarVisibility;
 }
 
+/**
+ * The toolbar component for the DataTable.
+ * It includes global search, column filters, and action buttons.
+ */
 function DataTableToolbar<TData>({ 
   table, 
   filterableColumns, 
@@ -456,7 +475,13 @@ function DataTableToolbar<TData>({
 }
 
 
-// A pure helper function for reordering columns in an array.
+/**
+ * A pure helper function for reordering columns in an array.
+ * @param draggedColumnId The ID of the column being dragged.
+ * @param targetColumnId The ID of the column where the dragged column is dropped.
+ * @param columnOrder The current array of column IDs.
+ * @returns A new array with the reordered column IDs.
+ */
 const reorderColumn = (
   draggedColumnId: string,
   targetColumnId: string,
@@ -474,13 +499,20 @@ const reorderColumn = (
   return newColumnOrder;
 };
 
+/**
+ * Interface defining the structure for a context menu item.
+ * @template TData The type of data in the row.
+ */
 export interface ContextMenuItem<TData> {
   label: React.ReactNode;
   onClick: (row: TData) => void;
   separator?: boolean;
 }
 
-// Generic DataTable component props.
+/**
+ * Props for the main DataTable component.
+ * @template TData The type of data in the table.
+ */
 interface DataTableProps<TData> {
   data: TData[];
   columns: ColumnDef<TData>[];
@@ -513,7 +545,11 @@ interface DataTableProps<TData> {
   onColumnFiltersChange: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
 }
 
-// The generic DataTable component.
+/**
+ * The generic and highly configurable DataTable component.
+ * It uses @tanstack/react-table for its core logic and @tanstack/react-virtual
+ * for high-performance scrolling (virtualization).
+ */
 export function DataTable<TData>({
   data,
   columns,
@@ -545,22 +581,27 @@ export function DataTable<TData>({
   columnFilters,
   onColumnFiltersChange
 }: DataTableProps<TData>) {
+  // State for sorting, column visibility, row selection, and context menu.
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; row: TData } | null>(null);
 
+  // State for toggling table features like pagination and sorting.
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
   const [sortingEnabled, setSortingEnabled] = React.useState(true);
   
+  // State for column order, enabling drag-and-drop reordering.
   const [columnOrder, setColumnOrder] = React.useState<string[]>(() =>
     columns.map(c => (c.id ?? (c as any).accessorKey)!).filter(Boolean)
   );
   
+  // State for handling drag-to-select functionality.
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStartRowIndex, setDragStartRowIndex] = React.useState<number | null>(null);
   const lastClickedRowIndex = React.useRef<number | null>(null);
 
+  // Effect to clean up drag-to-select state.
   React.useEffect(() => {
     const handleMouseUp = () => {
         setIsDragging(false);
@@ -572,6 +613,7 @@ export function DataTable<TData>({
     };
   }, []);
 
+  // Memoize the table state to avoid unnecessary re-renders.
   const tableState = React.useMemo(() => ({
     sorting,
     columnVisibility,
@@ -581,12 +623,14 @@ export function DataTable<TData>({
     globalFilter,
   }), [sorting, columnVisibility, rowSelection, columnFilters, columnOrder, globalFilter]);
 
+  // Memoize the initial table state, specifically for pagination.
   const tableInitialState = React.useMemo(() => ({
     pagination: {
         pageSize: initialRowsPerPage,
     },
   }), [initialRowsPerPage]);
   
+  // The core TanStack Table instance.
   const table = useReactTable({
     data,
     columns,
@@ -610,18 +654,21 @@ export function DataTable<TData>({
     initialState: tableInitialState,
   });
 
+  // Effect to adjust page size when pagination is disabled.
   React.useEffect(() => {
     if (!paginationEnabled) {
       table.setPageSize(data.length);
     }
   }, [paginationEnabled, data.length, table]);
   
+  // Effect to notify the parent component when the table instance is ready.
   React.useEffect(() => {
     if (onTableReady) {
         onTableReady(table);
     }
   }, [onTableReady, table]);
 
+  // Effect to notify the parent component about changes in row selection.
   React.useEffect(() => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     onSelectedRowsChange(selectedRows.map(row => row.original));
@@ -629,11 +676,12 @@ export function DataTable<TData>({
 
   const { rows } = table.getRowModel();
 
+  // The TanStack Virtualizer instance for handling large datasets efficiently.
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 53,
-    overscan: 10,
+    estimateSize: () => 53, // Estimate row height for performance.
+    overscan: 10, // Render a few extra items above and below the viewport.
   });
 
   return (
