@@ -704,6 +704,14 @@ export function DataTable<TData>({
     };
   };
 
+  const frozenColumnsWidth = React.useMemo(() => {
+    return frozenColumnIds.reduce((acc, id) => {
+      const col = table.getColumn(id);
+      return acc + (col?.getSize() || 0);
+    }, 0);
+  }, [frozenColumnIds, table.getAllColumns()]);
+
+
   // Effect to adjust page size when pagination is disabled.
   React.useEffect(() => {
     if (!paginationEnabled) {
@@ -785,6 +793,8 @@ export function DataTable<TData>({
             className="cygnet-dt-scroll-container"
             style={{
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
+                paddingLeft: `${frozenColumnsWidth}px`,
+                marginLeft: `-${frozenColumnsWidth}px`
             }}
           >
             <Table style={{ width: table.getTotalSize() }}>
@@ -793,11 +803,19 @@ export function DataTable<TData>({
                   <TableRow 
                     key={headerGroup.id} 
                   >
-                      {headerGroup.headers.map((header) => (
+                      {headerGroup.headers.map((header) => {
+                        const isFrozen = frozenColumnIds.includes(header.id);
+                        const isLastFrozen = isFrozen && frozenColumnIds.indexOf(header.id) === frozenColumnIds.length - 1;
+                        const headerClasses = [
+                          isFrozen ? 'cygnet-dt-header-cell--sticky' : '',
+                          isLastFrozen ? 'cygnet-dt-header-cell--sticky-last' : ''
+                        ].join(' ').trim();
+                        
+                        return (
                         <TableHead 
                           key={header.id} 
                           colSpan={header.colSpan}
-                          className={frozenColumnIds.includes(header.id) ? 'cygnet-dt-header-cell--sticky' : ''}
+                          className={headerClasses}
                           style={{ 
                             width: header.getSize(), 
                             minWidth: header.column.columnDef.minSize,
@@ -839,7 +857,7 @@ export function DataTable<TData>({
                               />
                             )}
                         </TableHead>
-                      ))}
+                      )})}
                   </TableRow>
                 ))}
               </TableHeader>
@@ -931,19 +949,29 @@ export function DataTable<TData>({
                               cursor: 'pointer'
                             }}
                           >
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell 
-                                key={cell.id} 
-                                className={`cygnet-dt-table-cell ${frozenColumnIds.includes(cell.column.id) ? 'cygnet-dt-table-cell--sticky' : ''}`}
-                                style={{ 
-                                  width: cell.column.getSize(), 
-                                  minWidth: cell.column.columnDef.minSize,
-                                  ...getStickyStyles(cell.column.id)
-                                }}
-                              >
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              </TableCell>
-                            ))}
+                            {row.getVisibleCells().map((cell) => {
+                                const isFrozen = frozenColumnIds.includes(cell.column.id);
+                                const isLastFrozen = isFrozen && frozenColumnIds.indexOf(cell.column.id) === frozenColumnIds.length - 1;
+                                const cellClasses = [
+                                  'cygnet-dt-table-cell',
+                                  isFrozen ? 'cygnet-dt-table-cell--sticky' : '',
+                                  isLastFrozen ? 'cygnet-dt-table-cell--sticky-last' : ''
+                                ].join(' ').trim();
+
+                                return (
+                                  <TableCell 
+                                    key={cell.id} 
+                                    className={cellClasses}
+                                    style={{ 
+                                      width: cell.column.getSize(), 
+                                      minWidth: cell.column.columnDef.minSize,
+                                      ...getStickyStyles(cell.column.id)
+                                    }}
+                                  >
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </TableCell>
+                                );
+                            })}
                         </TableRow>
                     )
                   })
