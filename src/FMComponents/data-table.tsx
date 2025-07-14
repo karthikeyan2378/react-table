@@ -797,11 +797,12 @@ export function DataTable<TData>({
                 marginLeft: `-${frozenColumnsWidth}px`
             }}
           >
-            <Table style={{ width: table.getTotalSize() }}>
-              <TableHeader style={{ position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
+            <div style={{ width: table.getTotalSize(), position: 'relative' }}>
+              <div style={{ position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow 
+                  <div 
                     key={headerGroup.id}
+                    className="cygnet-dt-header-row"
                   >
                       {headerGroup.headers.map((header) => {
                         const isFrozen = frozenColumnIds.includes(header.id);
@@ -813,14 +814,12 @@ export function DataTable<TData>({
                         ].join(' ').trim();
                         
                         return (
-                        <TableHead 
+                        <div 
                           key={header.id} 
-                          colSpan={header.colSpan}
                           className={headerClasses}
                           style={{ 
                             width: header.getSize(), 
                             minWidth: header.column.columnDef.minSize,
-                            position: 'relative',
                             ...getStickyStyles(header.id) 
                           }}
                           onDrop={(e) => {
@@ -857,12 +856,12 @@ export function DataTable<TData>({
                                 className={`cygnet-dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
                               />
                             )}
-                        </TableHead>
+                        </div>
                       )})}
-                  </TableRow>
+                  </div>
                 ))}
-              </TableHeader>
-              <TableBody 
+              </div>
+              <div 
                 style={{ 
                     height: rows.length > 0 ? `${rowVirtualizer.getTotalSize()}px` : '60px', 
                     position: 'relative' 
@@ -871,10 +870,11 @@ export function DataTable<TData>({
                 {rows.length > 0 ? (
                   rowVirtualizer.getVirtualItems().map(virtualRow => {
                     const row = rows[virtualRow.index];
+                    const rowIsSelected = row.getIsSelected();
                     return (
-                        <TableRow
+                        <div
                             key={row.id}
-                            data-state={row.getIsSelected() ? "selected" : ""}
+                            data-state={rowIsSelected ? "selected" : ""}
                             onDoubleClick={() => onRowDoubleClick?.(row.original)}
                             onContextMenu={(e) => { 
                                 e.preventDefault(); 
@@ -960,7 +960,7 @@ export function DataTable<TData>({
                                 ].join(' ').trim();
 
                                 return (
-                                  <TableCell 
+                                  <div 
                                     key={cell.id} 
                                     className={cellClasses}
                                     style={{ 
@@ -970,19 +970,19 @@ export function DataTable<TData>({
                                     }}
                                   >
                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                  </TableCell>
+                                  </div>
                                 );
                             })}
-                        </TableRow>
+                        </div>
                     )
                   })
                 ) : (
-                  <TableRow style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '60px' }}>
-                    <TableCell>No results.</TableCell>
-                  </TableRow>
+                  <div className="cygnet-dt-no-results">
+                    No results.
+                  </div>
                 )}
-              </TableBody>
-            </Table>
+              </div>
+            </div>
           </div>
         </div>
         
