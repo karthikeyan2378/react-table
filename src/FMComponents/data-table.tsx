@@ -807,6 +807,7 @@ export function DataTable<TData>({
                         const isFrozen = frozenColumnIds.includes(header.id);
                         const isLastFrozen = isFrozen && frozenColumnIds.indexOf(header.id) === frozenColumnIds.length - 1;
                         const headerClasses = [
+                          'cygnet-dt-cell-common',
                           isFrozen ? 'cygnet-dt-header-cell--sticky' : '',
                           isLastFrozen ? 'cygnet-dt-header-cell--sticky-last' : ''
                         ].join(' ').trim();
@@ -953,6 +954,7 @@ export function DataTable<TData>({
                                 const isFrozen = frozenColumnIds.includes(cell.column.id);
                                 const isLastFrozen = isFrozen && frozenColumnIds.indexOf(cell.column.id) === frozenColumnIds.length - 1;
                                 const cellClasses = [
+                                  'cygnet-dt-cell-common',
                                   'cygnet-dt-table-cell',
                                   isFrozen ? 'cygnet-dt-table-cell--sticky' : '',
                                   isLastFrozen ? 'cygnet-dt-table-cell--sticky-last' : ''
