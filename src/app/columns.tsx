@@ -75,7 +75,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                       </div>
                     )}
                     {column.getCanResize() && (
-                      <MoreVertical className="lucide" style={{ color: '#9ca3af', height: '0.875rem', width: '0.875rem' }} />
+                      <MoreVertical className="lucide" style={{ color: '#9ca3af', height: '0.875rem', width: '0.875rem', cursor: 'col-resize' }} />
                     )}
                 </div>
               </div>
@@ -149,3 +149,4 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
 
     return [...staticColumns, ...dynamicColumns];
 }
+

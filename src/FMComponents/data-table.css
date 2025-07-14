@@ -435,8 +435,9 @@
 }
 
 
-/* Add a shadow to indicate scrollable content (vertical separator) */
+/* Add a border to indicate scrollable content (vertical separator) */
 .cygnet-dt-header-cell--sticky-last,
 .cygnet-dt-table-cell--sticky-last {
-    box-shadow: 2px 0 4px -2px rgba(0,0,0,0.1);
+    border-right: 1px solid #d1d5db; /* gray-300 */
 }
+
