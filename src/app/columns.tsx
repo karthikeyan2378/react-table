@@ -3,7 +3,7 @@
 
 import { type ColumnDef, type ColumnFiltersState } from '@tanstack/react-table';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { ArrowDown, ArrowUp, ChevronsUpDown, MoreVertical } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { highlightText } from '../lib/utils.tsx';
 import React from 'react';
@@ -52,7 +52,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         id: key,
         header: ({ column }) => {
             return (
-              <div className="cygnet-dt-header-content">
+              <>
                 <div className="cygnet-dt-header-label">
                   <span>{config.label}</span>
                 </div>
@@ -74,11 +74,8 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                         )}
                       </div>
                     )}
-                    {column.getCanResize() && (
-                      <MoreVertical className="lucide" style={{ color: '#9ca3af', height: '0.875rem', width: '0.875rem', cursor: 'col-resize' }} />
-                    )}
                 </div>
-              </div>
+              </>
             )
         },
         cell: ({ row, table, column }) => {
@@ -149,4 +146,3 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
 
     return [...staticColumns, ...dynamicColumns];
 }
-

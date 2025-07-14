@@ -42,7 +42,6 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { highlightText } from '../lib/utils.tsx';
 import './data-table.css';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { alarmConfig } from "@/config/alarm-config";
 
 
@@ -799,74 +798,77 @@ export function DataTable<TData>({
           >
             <div style={{ width: table.getTotalSize(), position: 'relative' }}>
               <div style={{ position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <div 
-                    key={headerGroup.id}
-                    className="cygnet-dt-header-row"
-                  >
-                      {headerGroup.headers.map((header) => {
-                        const isFrozen = frozenColumnIds.includes(header.id);
-                        const isLastFrozen = isFrozen && frozenColumnIds.indexOf(header.id) === frozenColumnIds.length - 1;
-                        const headerClasses = [
-                          'cygnet-dt-cell-common',
-                          isFrozen ? 'cygnet-dt-header-cell--sticky' : '',
-                          isLastFrozen ? 'cygnet-dt-header-cell--sticky-last' : ''
-                        ].join(' ').trim();
-                        
-                        return (
-                        <div 
-                          key={header.id} 
-                          className={headerClasses}
-                          style={{ 
-                            width: header.getSize(), 
-                            minWidth: header.column.columnDef.minSize,
-                            ...getStickyStyles(header.id) 
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const draggedColumnId = e.dataTransfer.getData('text/plain');
-                            const targetColumnId = header.id;
+                <div 
+                  className="cygnet-dt-header-row"
+                >
+                    {table.getHeaderGroups().map((headerGroup) => (
+                        <React.Fragment key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => {
+                            const isFrozen = frozenColumnIds.includes(header.id);
+                            const isLastFrozen = isFrozen && frozenColumnIds.indexOf(header.id) === frozenColumnIds.length - 1;
+                            const headerClasses = [
+                              'cygnet-dt-cell-common',
+                              isFrozen ? 'cygnet-dt-header-cell--sticky' : '',
+                              isLastFrozen ? 'cygnet-dt-header-cell--sticky-last' : ''
+                            ].join(' ').trim();
                             
-                            const isDraggedFrozen = frozenColumnIds.includes(draggedColumnId);
-                            const isTargetFrozen = frozenColumnIds.includes(targetColumnId);
-
-                            if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
-                                // Only allow reordering if both columns are in the same frozen state
-                                if (isDraggedFrozen === isTargetFrozen) {
-                                    table.setColumnOrder(
-                                        (old) => reorderColumn(draggedColumnId, targetColumnId, old)
-                                    );
-                                }
-                            }
-                          }}
-                          onDragOver={(e) => e.preventDefault()}
-                        >
-                           <div 
-                              className="cygnet-dt-header-content"
-                              draggable
-                              onDragStart={(e) => {
-                                e.dataTransfer.setData('text/plain', header.id);
-                                e.stopPropagation();
+                            return (
+                            <div 
+                              key={header.id} 
+                              className={headerClasses}
+                              style={{ 
+                                width: header.getSize(), 
+                                minWidth: header.column.columnDef.minSize,
+                                ...getStickyStyles(header.id) 
                               }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const draggedColumnId = e.dataTransfer.getData('text/plain');
+                                const targetColumnId = header.id;
+                                
+                                const isDraggedFrozen = frozenColumnIds.includes(draggedColumnId);
+                                const isTargetFrozen = frozenColumnIds.includes(targetColumnId);
+
+                                if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
+                                    // Only allow reordering if both columns are in the same frozen state
+                                    if (isDraggedFrozen === isTargetFrozen) {
+                                        table.setColumnOrder(
+                                            (old) => reorderColumn(draggedColumnId, targetColumnId, old)
+                                        );
+                                    }
+                                }
+                              }}
+                              onDragOver={(e) => e.preventDefault()}
                             >
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
+                               <div 
+                                  className="cygnet-dt-header-content"
+                                  draggable
+                                  onDragStart={(e) => {
+                                    e.dataTransfer.setData('text/plain', header.id);
+                                    e.stopPropagation();
+                                  }}
+                                >
+                                  {header.isPlaceholder
+                                    ? null
+                                    : flexRender(
+                                        header.column.columnDef.header,
+                                        header.getContext()
+                                      )}
+                                </div>
+                                {header.column.getCanResize() && (
+                                  <div
+                                    onMouseDown={header.getResizeHandler()}
+                                    onTouchStart={header.getResizeHandler()}
+                                    className={`cygnet-dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
+                                  >
+                                    <MoreVertical className="lucide" />
+                                  </div>
+                                )}
                             </div>
-                            {header.column.getCanResize() && (
-                              <div
-                                onMouseDown={header.getResizeHandler()}
-                                onTouchStart={header.getResizeHandler()}
-                                className={`cygnet-dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
-                              />
-                            )}
-                        </div>
-                      )})}
-                  </div>
-                ))}
+                          )})}
+                        </React.Fragment>
+                    ))}
+                </div>
               </div>
               <div 
                 style={{ 
@@ -881,6 +883,7 @@ export function DataTable<TData>({
                     return (
                         <div
                             key={row.id}
+                            className="cygnet-dt-table-row"
                             data-state={rowIsSelected ? "selected" : ""}
                             onDoubleClick={() => onRowDoubleClick?.(row.original)}
                             onContextMenu={(e) => { 
@@ -945,7 +948,6 @@ export function DataTable<TData>({
                                     table.setRowSelection(newSelection);
                                 }
                             }}
-                            className="cygnet-dt-table-row"
                             style={{
                               position: 'absolute',
                               transform: `translateY(${virtualRow.start}px)`,
