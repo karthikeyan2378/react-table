@@ -405,6 +405,7 @@
     border-bottom: 1px solid #e5e7eb;
     background-color: #fff;
     width: 100%;
+    display: flex;
 }
 .cygnet-dt-table-row:hover {
     background-color: #f9fafb;

@@ -802,7 +802,6 @@ export function DataTable<TData>({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
                     key={headerGroup.id}
-                    className="cygnet-dt-table-row"
                   >
                       {headerGroup.headers.map((header) => {
                         const isFrozen = frozenColumnIds.includes(header.id);
@@ -875,7 +874,6 @@ export function DataTable<TData>({
                     return (
                         <TableRow
                             key={row.id}
-                            className='cygnet-dt-table-row'
                             data-state={row.getIsSelected() ? "selected" : ""}
                             onDoubleClick={() => onRowDoubleClick?.(row.original)}
                             onContextMenu={(e) => { 
@@ -940,6 +938,7 @@ export function DataTable<TData>({
                                     table.setRowSelection(newSelection);
                                 }
                             }}
+                            className="cygnet-dt-table-row"
                             style={{
                               position: 'absolute',
                               transform: `translateY(${virtualRow.start}px)`,
@@ -947,7 +946,6 @@ export function DataTable<TData>({
                               left: 0,
                               width: '100%',
                               height: `${virtualRow.size}px`,
-                              display: 'flex',
                               cursor: 'pointer'
                             }}
                           >
