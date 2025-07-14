@@ -1,9 +1,9 @@
 
 'use client';
 
-import { type ColumnDef, type ColumnFiltersState } from '@tanstack/react-table';
+import { type ColumnDef } from '@tanstack/react-table';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronsUpDown, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { highlightText } from '../lib/utils.tsx';
 import React from 'react';
@@ -80,7 +80,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         },
         cell: ({ row, table, column }) => {
           const value = row.getValue(key) as any;
-          const { globalFilter, columnFilters } = (table.options.meta || {}) as { globalFilter?: string; columnFilters?: ColumnFiltersState };
+          const { globalFilter, columnFilters } = (table.options.meta || {}) as { globalFilter?: string; columnFilters?: any };
 
           const columnFilterValue = columnFilters?.find(f => f.id === column.id)?.value as string | string[] | undefined;
           

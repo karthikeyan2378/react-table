@@ -6,7 +6,7 @@ import { makeData, newAlarm } from '../lib/data';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
-import { ChevronDown, Edit } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { type Table as ReactTable, type ColumnFiltersState } from '@tanstack/react-table';
 import {
@@ -321,7 +321,7 @@ export default function Home() {
      {
       label: (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Edit style={{ marginRight: '8px', height: '16px', width: '16px' }} />
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
           Update Alarm
         </div>
       ),

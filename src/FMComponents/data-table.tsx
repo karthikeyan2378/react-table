@@ -37,7 +37,6 @@ import {
   Square,
   Trash2,
   X,
-  Edit,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { highlightText } from '../lib/utils.tsx';
@@ -372,7 +371,7 @@ function DataTableToolbar<TData>({
            {toolbarVisibility.updateRow !== false && onUpdateRow && (
              <div className="cygnet-dt-tooltip-wrapper">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onUpdateRow} disabled={selectedRowCount !== 1}>
-                  <Edit className="h-4 w-4" />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
                 </button>
                 <div className="cygnet-dt-tooltip-content">Update Alarm</div>
             </div>
