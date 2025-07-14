@@ -386,6 +386,8 @@
 .cygnet-dt-table-row {
     border-bottom: 1px solid #e5e7eb;
     background-color: #fff;
+    display: flex; /* Added for alignment */
+    width: 100%; /* Added for alignment */
 }
 .cygnet-dt-table-row:hover {
     background-color: #f9fafb;
@@ -397,6 +399,8 @@
 .cygnet-dt-table-cell {
     font-size: 0.8125rem; /* 13px */
     padding: 0.5rem 0.75rem; /* Reduced padding slightly */
+    display: flex; /* Added for alignment */
+    align-items: center; /* Added for alignment */
 }
 
 /* Styles for sticky/frozen columns */

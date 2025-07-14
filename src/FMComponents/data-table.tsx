@@ -792,7 +792,7 @@ export function DataTable<TData>({
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
                     key={headerGroup.id} 
-                    style={{display: 'flex', width: '100%'}}
+                    style={{ width: '100%'}}
                   >
                       {headerGroup.headers.map((header) => (
                         <TableHead 
@@ -801,8 +801,6 @@ export function DataTable<TData>({
                           className={frozenColumnIds.includes(header.id) ? 'cygnet-dt-header-cell--sticky' : ''}
                           style={{ 
                             width: header.getSize(), 
-                            display: 'flex', 
-                            flexShrink: 0, 
                             minWidth: header.column.columnDef.minSize,
                             ...getStickyStyles(header.id) 
                           }}
@@ -926,7 +924,6 @@ export function DataTable<TData>({
                                 }
                             }}
                             style={{
-                              display: 'flex',
                               position: 'absolute',
                               transform: `translateY(${virtualRow.start}px)`,
                               top: 0,
@@ -941,10 +938,7 @@ export function DataTable<TData>({
                                 key={cell.id} 
                                 className={`cygnet-dt-table-cell ${frozenColumnIds.includes(cell.column.id) ? 'cygnet-dt-table-cell--sticky' : ''}`}
                                 style={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
                                   width: cell.column.getSize(), 
-                                  flexShrink: 0, 
                                   minWidth: cell.column.columnDef.minSize,
                                   ...getStickyStyles(cell.column.id)
                                 }}
