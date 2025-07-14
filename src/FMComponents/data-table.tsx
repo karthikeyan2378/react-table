@@ -976,7 +976,6 @@ export function DataTable<TData>({
                 <p style={{fontSize: '0.875rem', fontWeight: 500}}>Rows per page</p>
                 <select
                   className="cygnet-dt-select"
-                  style={{width: '70px'}}
                   value={table.getState().pagination.pageSize}
                   onChange={e => {
                     table.setPageSize(Number(e.target.value))
