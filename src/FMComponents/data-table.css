@@ -8,9 +8,14 @@
 .data-table-wrapper {
     border-radius: 0.375rem;
     border: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.data-table-scroll-container {
     overflow: auto;
     position: relative;
 }
+
 
 .data-table-pagination-container {
     display: flex;

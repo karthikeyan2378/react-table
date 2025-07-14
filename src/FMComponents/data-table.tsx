@@ -733,14 +733,17 @@ export function DataTable<TData>({
         />
 
         <div 
-            ref={tableContainerRef} 
             className="data-table-wrapper"
+        >
+          <div
+            ref={tableContainerRef}
+            className="data-table-scroll-container"
             style={{
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
-        >
+          >
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
-              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#f9fafb' }}>
+              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
                     key={headerGroup.id} 
@@ -894,6 +897,7 @@ export function DataTable<TData>({
                 )}
               </TableBody>
             </Table>
+          </div>
         </div>
         
         {paginationEnabled && (
