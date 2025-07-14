@@ -1,3 +1,7 @@
+/*
+ * The main container for a single chart component.
+ * Provides border, background, shadow, and rounded corners.
+ */
 .cygnet-chart-card {
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
@@ -6,6 +10,10 @@
     height: auto;
 }
 
+/*
+ * The header section of the chart card.
+ * Uses flexbox to position the title on the left and actions on the right.
+ */
 .cygnet-chart-card-header {
     display: flex;
     flex-direction: row;
@@ -15,11 +23,17 @@
     border-bottom: 1px solid #e5e7eb;
 }
 
+/*
+ * The title text within the chart header.
+ */
 .cygnet-chart-card-title {
     font-size: 0.875rem;
     font-weight: 500;
 }
 
+/*
+ * A container for action buttons in the chart header (e.g., switch chart type, close).
+ */
 .cygnet-chart-card-actions {
     display: flex;
     align-items: center;
@@ -34,7 +48,10 @@
     margin-right: 0.5rem;
 }
 
-
+/*
+ * The main content area of the card where the chart is rendered.
+ * Fixed height ensures consistency across all charts.
+ */
 .cygnet-chart-card-content {
     height: 200px;
     width: 100%;

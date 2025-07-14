@@ -1,9 +1,15 @@
-
+/*
+ * Styles for the main page header section.
+ * Centers the text and adds bottom margin.
+ */
 .cygnet-page-header {
   text-align: center;
   margin-bottom: 2.5rem; /* mb-10 */
 }
 
+/*
+ * Styles for the main heading (h1) of the page.
+ */
 .cygnet-page-header h1 {
   font-size: 2.25rem; /* text-4xl */
   line-height: 2.5rem;
@@ -12,6 +18,9 @@
   color: #2563EB; /* text-blue-600 */
 }
 
+/*
+ * Larger font size for the heading on bigger screens.
+ */
 @media (min-width: 1024px) {
   .cygnet-page-header h1 {
     font-size: 3rem; /* lg:text-5xl */
@@ -19,6 +28,9 @@
   }
 }
 
+/*
+ * Styles for the paragraph description below the main heading.
+ */
 .cygnet-page-header p {
   margin-top: 1rem; /* mt-4 */
   max-width: 42rem; /* max-w-2xl */

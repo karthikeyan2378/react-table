@@ -1,10 +1,17 @@
-
+/*
+ * Main container for the entire DataTable component, including toolbar and pagination.
+ * Uses flexbox to stack elements vertically.
+ */
 .cygnet-dt-container {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
+/*
+ * A wrapper for the table itself, providing a border and rounded corners.
+ * `position: relative` is crucial for containing absolutely positioned child elements.
+ */
 .cygnet-dt-wrapper {
     border-radius: 0.375rem;
     border: 1px solid #e5e7eb;
@@ -12,12 +19,19 @@
     overflow: hidden; /* Contain the inner elements */
 }
 
+/*
+ * The direct container for the virtualized table content.
+ * `overflow: auto` enables scrolling.
+ */
 .cygnet-dt-scroll-container {
     overflow: auto;
     position: relative;
 }
 
-
+/*
+ * Container for the pagination controls at the bottom of the table.
+ * Aligns items with space between them.
+ */
 .cygnet-dt-pagination-container {
     display: flex;
     align-items: center;
@@ -26,13 +40,23 @@
     padding-bottom: 1rem;
 }
 
+/*
+ * Displays informational text in the footer, like "X of Y rows selected".
+ */
 .cygnet-dt-footer-info {
     flex: 1 1 0%;
     font-size: 0.875rem;
     color: #6b7280;
 }
 
-/* Toolbar Styles */
+/* ==========================================================================
+   Toolbar Styles
+   ========================================================================== */
+
+/*
+ * Main container for the toolbar. Uses flexbox to align filter controls and action buttons.
+ * `z-index` ensures it appears above the table content.
+ */
 .cygnet-dt-toolbar {
     display: flex;
     align-items: center;
@@ -43,6 +67,9 @@
     flex-wrap: wrap;
 }
 
+/*
+ * Containers for the left (filters) and right (actions) sections of the toolbar.
+ */
 .cygnet-dt-toolbar-left, .cygnet-dt-toolbar-right {
     display: flex;
     align-items: center;
@@ -50,11 +77,16 @@
     flex-wrap: wrap;
 }
 
+/*
+ * Ensures the left side of the toolbar (with filters) grows to take available space.
+ */
 .cygnet-dt-toolbar-left {
     flex: 1 1 auto;
 }
 
-/* Search Input */
+/*
+ * Container for the global search input, positioning the search icon inside.
+ */
 .cygnet-dt-search-container {
     position: relative;
     display: flex;
@@ -72,7 +104,9 @@
     padding-left: 2rem;
 }
 
-/* Filter Input */
+/*
+ * Container for individual column text filters, positioning the 'X' button inside.
+ */
 .cygnet-dt-filter-container {
     position: relative;
     display: flex;
@@ -91,6 +125,9 @@
     height: 100%;
 }
 
+/*
+ * Container for faceted (categorical) filter components.
+ */
 .cygnet-dt-facet-filter-container {
     display: flex;
     align-items: center;
@@ -98,7 +135,10 @@
     flex-wrap: wrap;
 }
 
-/* Generic input, button, select styles */
+/* ==========================================================================
+   Generic UI Component Styles (Input, Button, Select, etc.)
+   ========================================================================== */
+
 .cygnet-dt-input {
     display: flex;
     height: 2.25rem;
@@ -199,7 +239,6 @@
     box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
 }
 
-
 .cygnet-dt-checkbox {
     height: 1rem;
     width: 1rem;
@@ -210,7 +249,9 @@
     box-shadow: 0 0 0 2px var(--ring);
 }
 
-/* Common styles for both header and body cells */
+/*
+ * A common base class for both header and body cells to ensure consistent padding and height.
+ */
 .cygnet-dt-cell-common {
     display: flex;
     align-items: center;
@@ -220,19 +261,34 @@
     position: relative;
 }
 
-/* Header styles */
+/* ==========================================================================
+   Header Styles
+   ========================================================================== */
+
+/*
+ * The container for a single row of headers.
+ */
 .cygnet-dt-header-row {
     display: flex;
     width: 100%;
 }
+
+/*
+ * The content wrapper inside a header cell. `overflow: hidden` is important for the resizer.
+ */
 .cygnet-dt-header-content {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    padding-right: 20px; /* Space for the resizer */
+    padding-right: 20px; /* Space for the resizer handle */
 }
+
+/*
+ * The text label within the header. `flex-grow` allows it to take up available space.
+ */
 .cygnet-dt-header-label {
     display: flex;
     align-items: center;
@@ -245,6 +301,10 @@
     white-space: nowrap;
     flex-grow: 1;
 }
+
+/*
+ * Container for header controls like sorting and resizing icons.
+ */
 .cygnet-dt-header-controls {
     display: flex;
     align-items: center;
@@ -267,7 +327,10 @@
     color: #1f2937;
 }
 
-/* Tooltip */
+/* ==========================================================================
+   Component-Specific Styles (Tooltip, Badge, Dropdown)
+   ========================================================================== */
+
 .cygnet-dt-tooltip-wrapper {
     position: relative;
     display: inline-block;
@@ -296,7 +359,6 @@
     opacity: 1;
 }
 
-/* Badge */
 .cygnet-dt-badge {
     display: inline-flex;
     align-items: center;
@@ -330,8 +392,6 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-
-/* Dropdown */
 .cygnet-dt-dropdown {
     position: relative;
     display: inline-block;
@@ -380,7 +440,14 @@
     margin-right: 0.5rem;
 }
 
-/* Resizer Handle */
+/* ==========================================================================
+   Table Body, Row, and Cell Styles
+   ========================================================================== */
+
+/*
+ * The draggable resize handle. Positioned absolutely to the right of the header cell.
+ * `user-select: none` and `touch-action: none` are important for a smooth drag experience.
+ */
 .cygnet-dt-resizer {
     position: absolute;
     right: 0;
@@ -401,7 +468,6 @@
     color: #9ca3af;
     pointer-events: none;
 }
-
 .cygnet-dt-resizer:hover,
 .cygnet-dt-resizer.is-resizing {
     background: #eef2ff; /* A subtle highlight */
@@ -411,14 +477,16 @@
     color: #3b82f6;
 }
 
-
 .truncate {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* Row and Cell styles */
+/*
+ * Styles for a single row in the table body.
+ * These are applied to the `div` that wraps the cells in a virtualized row.
+ */
 .cygnet-dt-table-row {
     border-bottom: 1px solid #e5e7eb;
     background-color: #fff;
@@ -432,27 +500,46 @@
     background-color: #eff6ff;
 }
 
+/*
+ * Base styles for a single cell in the table body.
+ */
 .cygnet-dt-table-cell {
     font-size: 0.8125rem; /* 13px */
 }
 
-/* Styles for sticky/frozen columns */
+/* ==========================================================================
+   Sticky/Frozen Column Styles
+   ========================================================================== */
+
+/*
+ * Base styles for sticky (frozen) cells in both the header and body.
+ * `position: sticky` is the key property.
+ */
 .cygnet-dt-header-cell--sticky,
 .cygnet-dt-table-cell--sticky {
     position: sticky;
-    z-index: 1; /* Default z-index for body cells */
+    z-index: 1;
 }
 
+/*
+ * Sticky header cells need a higher z-index than body cells to stay on top during vertical scroll.
+ * They also need a solid background color.
+ */
 .cygnet-dt-header-cell--sticky {
-    z-index: 3; /* Header cells above body */
+    z-index: 3;
     background-color: #f9fafb; /* Match header background */
 }
 
+/*
+ * Sticky body cells also need a solid background to hide content scrolling underneath.
+ */
 .cygnet-dt-table-cell--sticky {
-    background-color: #fff; /* Solid background for body cells */
+    background-color: #fff;
 }
 
-/* Ensure sticky cells get correct background on hover/select */
+/*
+ * Ensure sticky cells get the correct background color when their row is hovered or selected.
+ */
 .cygnet-dt-table-row:hover .cygnet-dt-table-cell--sticky {
     background-color: #f9fafb; /* Match row hover background */
 }
@@ -460,13 +547,18 @@
     background-color: #eff6ff; /* Match row selected background */
 }
 
-
-/* Add a border to indicate scrollable content (vertical separator) */
+/*
+ * This class is applied to the last frozen cell to create a vertical separator line.
+ * `border-right` is more reliable than `box-shadow` for this purpose.
+ */
 .cygnet-dt-header-cell--sticky-last,
 .cygnet-dt-table-cell--sticky-last {
     border-right: 1px solid #d1d5db; /* gray-300 */
 }
 
+/*
+ * Style for the message shown when there are no table results.
+ */
 .cygnet-dt-no-results {
     display: flex; 
     align-items: center; 

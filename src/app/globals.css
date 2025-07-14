@@ -1,25 +1,48 @@
-
+/*
+ * Import the Inter font from Google Fonts for a modern, clean look.
+ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
+/* ==========================================================================
+   Root and Body Styles
+   ========================================================================== */
+
+/*
+ * Define CSS custom properties (variables) for the application's color theme.
+ * Using HSL or RGB values allows for easy manipulation (e.g., adding alpha transparency).
+ */
 :root {
   --background-rgb: 249 250 251; /* bg-gray-50 */
   --foreground-rgb: 17, 24, 39; /* text-gray-900 */
   --primary-rgb: 37, 99, 235; /* blue-600 */
   --border-rgb: 229, 231, 235; /* gray-200 */
   --ring-rgb: 59, 130, 246; /* blue-500 */
-  --primary: 195 100% 50%; /* Deep sky blue: #00BFFF */
+  --primary: 221 83% 53%; /* HSL for blue-600 */
 }
 
+/*
+ * Basic styles applied to the body. Sets the default background, text color, and font.
+ */
 body {
   background-color: rgb(var(--background-rgb));
   color: rgb(var(--foreground-rgb));
   font-family: 'Inter', sans-serif;
 }
 
+/* ==========================================================================
+   Layout Styles
+   ========================================================================== */
+
+/*
+ * A container ensuring the page content takes up at least the full viewport height.
+ */
 .cygnet-page-container {
   min-height: 100vh;
 }
 
+/*
+ * The main content wrapper. Constrains the width and adds horizontal padding.
+ */
 .cygnet-main-content {
   max-width: 1280px;
   margin-left: auto;
@@ -27,6 +50,7 @@ body {
   padding: 2.5rem 1rem;
 }
 
+/* Responsive padding for larger screens */
 @media (min-width: 640px) {
   .cygnet-main-content {
     padding-left: 1.5rem;
@@ -40,6 +64,10 @@ body {
   }
 }
 
+/*
+ * A flex container for the main layout, arranging charts and the table.
+ * Stacks vertically on small screens, and horizontally on large screens.
+ */
 .cygnet-content-layout {
   display: flex;
   flex-direction: column;
@@ -52,17 +80,23 @@ body {
   }
 }
 
+/*
+ * The column containing the charts.
+ * `order: 1` places it on the left on large screens.
+ */
 .cygnet-charts-column {
   width: 100%;
-  order: 2;
 }
 @media (min-width: 1024px) {
   .cygnet-charts-column {
     width: 33.333333%;
-    order: 1;
+    order: 1; /* Charts on the left */
   }
 }
 
+/*
+ * Header for the charts column.
+ */
 .cygnet-charts-header {
   display: flex;
   flex-wrap: wrap;
@@ -76,23 +110,35 @@ body {
     font-weight: 600;
 }
 
+/*
+ * A grid layout for the individual chart cards.
+ */
 .cygnet-charts-grid {
     display: grid;
     gap: 1rem;
 }
 
+/*
+ * The column containing the data table.
+ * `order: 2` places it on the right on large screens.
+ * These classes control the width of the table column based on whether charts are visible.
+ */
 .cygnet-table-column-expanded {
   width: 100%;
 }
 @media (min-width: 1024px) {
     .cygnet-table-column-expanded {
         width: 66.666667%;
+        order: 2; /* Table on the right */
     }
 }
 .cygnet-table-column-full {
     width: 100%;
 }
 
+/*
+ * A card-like container for the data table, providing padding, border, and shadow.
+ */
 .cygnet-table-card {
   padding: 1rem;
   border-radius: 0.5rem;
@@ -102,7 +148,10 @@ body {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
-/* Alert Dialog and Dialog Styles */
+/* ==========================================================================
+   Dialog and Alert Styles
+   ========================================================================== */
+
 .cygnet-alert-dialog-overlay, .cygnet-dialog-overlay {
   position: fixed;
   inset: 0;
@@ -127,6 +176,7 @@ body {
   border-radius: 0.375rem;
 }
 
+/* Helper classes for content inside the dialogs */
 .cygnet-dialog-content .grid {
     display: grid;
     gap: 1rem;
@@ -186,6 +236,9 @@ body {
   opacity: 1;
 }
 
+/*
+ * Utility class for screen readers. Hides content visually but keeps it accessible.
+ */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -198,7 +251,10 @@ body {
   border-width: 0;
 }
 
-/* Toast Styles */
+/* ==========================================================================
+   Toast (Notification) Styles
+   ========================================================================== */
+
 .cygnet-toast-viewport {
   position: fixed;
   top: 0;
