@@ -674,6 +674,34 @@ export function DataTable<TData>({
       columnFilters,
     }
   });
+  
+  // Logic for frozen columns
+  const columnDefs = columns as ColumnDef<TData, any>[];
+  const frozenColumnIds = React.useMemo(() => {
+    const frozen = columnDefs.filter(c => {
+        const key = c.id || c.accessorKey;
+        if (key === 'select') return true;
+        const config = alarmConfig.fields[key as keyof typeof alarmConfig.fields];
+        return config?.isColumnToFreeze;
+    }).map(c => c.id || c.accessorKey);
+    // Ensure the order matches the current column order state
+    return table.getState().columnOrder.filter(id => frozen.includes(id));
+  }, [columnDefs, table.getState().columnOrder]);
+
+  const getStickyStyles = (columnId: string): React.CSSProperties => {
+    const isFrozen = frozenColumnIds.includes(columnId);
+    if (!isFrozen) return {};
+
+    const colIndex = frozenColumnIds.indexOf(columnId);
+    const offset = frozenColumnIds.slice(0, colIndex).reduce((acc, id) => {
+        const col = table.getColumn(id);
+        return acc + (col?.getSize() || 0);
+    }, 0);
+
+    return {
+        left: `${offset}px`,
+    };
+  };
 
   // Effect to adjust page size when pagination is disabled.
   React.useEffect(() => {
@@ -703,7 +731,7 @@ export function DataTable<TData>({
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 53, // Estimate row height for performance.
+    estimateSize: () => 41, // Estimate row height for performance.
     overscan: 10, // Render a few extra items above and below the viewport.
   });
 
@@ -769,7 +797,14 @@ export function DataTable<TData>({
                         <TableHead 
                           key={header.id} 
                           colSpan={header.colSpan}
-                          style={{ width: header.getSize(), display: 'flex', flexShrink: 0, minWidth: header.column.columnDef.minSize }}
+                          className={frozenColumnIds.includes(header.id) ? 'dt-header-cell--sticky' : ''}
+                          style={{ 
+                            width: header.getSize(), 
+                            display: 'flex', 
+                            flexShrink: 0, 
+                            minWidth: header.column.columnDef.minSize,
+                            ...getStickyStyles(header.id) 
+                          }}
                           onDrop={(e) => {
                             e.preventDefault();
                             const draggedColumnId = e.dataTransfer.getData('text/plain');
@@ -824,6 +859,7 @@ export function DataTable<TData>({
                     return (
                         <TableRow
                             key={row.id}
+                            className='dt-table-row'
                             data-state={row.getIsSelected() ? "selected" : ""}
                             onDoubleClick={() => onRowDoubleClick?.(row.original)}
                             onContextMenu={(e) => { 
@@ -899,7 +935,18 @@ export function DataTable<TData>({
                             }}
                           >
                             {row.getVisibleCells().map((cell) => (
-                              <TableCell key={cell.id} style={{ display: 'flex', alignItems: 'center', width: cell.column.getSize(), flexShrink: 0, minWidth: cell.column.columnDef.minSize }}>
+                              <TableCell 
+                                key={cell.id} 
+                                className={`dt-table-cell ${frozenColumnIds.includes(cell.column.id) ? 'dt-table-cell--sticky' : ''}`}
+                                style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  width: cell.column.getSize(), 
+                                  flexShrink: 0, 
+                                  minWidth: cell.column.columnDef.minSize,
+                                  ...getStickyStyles(cell.column.id)
+                                }}
+                              >
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
                               </TableCell>
                             ))}

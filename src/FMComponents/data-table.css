@@ -367,3 +367,39 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* New styles for row separator and font size */
+.dt-table-row {
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #fff;
+}
+.dt-table-row:hover {
+    background-color: #f9fafb;
+}
+.dt-table-row[data-state='selected'] {
+    background-color: #eff6ff;
+}
+
+.dt-table-cell {
+    font-size: 0.8125rem; /* 13px */
+    padding: 0.5rem 0.75rem; /* Reduced padding slightly */
+}
+
+/* Styles for sticky/frozen columns */
+.dt-header-cell--sticky,
+.dt-table-cell--sticky {
+    position: sticky;
+    z-index: 1; /* Cells need a z-index to appear above non-sticky cells */
+    background-color: inherit; /* Inherit from the row's background color */
+}
+
+.dt-header-cell--sticky {
+    z-index: 3; /* Header cells need to be above body cells */
+    background-color: #f9fafb; /* Match header background */
+}
+
+/* Add a shadow to indicate scrollable content */
+.dt-header-cell--sticky:last-of-type,
+.dt-table-cell--sticky:last-of-type {
+    box-shadow: 2px 0 4px -2px rgba(0,0,0,0.1);
+}
