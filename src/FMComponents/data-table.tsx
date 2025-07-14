@@ -40,31 +40,9 @@ import {
   Edit,
 } from "lucide-react";
 import { useVirtualizer } from '@tanstack/react-virtual';
-
-import { Badge } from "./ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "./ui/table";
-import { cn } from "../lib/cn";
-import { Separator } from "./ui/separator";
-import { Checkbox } from './ui/checkbox';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { highlightText } from '../lib/utils.tsx';
 import './data-table.css';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 
 /**
  * Interface defining the structure for a filterable column.
@@ -77,10 +55,35 @@ export interface FilterableColumn {
 }
 
 /**
- * Props for the DataTableFacetedFilter component.
- * @template TData The type of data in the table.
+ * Custom Dropdown Hook
  */
-interface DataTableFacetedFilterProps<TData> {
+const useDropdown = (ref: React.RefObject<HTMLDivElement>) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [ref]);
+
+    return { isOpen, setIsOpen };
+};
+
+
+/**
+ * A generic faceted filter component for categorical data.
+ */
+function DataTableFacetedFilter<TData>({
+  column,
+  title,
+  options,
+  onRemove,
+  globalFilter,
+}: {
   column?: ReactTable<TData>['getColumn'];
   title?: string;
   options: {
@@ -89,55 +92,37 @@ interface DataTableFacetedFilterProps<TData> {
   }[];
   onRemove: () => void;
   globalFilter?: string;
-}
-
-/**
- * A generic faceted filter component for categorical data.
- * It displays a dropdown with checkboxes for filtering.
- */
-function DataTableFacetedFilter<TData>({
-  column,
-  title,
-  options,
-  onRemove,
-  globalFilter,
-}: DataTableFacetedFilterProps<TData>) {
+}) {
   const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const { isOpen, setIsOpen } = useDropdown(dropdownRef);
 
   return (
-    <div className="relative">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="dt-button dt-button--outline h-8 pr-8 border-dashed">
-            <PlusCircle className="mr-2 h-4 w-4 text-blue-500" />
-            {title}
-            {selectedValues?.size > 0 && (
-              <>
-                <Separator orientation="vertical" className="mx-2 h-4" />
-                <Badge
-                  variant="secondary"
-                  className="rounded-sm px-1 font-normal"
-                >
-                  {selectedValues.size > 2
-                    ? `${selectedValues.size} selected`
-                    : Array.from(selectedValues).join(', ')}
-                </Badge>
-              </>
-            )}
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[200px]" align="start">
+    <div className={`dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
+      <button className="dt-button dt-button--outline" style={{ height: '2.25rem' }} onClick={() => setIsOpen(!isOpen)}>
+        <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
+        {title}
+        {selectedValues?.size > 0 && (
+          <>
+            <div style={{width: '1px', height: '1rem', backgroundColor: '#e5e7eb', margin: '0 0.5rem'}} />
+            <span className="dt-badge" style={{ backgroundColor: '#e5e7eb', color: '#1f2937' }}>
+              {selectedValues.size}
+            </span>
+          </>
+        )}
+      </button>
+      <div className="dt-dropdown-content">
           {options.map((option) => {
             const isSelected = selectedValues.has(option.value);
             return (
-              <DropdownMenuCheckboxItem
+              <div
                 key={option.value}
-                checked={isSelected}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    selectedValues.add(option.value);
-                  } else {
+                className="dt-dropdown-item"
+                onClick={() => {
+                  if (isSelected) {
                     selectedValues.delete(option.value);
+                  } else {
+                    selectedValues.add(option.value);
                   }
                   const filterValues = Array.from(selectedValues);
                   column?.setFilterValue(
@@ -145,32 +130,27 @@ function DataTableFacetedFilter<TData>({
                   );
                 }}
               >
+                <input type="checkbox" className="dt-checkbox" readOnly checked={isSelected} />
                 <span>{highlightText(option.label, globalFilter)}</span>
-              </DropdownMenuCheckboxItem>
+              </div>
             );
           })}
           {selectedValues.size > 0 && (
             <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onSelect={() => column?.setFilterValue(undefined)}
-                className="justify-center text-center"
+              <div className="dt-dropdown-separator" />
+              <div
+                onClick={() => column?.setFilterValue(undefined)}
+                className="dt-dropdown-item" style={{justifyContent: 'center'}}
               >
                 Clear filters
-              </DropdownMenuItem>
+              </div>
             </>
           )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <button
-          className="dt-button dt-button--ghost dt-button--icon absolute right-0 top-0 bottom-0 my-auto h-full px-2 text-gray-500 hover:text-gray-800"
-          onClick={onRemove}
-      >
-          <X className="h-4 w-4" />
-      </button>
+        </div>
     </div>
   );
 }
+
 
 /**
  * Interface to control the visibility of various toolbar elements.
@@ -216,7 +196,6 @@ interface DataTableToolbarProps<TData> {
 
 /**
  * The toolbar component for the DataTable.
- * It includes global search, column filters, and action buttons.
  */
 function DataTableToolbar<TData>({ 
   table, 
@@ -243,6 +222,13 @@ function DataTableToolbar<TData>({
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
   const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
 
+  const filterDropdownRef = React.useRef<HTMLDivElement>(null);
+  const { isOpen: isFilterOpen, setIsOpen: setFilterOpen } = useDropdown(filterDropdownRef);
+  const exportDropdownRef = React.useRef<HTMLDivElement>(null);
+  const { isOpen: isExportOpen, setIsOpen: setExportOpen } = useDropdown(exportDropdownRef);
+  const viewOptionsDropdownRef = React.useRef<HTMLDivElement>(null);
+  const { isOpen: isViewOptionsOpen, setIsOpen: setViewOptionsOpen } = useDropdown(viewOptionsDropdownRef);
+
   const handleFilterToggle = (columnId: string, isActive?: boolean) => {
     if (isActive) {
        setActiveFilters((prev) => prev.filter((id) => id !== columnId));
@@ -262,45 +248,49 @@ function DataTableToolbar<TData>({
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
-    <div className="flex items-center justify-between gap-2 relative z-10 flex-wrap">
+    <div className="dt-toolbar">
       {/* Left side: Filters */}
-      <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
-          <div className="relative flex items-center w-[150px] lg:w-[250px]">
-              <Search className="absolute left-2 h-4 w-4 text-gray-500" />
+      <div className="dt-toolbar-left">
+          <div className="dt-search-container">
+              <Search className="dt-search-icon" />
               <input
                 placeholder="Search all columns..."
                 value={globalFilter ?? ""}
                 onChange={(event) => onGlobalFilterChange(event.target.value)}
-                className="dt-input pl-8"
+                className="dt-input with-icon"
               />
           </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="dt-button dt-button--outline h-8">
-              <Filter className="mr-2 h-4 w-4 text-blue-500" />
+        <div className={`dt-dropdown ${isFilterOpen ? 'open' : ''}`} ref={filterDropdownRef}>
+            <button className="dt-button dt-button--outline" onClick={() => setFilterOpen(!isFilterOpen)}>
+              <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
               Add Filter
             </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
-            <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {filterableColumns.map((col) => (
-              <DropdownMenuCheckboxItem
-                key={col.id}
-                checked={activeFilters.includes(col.id)}
-                onCheckedChange={(checked) => handleFilterToggle(col.id, !checked)}
-              >
-                {highlightText(col.name, globalFilter)}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <div className="dt-dropdown-content">
+              <div className="dt-dropdown-label">Filter by column</div>
+              <div className="dt-dropdown-separator" />
+              {filterableColumns.map((col) => (
+                <div
+                    key={col.id}
+                    className="dt-dropdown-item"
+                    onClick={() => handleFilterToggle(col.id, activeFilters.includes(col.id))}
+                >
+                  <input
+                    type="checkbox"
+                    className="dt-checkbox"
+                    readOnly
+                    checked={activeFilters.includes(col.id)}
+                  />
+                  {highlightText(col.name, globalFilter)}
+                </div>
+              ))}
+            </div>
+        </div>
 
         {textFilterColumns.map((col) => {
           if (activeFilters.includes(col.id)) {
             return (
-              <div key={col.id} className="relative w-[150px] lg:w-[250px] flex items-center">
+              <div key={col.id} className="dt-filter-container">
                 <input
                   placeholder={`Filter ${col.name.toLowerCase()}...`}
                   value={
@@ -310,10 +300,10 @@ function DataTableToolbar<TData>({
                     const value = event.target.value;
                     table.getColumn(col.id)?.setFilterValue(value || undefined);
                   }}
-                  className="dt-input w-full pr-8"
+                  className="dt-input with-button"
                 />
                 <button
-                    className="dt-button dt-button--ghost dt-button--icon absolute right-0 top-0 bottom-0 my-auto h-full px-2 text-gray-500 hover:text-gray-800"
+                    className="dt-button dt-button--ghost dt-button--icon dt-input-button"
                     onClick={() => handleFilterToggle(col.id, true)}
                 >
                     <X className="h-4 w-4" />
@@ -341,157 +331,130 @@ function DataTableToolbar<TData>({
         })}
 
         {isFiltered && (
-           <TooltipProvider>
-              <Tooltip>
-                  <TooltipTrigger asChild>
-                      <button
-                        onClick={clearAllFilters}
-                        className="dt-button dt-button--ghost dt-button--icon h-8 w-8"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                      <p>Clear all filters</p>
-                  </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div className="dt-tooltip-wrapper">
+                <button
+                onClick={clearAllFilters}
+                className="dt-button dt-button--ghost dt-button--icon"
+                >
+                <X className="h-4 w-4" />
+                </button>
+                <div className="dt-tooltip-content">Clear all filters</div>
+           </div>
         )}
       </div>
 
       {/* Right side: Actions & Settings */}
-      <div className="flex items-center space-x-1">
-        <TooltipProvider>
+      <div className="dt-toolbar-right">
           {toolbarVisibility.addRow !== false && onAddRow && (
-            <Tooltip>
-              <TooltipTrigger asChild>
+            <div className="dt-tooltip-wrapper">
                 <button className="dt-button dt-button--ghost dt-button--icon" onClick={onAddRow}>
                   <PlusCircle className="h-4 w-4" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent><p>Add Alarm</p></TooltipContent>
-            </Tooltip>
+                <div className="dt-tooltip-content">Add Alarm</div>
+            </div>
           )}
 
            {toolbarVisibility.updateRow !== false && onUpdateRow && (
-            <Tooltip>
-              <TooltipTrigger asChild>
+             <div className="dt-tooltip-wrapper">
                 <button className="dt-button dt-button--ghost dt-button--icon" onClick={onUpdateRow} disabled={selectedRowCount !== 1}>
                   <Edit className="h-4 w-4" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent><p>Update Alarm</p></TooltipContent>
-            </Tooltip>
+                <div className="dt-tooltip-content">Update Alarm</div>
+            </div>
           )}
 
           {toolbarVisibility.toggleStreaming !== false && onToggleStreaming && (
-            <Tooltip>
-              <TooltipTrigger asChild>
+            <div className="dt-tooltip-wrapper">
                 <button className="dt-button dt-button--ghost dt-button--icon" onClick={onToggleStreaming}>
                   {isStreaming ? <Square className="h-4 w-4 text-red-500" /> : <Play className="h-4 w-4 text-green-500" />}
                 </button>
-              </TooltipTrigger>
-              <TooltipContent><p>{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</p></TooltipContent>
-            </Tooltip>
+                <div className="dt-tooltip-content">{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</div>
+            </div>
           )}
 
           {toolbarVisibility.deleteRows !== false && onDeleteSelectedRows && (
-            <Tooltip>
-              <TooltipTrigger asChild>
+            <div className="dt-tooltip-wrapper">
                 <button className="dt-button dt-button--ghost dt-button--icon" onClick={onDeleteSelectedRows} disabled={selectedRowCount === 0}>
                   <Trash2 className="h-4 w-4" />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent><p>Delete Selected</p></TooltipContent>
-            </Tooltip>
+                <div className="dt-tooltip-content">Delete Selected</div>
+            </div>
           )}
 
           {toolbarVisibility.toggleCharts !== false && (
-             <Tooltip>
-              <TooltipTrigger asChild>
+             <div className="dt-tooltip-wrapper">
                 <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => onToggleCharts(!showCharts)}>
-                  <PieChart className={cn("h-4 w-4", showCharts && "text-blue-500")} />
+                  <PieChart className="h-4 w-4" style={{color: showCharts ? 'hsl(var(--primary))' : 'inherit'}} />
                 </button>
-              </TooltipTrigger>
-              <TooltipContent><p>{showCharts ? 'Hide Charts' : 'Show Charts'}</p></TooltipContent>
-            </Tooltip>
+                <div className="dt-tooltip-content">{showCharts ? 'Hide Charts' : 'Show Charts'}</div>
+            </div>
           )}
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
-            <DropdownMenu>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <button className="dt-button dt-button--ghost dt-button--icon">
-                          <Download className="h-4 w-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent><p>Export Data</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <DropdownMenuContent>
-                  {onExportCsv && <DropdownMenuItem onClick={onExportCsv}><FileText className="mr-2 h-4 w-4" />Export as CSV</DropdownMenuItem>}
-                  {onExportXlsx && <DropdownMenuItem onClick={onExportXlsx}><FileSpreadsheet className="mr-2 h-4 w-4" />Export as Excel</DropdownMenuItem>}
-                  {onExportPdf && <DropdownMenuItem onClick={onExportPdf}><File className="mr-2 h-4 w-4" />Export as PDF</DropdownMenuItem>}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className={`dt-dropdown ${isExportOpen ? 'open' : ''}`} ref={exportDropdownRef}>
+                <div className="dt-tooltip-wrapper">
+                    <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => setExportOpen(!isExportOpen)}>
+                        <Download className="h-4 w-4" />
+                    </button>
+                    <div className="dt-tooltip-content">Export Data</div>
+                </div>
+              <div className="dt-dropdown-content">
+                  {onExportCsv && <div className="dt-dropdown-item" onClick={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</div>}
+                  {onExportXlsx && <div className="dt-dropdown-item" onClick={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</div>}
+                  {onExportPdf && <div className="dt-dropdown-item" onClick={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</div>}
+              </div>
+            </div>
           )}
 
           {toolbarVisibility.viewOptions !== false && (
-            <DropdownMenu>
-               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <button className="dt-button dt-button--ghost dt-button--icon">
-                          <SlidersHorizontal className="h-4 w-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent><p>View Options</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
-                <DropdownMenuSeparator />
+            <div className={`dt-dropdown ${isViewOptionsOpen ? 'open' : ''}`} ref={viewOptionsDropdownRef}>
+                <div className="dt-tooltip-wrapper">
+                    <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => setViewOptionsOpen(!isViewOptionsOpen)}>
+                        <SlidersHorizontal className="h-4 w-4" />
+                    </button>
+                    <div className="dt-tooltip-content">View Options</div>
+                </div>
+              <div className="dt-dropdown-content">
+                <div className="dt-dropdown-label">Table Settings</div>
+                <div className="dt-dropdown-separator" />
                 {toolbarVisibility.toggleSorting !== false && (
-                  <DropdownMenuCheckboxItem checked={sortingEnabled} onCheckedChange={onSortingToggle}>
+                  <div className="dt-dropdown-item" onClick={() => onSortingToggle(!sortingEnabled)}>
+                      <input type="checkbox" className="dt-checkbox" readOnly checked={sortingEnabled} />
                       Enable Sorting
-                  </DropdownMenuCheckboxItem>
+                  </div>
                 )}
                 {toolbarVisibility.togglePagination !== false && (
-                  <DropdownMenuCheckboxItem checked={paginationEnabled} onCheckedChange={onPaginationToggle}>
+                  <div className="dt-dropdown-item" onClick={() => onPaginationToggle(!paginationEnabled)}>
+                      <input type="checkbox" className="dt-checkbox" readOnly checked={paginationEnabled} />
                       Enable Pagination
-                  </DropdownMenuCheckboxItem>
+                  </div>
                 )}
                 {toolbarVisibility.toggleColumns !== false && (
                   <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
+                    <div className="dt-dropdown-separator" />
+                    <div className="dt-dropdown-label">Toggle Columns</div>
+                    <div className="dt-dropdown-separator" />
                     {table
                         .getAllColumns()
                         .filter((column) => column.getCanHide())
                         .map((column) => {
                             const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                             return (
-                            <DropdownMenuCheckboxItem
+                            <div
                                 key={column.id}
-                                checked={column.getIsVisible()}
-                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                className="dt-dropdown-item"
+                                onClick={() => column.toggleVisibility(!column.getIsVisible())}
                             >
+                                <input type="checkbox" className="dt-checkbox" readOnly checked={column.getIsVisible()} />
                                 {label}
-                            </DropdownMenuCheckboxItem>
+                            </div>
                             );
                     })}
                   </>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </div>
+            </div>
           )}
-        </TooltipProvider>
       </div>
     </div>
   );
@@ -500,10 +463,6 @@ function DataTableToolbar<TData>({
 
 /**
  * A pure helper function for reordering columns in an array.
- * @param draggedColumnId The ID of the column being dragged.
- * @param targetColumnId The ID of the column where the dragged column is dropped.
- * @param columnOrder The current array of column IDs.
- * @returns A new array with the reordered column IDs.
  */
 const reorderColumn = (
   draggedColumnId: string,
@@ -524,7 +483,6 @@ const reorderColumn = (
 
 /**
  * Interface defining the structure for a context menu item.
- * @template TData The type of data in the row.
  */
 export interface ContextMenuItem<TData> {
   label: React.ReactNode;
@@ -534,7 +492,6 @@ export interface ContextMenuItem<TData> {
 
 /**
  * Props for the main DataTable component.
- * @template TData The type of data in the table.
  */
 interface DataTableProps<TData> {
   data: TData[];
@@ -574,8 +531,6 @@ interface DataTableProps<TData> {
 
 /**
  * The generic and highly configurable DataTable component.
- * It uses @tanstack/react-table for its core logic and @tanstack/react-virtual
- * for high-performance scrolling (virtualization).
  */
 export function DataTable<TData>({
   data,
@@ -616,6 +571,22 @@ export function DataTable<TData>({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
   const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; row: TData } | null>(null);
+  const contextMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setContextMenu(null);
+      }
+    };
+    if (contextMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [contextMenu]);
+
 
   // State for toggling table features like pagination and sorting.
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
@@ -722,17 +693,17 @@ export function DataTable<TData>({
 
   return (
       <div className="data-table-container">
-        <div className="flex items-start justify-between gap-4">
+        <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem'}}>
             <div>
-                {tableTitle && <h2 className="text-lg font-semibold">{tableTitle}</h2>}
-                {tableDescription && <p className="text-sm text-gray-500 mt-1">{tableDescription}</p>}
+                {tableTitle && <h2 style={{fontSize: '1.125rem', fontWeight: 600}}>{tableTitle}</h2>}
+                {tableDescription && <p style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem'}}>{tableDescription}</p>}
             </div>
-            <div className="text-sm text-gray-500 text-right shrink-0 pt-1">
-                <span className="font-bold text-gray-900">
+            <div style={{fontSize: '0.875rem', color: '#6b7280', textAlign: 'right', flexShrink: 0, paddingTop: '0.25rem'}}>
+                <span style={{fontWeight: 700, color: '#111827'}}>
                     {table.getFilteredRowModel().rows.length.toLocaleString()}
                 </span>
                 {" "}of{" "}
-                <span className="font-bold text-gray-900">
+                <span style={{fontWeight: 700, color: '#111827'}}>
                     {data.length.toLocaleString()}
                 </span>
                 {" "}rows
@@ -769,17 +740,16 @@ export function DataTable<TData>({
             }}
         >
             <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
-              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 10 }}>
+              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 10, backgroundColor: '#f9fafb' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
                     key={headerGroup.id} 
-                    className="flex w-full bg-gray-50 hover:bg-gray-50"
+                    style={{display: 'flex', width: '100%'}}
                   >
                       {headerGroup.headers.map((header) => (
                         <TableHead 
                           key={header.id} 
                           colSpan={header.colSpan}
-                          data-column-id={header.id}
                           style={{ width: header.getSize(), display: 'flex', flexShrink: 0, minWidth: header.column.columnDef.minSize }}
                           onDrop={(e) => {
                             e.preventDefault();
@@ -794,7 +764,7 @@ export function DataTable<TData>({
                           onDragOver={(e) => e.preventDefault()}
                         >
                            <div 
-                              className="flex-grow flex items-center h-full overflow-hidden"
+                              style={{flexGrow: 1, display: 'flex', alignItems: 'center', height: '100%', overflow: 'hidden'}}
                               draggable
                               onDragStart={(e) => {
                                 e.dataTransfer.setData('text/plain', header.id);
@@ -812,10 +782,7 @@ export function DataTable<TData>({
                               <div
                                 onMouseDown={header.getResizeHandler()}
                                 onTouchStart={header.getResizeHandler()}
-                                className={cn(
-                                  "flex items-center justify-center h-full cursor-col-resize select-none touch-none px-1",
-                                  header.column.getIsResizing() ? "bg-blue-200" : "hover:bg-gray-200"
-                                )}
+                                className={`dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
                               >
                                 <MoreVertical className="h-4 w-4 text-gray-400" />
                               </div>
@@ -838,7 +805,7 @@ export function DataTable<TData>({
                     return (
                         <TableRow
                             key={row.id}
-                            data-state={row.getIsSelected() && "selected"}
+                            data-state={row.getIsSelected() ? "selected" : ""}
                             onDoubleClick={() => onRowDoubleClick?.(row.original)}
                             onContextMenu={(e) => { 
                                 e.preventDefault(); 
@@ -863,7 +830,7 @@ export function DataTable<TData>({
                                     const start = Math.min(lastClickedRowIndex.current, rowIndex);
                                     const end = Math.max(lastClickedRowIndex.current, rowIndex);
                                     
-                                    const newSelection = {}; // Shift-click replaces current selection
+                                    const newSelection: {[key: string]: boolean} = {}; 
                                     for(let i = start; i <= end; i++) {
                                         const rowId = rows[i]?.id;
                                         if (rowId) {
@@ -873,15 +840,14 @@ export function DataTable<TData>({
                                     table.setRowSelection(newSelection);
                                 } else if (e.metaKey || e.ctrlKey) {
                                     const newSelection = { ...rowSelection };
-                                    if (newSelection[row.id]) {
-                                        delete newSelection[row.id];
+                                    if ((newSelection as any)[row.id]) {
+                                        delete (newSelection as any)[row.id];
                                     } else {
-                                        newSelection[row.id] = true;
+                                        (newSelection as any)[row.id] = true;
                                     }
                                     table.setRowSelection(newSelection);
                                     lastClickedRowIndex.current = rowIndex;
                                 } else {
-                                    // Normal click
                                     table.setRowSelection({ [row.id]: true });
                                     lastClickedRowIndex.current = rowIndex;
                                 }
@@ -892,7 +858,7 @@ export function DataTable<TData>({
                                     const start = Math.min(dragStartRowIndex, rowIndex);
                                     const end = Math.max(dragStartRowIndex, rowIndex);
 
-                                    const newSelection = {}; // Drag select creates a new selection
+                                    const newSelection: {[key: string]: boolean} = {}; 
                                     for(let i = start; i <= end; i++) {
                                         const rowId = rows[i]?.id;
                                         if (rowId) {
@@ -922,7 +888,7 @@ export function DataTable<TData>({
                     )
                   })
                 ) : (
-                  <TableRow className="flex items-center justify-center w-full" style={{ height: '60px' }}>
+                  <TableRow style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '60px' }}>
                     <TableCell>No results.</TableCell>
                   </TableRow>
                 )}
@@ -936,11 +902,12 @@ export function DataTable<TData>({
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
-            <div className="flex items-center space-x-6 lg:space-x-8">
-              <div className="flex items-center space-x-2">
-                <p className="text-sm font-medium">Rows per page</p>
+            <div style={{display: 'flex', alignItems: 'center', gap: '2rem'}}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                <p style={{fontSize: '0.875rem', fontWeight: 500}}>Rows per page</p>
                 <select
-                  className="dt-select w-[70px]"
+                  className="dt-select"
+                  style={{width: '70px'}}
                   value={table.getState().pagination.pageSize}
                   onChange={e => {
                     table.setPageSize(Number(e.target.value))
@@ -953,14 +920,14 @@ export function DataTable<TData>({
                   ))}
                 </select>
               </div>
-              <div className="flex w-[100px] items-center justify-center text-sm font-medium">
+              <div style={{display: 'flex', width: '100px', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: 500}}>
                 Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
               </div>
-              <div className="flex items-center space-x-2">
-                <button className="dt-button dt-button--outline dt-button--icon hidden lg:flex" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
+              <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                <button className="dt-button dt-button--outline dt-button--icon" style={{display: 'none'}} onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
                 <button className="dt-button dt-button--outline dt-button--icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></button>
                 <button className="dt-button dt-button--outline dt-button--icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></button>
-                <button className="dt-button dt-button--outline dt-button--icon hidden lg:flex" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
+                <button className="dt-button dt-button--outline dt-button--icon" style={{display: 'none'}} onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
               </div>
             </div>
           </div>
@@ -975,39 +942,27 @@ export function DataTable<TData>({
           </div>
         )}
 
-        <DropdownMenu
-            open={!!contextMenu}
-            onOpenChange={(isOpen) => {
-            if (!isOpen) {
-                setContextMenu(null);
-            }
-            }}
-            modal={false}
-        >
-            <DropdownMenuTrigger
+        {contextMenu && contextMenuItems && contextMenuItems.length > 0 && (
+            <div
+                ref={contextMenuRef}
+                className="dt-dropdown-content"
                 style={{
+                    display: 'block',
                     position: "fixed",
-                    left: contextMenu?.x,
-                    top: contextMenu?.y,
-                    width: 1,
-                    height: 1,
-                    opacity: 0,
-                    pointerEvents: "none",
+                    left: contextMenu.x,
+                    top: contextMenu.y,
                 }}
-            />
-            {contextMenu?.row && contextMenuItems && contextMenuItems.length > 0 && (
-                <DropdownMenuContent onContextMenu={(e) => e.preventDefault()}>
-                    {contextMenuItems.map((item, index) => (
-                        <React.Fragment key={index}>
-                            <DropdownMenuItem onClick={() => item.onClick(contextMenu.row)}>
-                                {item.label}
-                            </DropdownMenuItem>
-                            {item.separator && <DropdownMenuSeparator />}
-                        </React.Fragment>
-                    ))}
-                </DropdownMenuContent>
-            )}
-        </DropdownMenu>
+            >
+                {contextMenuItems.map((item, index) => (
+                    <React.Fragment key={index}>
+                        <div className="dt-dropdown-item" onClick={() => { item.onClick(contextMenu.row); setContextMenu(null); }}>
+                            {item.label}
+                        </div>
+                        {item.separator && <div className="dt-dropdown-separator" />}
+                    </React.Fragment>
+                ))}
+            </div>
+        )}
       </div>
   );
 }

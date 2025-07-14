@@ -6,7 +6,6 @@ import { makeData, newAlarm } from '../lib/data';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../FMComponents/ui/dropdown-menu';
 import { ChevronDown, Edit } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { type Table as ReactTable, type ColumnFiltersState } from '@tanstack/react-table';
@@ -36,6 +35,7 @@ import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 import { Button } from '@/FMComponents/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/FMComponents/ui/dropdown-menu';
 
 
 /**
@@ -302,8 +302,8 @@ export default function Home() {
     },
      {
       label: (
-        <div className="flex items-center">
-          <Edit className="mr-2 h-4 w-4" />
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Edit style={{ marginRight: '8px', height: '16px', width: '16px' }} />
           Update Alarm
         </div>
       ),
@@ -388,7 +388,7 @@ export default function Home() {
         head: [headers],
         body: body,
         styles: { fontSize: 8 },
-        headStyles: { fillColor: [38, 109, 168] },
+        headStyles: { fill: [38, 109, 168] },
     });
     doc.save('alarms.pdf');
   };
@@ -399,8 +399,8 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div className="page-container">
+      <main className="main-content">
         <div className="page-header">
           <h1>
             Real-Time Alarm Dashboard
@@ -410,18 +410,18 @@ export default function Home() {
           </p>
         </div>
         
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="content-layout">
             {/* Charts Column */}
             {showCharts && (
-              <div className="lg:w-1/3 lg:order-first w-full order-last space-y-4">
-                  <div className="flex flex-wrap items-center gap-4">
-                      <h2 className="text-xl font-semibold">Visualizations</h2>
+              <div className="charts-column">
+                  <div className="charts-header">
+                      <h2>Visualizations</h2>
                       <div className="relative inline-block text-left">
                           <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                   <Button variant="outline">
                                       Add Chart
-                                      <ChevronDown className="ml-2 h-4 w-4" />
+                                      <ChevronDown style={{ marginLeft: '8px', height: '16px', width: '16px' }} />
                                   </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
@@ -456,8 +456,8 @@ export default function Home() {
             )}
 
             {/* Data Table Column */}
-            <div className={showCharts ? "lg:w-2/3 w-full" : "w-full"}>
-                <div className="p-2 rounded-lg border border-gray-200 bg-white text-gray-900 shadow-md">
+            <div className={showCharts ? "table-column-expanded" : "table-column-full"}>
+                <div className="table-card">
                     <DataTable
                         tableContainerRef={tableContainerRef}
                         data={data}

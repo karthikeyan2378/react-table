@@ -3,21 +3,18 @@
 
 import { type ColumnDef, type ColumnFiltersState } from '@tanstack/react-table';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { Checkbox } from '../FMComponents/ui/checkbox';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../FMComponents/ui/tooltip';
-import { Badge } from '../FMComponents/ui/badge';
-import { cn } from '../lib/cn';
 import { highlightText } from '../lib/utils.tsx';
+import React from 'react';
 
 const severityColors: Record<string, string> = {
-  Critical: "bg-red-500",
-  Major: "bg-orange-500",
-  Minor: "bg-yellow-500",
-  Warning: "bg-blue-500",
-  Indeterminate: "bg-gray-500",
-  Cleared: "bg-green-500",
+  Critical: "#EF4444",
+  Major: "#F97316",
+  Minor: "#EAB308",
+  Warning: "#3B82F6",
+  Indeterminate: "#6B7280",
+  Cleared: "#22C55E",
 };
 
 export const getColumns = (): ColumnDef<Alarm>[] => {
@@ -25,16 +22,20 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
       {
         id: "select",
         header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            <input
+                type="checkbox"
+                className="dt-checkbox"
+                checked={table.getIsAllPageRowsSelected()}
+                onChange={(value) => table.toggleAllPageRowsSelected(!!value.target.checked)}
                 aria-label="Select all rows"
             />
         ),
         cell: ({ row }) => (
-          <Checkbox
+          <input
+            type="checkbox"
+            className="dt-checkbox"
             checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            onChange={(value) => row.toggleSelected(!!value.target.checked)}
             aria-label="Select row"
           />
         ),
@@ -51,14 +52,14 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         id: key,
         header: ({ column }) => {
             return (
-              <div className="flex items-center justify-between w-full h-full">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-800">{config.label}</span>
+              <div className="dt-header-content">
+                <div className="dt-header-label">
+                  <span>{config.label}</span>
                 </div>
-                <div className="flex items-center">
+                <div className="dt-header-sorter">
                   {column.getCanSort() && (
                     <div
-                      className="flex items-center justify-center h-8 w-8 cursor-pointer"
+                      className="dt-sorter-button"
                       onClick={(e) => {
                         e.stopPropagation();
                         column.toggleSorting(column.getIsSorted() === 'asc');
@@ -69,7 +70,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                       ) : column.getIsSorted() === 'asc' ? (
                         <ArrowUp className="h-4 w-4" />
                       ) : (
-                        <ChevronsUpDown className="h-4 w-4 text-gray-500/50" />
+                        <ChevronsUpDown className="h-4 w-4" />
                       )}
                     </div>
                   )}
@@ -98,42 +99,37 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                 const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
                 const formattedDate = format(value, formatString);
                 return (
-                  <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild><span className="block truncate">{formattedDate}</span></TooltipTrigger>
-                    <TooltipContent><p>{formattedDate}</p></TooltipContent>
-                  </Tooltip>
-                  </TooltipProvider>
+                    <div className="dt-tooltip-wrapper">
+                        <span className="truncate">{formattedDate}</span>
+                        <div className="dt-tooltip-content">{formattedDate}</div>
+                    </div>
                 );
             } catch (e) {
-                return <span className="block truncate text-red-500">Invalid Date</span>
+                return <span className="truncate text-red-500">Invalid Date</span>
             }
           }
           
           if (key === 'Severity') {
             return (
-              <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Badge className={cn("capitalize text-white", severityColors[value] || 'bg-gray-400')}>{highlightedContent}</Badge>
-                </TooltipTrigger>
-                <TooltipContent><p>Severity: {value}</p></TooltipContent>
-              </Tooltip>
-              </TooltipProvider>
+                <div className="dt-tooltip-wrapper">
+                  <span
+                    className="dt-badge"
+                    style={{ backgroundColor: severityColors[value] || '#6B7280' }}
+                  >
+                    {highlightedContent}
+                  </span>
+                  <div className="dt-tooltip-content">Severity: {value}</div>
+                </div>
             );
           }
 
           return (
-            <TooltipProvider>
-             <Tooltip>
-                <TooltipTrigger asChild>
-                    <span className="block truncate">
-                        {highlightedContent}
-                    </span>
-                </TooltipTrigger>
-                <TooltipContent><p>{String(value ?? '')}</p></TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div className="dt-tooltip-wrapper">
+                 <span className="truncate">
+                     {highlightedContent}
+                 </span>
+                 <div className="dt-tooltip-content">{String(value ?? '')}</div>
+            </div>
           );
         },
         size: config.columnSize || 150,

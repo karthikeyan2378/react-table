@@ -1,6 +1,7 @@
 
 import type {Metadata} from 'next';
 import { LayoutComponent } from './layout-component';
+import './globals.css';
 import './custom-styles.css';
 
 export const metadata: Metadata = {
@@ -16,7 +17,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script src="https://cdn.tailwindcss.com"></script>
       </head>
       <body className="antialiased">
         <LayoutComponent>{children}</LayoutComponent>
