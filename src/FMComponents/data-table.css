@@ -403,14 +403,26 @@
 .cygnet-dt-header-cell--sticky,
 .cygnet-dt-table-cell--sticky {
     position: sticky;
-    z-index: 1; /* Cells need a z-index to appear above non-sticky cells */
-    background-color: inherit; /* Inherit from the row's background color */
+    background-color: #fff; /* Default solid background */
 }
 
 .cygnet-dt-header-cell--sticky {
     z-index: 3; /* Header cells need to be above body cells */
     background-color: #f9fafb; /* Match header background */
 }
+
+.cygnet-dt-table-cell--sticky {
+    z-index: 1; /* Body cells */
+}
+
+/* Ensure sticky cells get correct background on hover/select */
+.cygnet-dt-table-row:hover .cygnet-dt-table-cell--sticky {
+    background-color: #f9fafb; /* Match row hover background */
+}
+.cygnet-dt-table-row[data-state='selected'] .cygnet-dt-table-cell--sticky {
+    background-color: #eff6ff; /* Match row selected background */
+}
+
 
 /* Add a shadow to indicate scrollable content */
 .cygnet-dt-header-cell--sticky:last-of-type,
