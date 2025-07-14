@@ -34,8 +34,6 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
-import { Button } from '@/FMComponents/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/FMComponents/ui/dropdown-menu';
 
 
 /**
@@ -43,6 +41,22 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
  * This is derived from the keys of the `alarmConfig.fields`.
  */
 type ChartableColumn = keyof typeof alarmConfig.fields;
+
+const useDropdown = (ref: React.RefObject<HTMLDivElement>) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [ref]);
+
+    return { isOpen, setIsOpen };
+};
 
 /**
  * The main page component for the Alarm Dashboard application.
@@ -79,6 +93,9 @@ export default function Home() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
   // State to hold the data of the row being updated.
   const [rowToUpdate, setRowToUpdate] = React.useState<Alarm | null>(null);
+  // Dropdown state for "Add Chart" button
+  const addChartDropdownRef = React.useRef<HTMLDivElement>(null);
+  const { isOpen: isAddChartOpen, setIsOpen: setAddChartOpen } = useDropdown(addChartDropdownRef);
 
   /**
    * Memoized callback to get a unique ID for each row.
@@ -206,6 +223,7 @@ export default function Home() {
     if (!activeCharts.includes(columnId)) {
       setActiveCharts([...activeCharts, columnId]);
     }
+    setAddChartOpen(false);
   };
 
   /**
@@ -416,42 +434,40 @@ export default function Home() {
               <div className="charts-column">
                   <div className="charts-header">
                       <h2>Visualizations</h2>
-                      <div className="relative inline-block text-left">
-                          <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                  <Button variant="outline">
-                                      Add Chart
-                                      <ChevronDown style={{ marginLeft: '8px', height: '16px', width: '16px' }} />
-                                  </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                  {summarizableColumns.map((key) => (
-                                      <DropdownMenuItem
-                                      key={key}
-                                      onClick={() => handleAddChart(key)}
-                                      disabled={activeCharts.includes(key)}
-                                      >
-                                      {alarmConfig.fields[key].label}
-                                      </DropdownMenuItem>
-                                  ))}
-                              </DropdownMenuContent>
-                          </DropdownMenu>
+                      <div className={`dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
+                          <button className="dt-button dt-button--outline" onClick={() => setAddChartOpen(prev => !prev)}>
+                              Add Chart
+                              <ChevronDown className="lucide" style={{ marginLeft: '8px' }} />
+                          </button>
+                          <div className="dt-dropdown-content">
+                              {summarizableColumns.map((key) => (
+                                  <div
+                                    key={key}
+                                    className={`dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
+                                    onClick={() => handleAddChart(key)}
+                                  >
+                                  {alarmConfig.fields[key].label}
+                                  </div>
+                              ))}
+                          </div>
                       </div>
                   </div>
-                   {activeCharts.map((columnId) => {
-                      const activeFilter = columnFilters.find(f => f.id === columnId);
-                      return (
-                          <ColumnChart
-                              key={columnId}
-                              columnId={columnId}
-                              label={alarmConfig.fields[columnId].label}
-                              data={data} // Pass full dataset to chart
-                              onRemove={handleRemoveChart}
-                              onFilter={handleChartFilter}
-                              activeFilters={(activeFilter?.value as string[]) || []}
-                          />
-                      );
-                  })}
+                  <div className="charts-grid">
+                    {activeCharts.map((columnId) => {
+                        const activeFilter = columnFilters.find(f => f.id === columnId);
+                        return (
+                            <ColumnChart
+                                key={columnId}
+                                columnId={columnId}
+                                label={alarmConfig.fields[columnId].label}
+                                data={data} // Pass full dataset to chart
+                                onRemove={handleRemoveChart}
+                                onFilter={handleChartFilter}
+                                activeFilters={(activeFilter?.value as string[]) || []}
+                            />
+                        );
+                    })}
+                   </div>
               </div>
             )}
 
@@ -511,20 +527,20 @@ export default function Home() {
               <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setDialogRow(null)}>Close</AlertDialogCancel>
+              <AlertDialogCancel className="dt-button dt-button--outline" onClick={() => setDialogRow(null)}>Close</AlertDialogCancel>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
         {/* Update Row Dialog */}
         <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Update Alarm</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="additionalText" className="text-right">
+                <Label htmlFor="additionalText" style={{textAlign: 'right'}}>
                   Additional Text
                 </Label>
                 <Textarea
@@ -537,9 +553,9 @@ export default function Home() {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <button className="dt-button dt-button--outline">Cancel</button>
               </DialogClose>
-              <Button onClick={() => rowToUpdate && onRowUpdate(rowToUpdate)}>Save changes</Button>
+              <button className="dt-button" onClick={() => rowToUpdate && onRowUpdate(rowToUpdate)}>Save changes</button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

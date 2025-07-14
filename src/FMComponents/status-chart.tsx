@@ -2,12 +2,10 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, Pie, PieChart, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Bar, BarChart, Pie, PieChart as RechartsPieChart, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { X as XIcon, PieChart as PieChartIcon, BarChart2, Donut } from 'lucide-react';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
+import './status-chart.css';
 
 /**
  * Defines the types of charts that can be rendered.
@@ -16,9 +14,28 @@ type ChartType = 'pie' | 'bar' | 'doughnut';
 
 /**
  * Defines the columns from the alarm data that are suitable for charting.
- * It's derived from the keys of the `alarmConfig.fields`.
  */
 type ChartableColumn = keyof typeof alarmConfig.fields;
+
+/**
+ * Custom Dropdown Hook
+ */
+const useDropdown = (ref: React.RefObject<HTMLDivElement>) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [ref]);
+
+    return { isOpen, setIsOpen };
+};
+
 
 /**
  * Props for the ColumnChart component.
@@ -61,12 +78,12 @@ const ColumnChartComponent = ({
   
   // State to manage the current chart type being displayed.
   const [chartType, setChartType] = React.useState<ChartType>(initialChartType);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const { isOpen, setIsOpen } = useDropdown(dropdownRef);
+
 
   /**
    * Memoized calculation of chart data.
-   * It processes the raw `data` prop and aggregates it into a format
-   * suitable for Recharts, counting occurrences of each unique value in the specified column.
-   * For numerical columns, it groups data into bins.
    */
   const chartData = React.useMemo(() => {
     if (columnConfig.columnType === 'numerical') {
@@ -99,11 +116,6 @@ const ColumnChartComponent = ({
   
   /**
    * Retrieves the color for a specific data entry.
-   * It first checks for a color configured in `alarm-config.ts`.
-   * If not found, it falls back to the `DEFAULT_COLORS` array.
-   * @param entryName The name of the data entry (e.g., 'Critical').
-   * @param index The index of the data entry in the chartData array.
-   * @returns The hex color code.
    */
   const getColor = (entryName: string, index: number) => {
     const configuredColors = columnConfig.chartConfig?.colors;
@@ -127,41 +139,39 @@ const ColumnChartComponent = ({
   const finalChartType = isNumerical ? 'bar' : chartType;
 
   return (
-    <Card className="h-auto">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{label} Distribution</CardTitle>
-        <div className="flex items-center gap-1">
+    <div className="chart-card">
+      <div className="chart-card-header">
+        <h3 className="chart-card-title">{label} Distribution</h3>
+        <div className="chart-card-actions">
           {/* Dropdown to switch between chart types, hidden for numerical charts */}
           {!isNumerical && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <ChartIcon className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setChartType('pie')}>
-                  <PieChartIcon className="mr-2 h-4 w-4" />
+            <div className={`dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
+              <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => setIsOpen(prev => !prev)}>
+                <ChartIcon className="lucide" />
+              </button>
+              <div className="dt-dropdown-content">
+                <div className="dt-dropdown-item" onClick={() => { setChartType('pie'); setIsOpen(false); }}>
+                  <PieChartIcon className="lucide lucide-dropdown" />
                   Pie Chart
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setChartType('doughnut')}>
-                  <Donut className="mr-2 h-4 w-4" />
+                </div>
+                <div className="dt-dropdown-item" onClick={() => { setChartType('doughnut'); setIsOpen(false); }}>
+                  <Donut className="lucide lucide-dropdown" />
                   Doughnut Chart
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setChartType('bar')}>
-                  <BarChart2 className="mr-2 h-4 w-4" />
+                </div>
+                <div className="dt-dropdown-item" onClick={() => { setChartType('bar'); setIsOpen(false); }}>
+                  <BarChart2 className="lucide lucide-dropdown" />
                   Bar Chart
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </div>
+              </div>
+            </div>
           )}
           {/* Button to remove the chart */}
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onRemove(columnId)}>
-            <XIcon className="h-4 w-4" />
-          </Button>
+          <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => onRemove(columnId)}>
+            <XIcon className="lucide" />
+          </button>
         </div>
-      </CardHeader>
-      <CardContent className="h-[200px] w-full p-0">
+      </div>
+      <div className="chart-card-content">
         <ResponsiveContainer width="100%" height="100%">
           {finalChartType === 'bar' ? (
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 50 }}>
@@ -177,8 +187,8 @@ const ColumnChartComponent = ({
                         key={`cell-${index}`} 
                         fill={getColor(entry.name, index)} 
                         cursor="pointer" 
-                        stroke={isSelected ? '#A9A9A9' : 'none'}
-                        strokeWidth={2}
+                        stroke={isSelected ? '#333' : 'none'}
+                        strokeWidth={3}
                         style={{ outline: 'none' }}
                       />
                     )
@@ -186,7 +196,8 @@ const ColumnChartComponent = ({
               </Bar>
             </BarChart>
           ) : (
-            <PieChart>
+            <RechartsPieChart>
+              <RechartsTooltip />
               <Pie
                 data={chartData}
                 dataKey="value"
@@ -207,19 +218,18 @@ const ColumnChartComponent = ({
                       key={`cell-${index}`} 
                       fill={getColor(entry.name, index)} 
                       cursor="pointer" 
-                      stroke={isSelected ? '#A9A9A9' : 'none'}
-                      strokeWidth={2}
+                      stroke={isSelected ? '#333' : 'none'}
+                      strokeWidth={3}
                       style={{ outline: 'none' }}
                     />
                   )
                 })}
               </Pie>
-              <RechartsTooltip />
-            </PieChart>
+            </RechartsPieChart>
           )}
         </ResponsiveContainer>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

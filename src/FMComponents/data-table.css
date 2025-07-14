@@ -146,6 +146,11 @@
     height: 2.25rem;
 }
 
+.dt-button--icon .lucide {
+    height: 1rem;
+    width: 1rem;
+}
+
 
 .dt-button:disabled {
     pointer-events: none;
@@ -228,7 +233,7 @@
     z-index: 20;
     bottom: 125%;
     left: 50%;
-    margin-left: -50%;
+    transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.3s;
     font-size: 0.875rem;
