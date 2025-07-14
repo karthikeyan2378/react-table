@@ -2,7 +2,7 @@
 
 This project contains a set of reusable components for displaying real-time data in a highly configurable table, complete with filtering, sorting, and charting capabilities. The main component, `DataTable`, has been architected to be generic and reusable.
 
-The components are built with React and ShadCN UI and use the Tailwind CSS CDN for styling.
+The components are built with React and ShadCN UI and use custom CSS for styling.
 
 ---
 
@@ -222,26 +222,29 @@ Copy the following files and directories from this project into the `src` direct
 
 ### Step 2: Install Dependencies
 
-Install the necessary packages. Open a terminal in your new project's root directory and run the following commands.
+Install the necessary packages by running the `npm install` command with the dependencies listed in this project's `package.json` file. The key dependencies are:
 
-**Production Dependencies:**
-```bash
-npm install @radix-ui/react-alert-dialog @radix-ui/react-checkbox @radix-ui/react-dialog @radix-ui/react-dropdown-menu @radix-ui/react-label @radix-ui/react-scroll-area @radix-ui/react-select @radix-ui/react-separator @radix-ui/react-slot @radix-ui/react-switch @radix-ui/react-toast @radix-ui/react-tooltip @tanstack/react-table @tanstack/react-virtual class-variance-authority clsx date-fns exceljs jspdf jspdf-autotable lucide-react next react react-dom recharts tailwind-merge
+- `@tanstack/react-table`
+- `@tanstack/react-virtual`
+- `lucide-react`
+- `recharts`
+- `date-fns`
+- Various `@radix-ui/*` components
+- `exceljs`, `jspdf`, `jspdf-autotable` for export functionality
+
+### Step 3: Import CSS Files
+
+This project uses custom CSS files for styling, not a CSS framework like Tailwind directly. You must import these stylesheets into your application's main entry point or root layout component.
+
+In your `src/app/layout.tsx` (or equivalent), add the following imports:
+```tsx
+import './globals.css';
+import './custom-styles.css';
+import '../FMComponents/data-table.css';
+import '../FMComponents/status-chart.css';
 ```
 
-**Development Dependencies (for TypeScript users):**
-```bash
-npm install -D @types/node @types/react @types/react-dom typescript
-```
-
-### Step 3: Configure Styling via CDN
-
-This project uses the Tailwind CSS CDN for styling. Add the following script tag to the `<head>` of your main HTML file (e.g., `public/index.html` or your root layout component).
-
-```html
-<script src="https://cdn.tailwindcss.com"></script>
-```
-**Note**: Because this project uses the Tailwind CDN, it does not support theme customization (e.g., `tailwind.config.ts`) or plugins like `tailwindcss-animate`. All styles use standard Tailwind classes.
+Make sure the paths are correct based on where you copied the files.
 
 ### Step 4: Add the Toaster Provider
 
