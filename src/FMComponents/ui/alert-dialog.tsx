@@ -13,7 +13,7 @@ const AlertDialogOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
-    className={`fixed inset-0 z-50 bg-black/80 ${className || ''}`}
+    className={`alert-dialog-overlay ${className || ''}`}
     {...props}
     ref={ref}
   />
@@ -28,7 +28,7 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
       ref={ref}
-      className={`fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-gray-200 bg-white p-6 shadow-lg sm:rounded-lg ${className || ''}`}
+      className={`alert-dialog-content ${className || ''}`}
       {...props}
     />
   </AlertDialogPortal>
@@ -40,7 +40,7 @@ const AlertDialogHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`flex flex-col space-y-2 text-center sm:text-left ${className || ''}`}
+    className={`alert-dialog-header ${className || ''}`}
     {...props}
   />
 )
@@ -51,7 +51,7 @@ const AlertDialogFooter = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className || ''}`}
+    className={`alert-dialog-footer ${className || ''}`}
     {...props}
   />
 )
@@ -63,7 +63,7 @@ const AlertDialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Title
     ref={ref}
-    className={`text-lg font-semibold ${className || ''}`}
+    className={`alert-dialog-title ${className || ''}`}
     {...props}
   />
 ))
@@ -75,7 +75,7 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Description
     ref={ref}
-    className={`text-sm text-gray-500 ${className || ''}`}
+    className={`alert-dialog-description ${className || ''}`}
     {...props}
   />
 ))
@@ -88,7 +88,7 @@ const AlertDialogAction = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Action
     ref={ref}
-    className={`${className || ''}`} // Removed buttonVariants
+    className={`${className || ''}`}
     {...props}
   />
 ))
@@ -100,7 +100,7 @@ const AlertDialogCancel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Cancel
     ref={ref}
-    className={`mt-2 sm:mt-0 ${className || ''}`} // Removed buttonVariants
+    className={`mt-2 sm:mt-0 ${className || ''}`}
     {...props}
   />
 ))
