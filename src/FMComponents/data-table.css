@@ -171,7 +171,7 @@
 
 .cygnet-dt-select {
     height: 2.25rem;
-    width: 70px; /* Set a fixed width */
+    width: auto;
     border-radius: 0.375rem;
     border: 1px solid #d1d5db;
     padding-left: 0.5rem;
@@ -224,8 +224,17 @@
     font-weight: 500;
     font-size: 0.8125rem; /* 13px */
     color: #1f2937;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-grow: 1;
 }
-.cygnet-dt-header-sorter .cygnet-dt-sorter-button {
+.cygnet-dt-header-controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.cygnet-dt-sorter-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -233,12 +242,12 @@
     width: 2rem;
     cursor: pointer;
 }
-.cygnet-dt-header-sorter .cygnet-dt-sorter-button .lucide {
+.cygnet-dt-sorter-button .lucide {
     height: 0.875rem; /* 14px */
     width: 0.875rem;  /* 14px */
     color: #6b7280;
 }
-.cygnet-dt-header-sorter .cygnet-dt-sorter-button:hover .lucide {
+.cygnet-dt-sorter-button:hover .lucide {
     color: #1f2937;
 }
 
@@ -357,24 +366,23 @@
 
 /* Resizer Handle */
 .cygnet-dt-resizer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute;
+    right: 0;
+    top: 0;
     height: 100%;
+    width: 5px;
+    background: transparent;
     cursor: col-resize;
     user-select: none;
     touch-action: none;
-    padding: 0 0.25rem;
+    z-index: 10;
 }
-.cygnet-dt-resizer:hover {
-    background-color: #e5e7eb;
-}
+
+.cygnet-dt-resizer:hover,
 .cygnet-dt-resizer.is-resizing {
-    background-color: #bfdbfe;
+    background: #3B82F6;
 }
-.cygnet-dt-resizer .lucide {
-    color: #9ca3af;
-}
+
 
 .truncate {
     overflow: hidden;
@@ -386,8 +394,7 @@
 .cygnet-dt-table-row {
     border-bottom: 1px solid #e5e7eb;
     background-color: #fff;
-    display: flex; /* Added for alignment */
-    width: 100%; /* Added for alignment */
+    width: 100%;
 }
 .cygnet-dt-table-row:hover {
     background-color: #f9fafb;
@@ -398,9 +405,9 @@
 
 .cygnet-dt-table-cell {
     font-size: 0.8125rem; /* 13px */
-    padding: 0.5rem 0.75rem; /* Reduced padding slightly */
-    display: flex; /* Added for alignment */
-    align-items: center; /* Added for alignment */
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
 }
 
 /* Styles for sticky/frozen columns */

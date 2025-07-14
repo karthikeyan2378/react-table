@@ -3,7 +3,7 @@
 
 import { type ColumnDef, type ColumnFiltersState } from '@tanstack/react-table';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronsUpDown, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { highlightText } from '../lib/utils.tsx';
 import React from 'react';
@@ -56,24 +56,27 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                 <div className="cygnet-dt-header-label">
                   <span>{config.label}</span>
                 </div>
-                <div className="cygnet-dt-header-sorter">
-                  {column.getCanSort() && (
-                    <div
-                      className="cygnet-dt-sorter-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        column.toggleSorting(column.getIsSorted() === 'asc');
-                      }}
-                    >
-                      {column.getIsSorted() === 'desc' ? (
-                        <ArrowDown className="lucide" />
-                      ) : column.getIsSorted() === 'asc' ? (
-                        <ArrowUp className="lucide" />
-                      ) : (
-                        <ChevronsUpDown className="lucide" />
-                      )}
-                    </div>
-                  )}
+                <div className="cygnet-dt-header-controls">
+                    {column.getCanSort() && (
+                      <div
+                        className="cygnet-dt-sorter-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          column.toggleSorting(column.getIsSorted() === 'asc');
+                        }}
+                      >
+                        {column.getIsSorted() === 'desc' ? (
+                          <ArrowDown className="lucide" />
+                        ) : column.getIsSorted() === 'asc' ? (
+                          <ArrowUp className="lucide" />
+                        ) : (
+                          <ChevronsUpDown className="lucide" />
+                        )}
+                      </div>
+                    )}
+                    {column.getCanResize() && (
+                      <MoreVertical className="lucide" style={{ color: '#9ca3af', height: '0.875rem', width: '0.875rem' }} />
+                    )}
                 </div>
               </div>
             )

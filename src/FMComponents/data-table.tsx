@@ -787,12 +787,11 @@ export function DataTable<TData>({
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
           >
-            <Table style={{ width: table.getTotalSize(), display: 'grid' }}>
-              <TableHeader style={{ display: 'grid', position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
+            <Table style={{ width: table.getTotalSize() }}>
+              <TableHeader style={{ position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
                     key={headerGroup.id} 
-                    style={{ width: '100%'}}
                   >
                       {headerGroup.headers.map((header) => (
                         <TableHead 
@@ -802,6 +801,7 @@ export function DataTable<TData>({
                           style={{ 
                             width: header.getSize(), 
                             minWidth: header.column.columnDef.minSize,
+                            position: 'relative',
                             ...getStickyStyles(header.id) 
                           }}
                           onDrop={(e) => {
@@ -817,7 +817,7 @@ export function DataTable<TData>({
                           onDragOver={(e) => e.preventDefault()}
                         >
                            <div 
-                              style={{flexGrow: 1, display: 'flex', alignItems: 'center', height: '100%', overflow: 'hidden'}}
+                              style={{display: 'flex', alignItems: 'center', height: '100%', overflow: 'hidden'}}
                               draggable
                               onDragStart={(e) => {
                                 e.dataTransfer.setData('text/plain', header.id);
@@ -836,9 +836,7 @@ export function DataTable<TData>({
                                 onMouseDown={header.getResizeHandler()}
                                 onTouchStart={header.getResizeHandler()}
                                 className={`cygnet-dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
-                              >
-                                <MoreVertical className="h-4 w-4 text-gray-400" />
-                              </div>
+                              />
                             )}
                         </TableHead>
                       ))}
@@ -847,7 +845,6 @@ export function DataTable<TData>({
               </TableHeader>
               <TableBody 
                 style={{ 
-                    display: 'grid', 
                     height: rows.length > 0 ? `${rowVirtualizer.getTotalSize()}px` : '60px', 
                     position: 'relative' 
                 }}
@@ -930,6 +927,7 @@ export function DataTable<TData>({
                               left: 0,
                               width: '100%',
                               height: `${virtualRow.size}px`,
+                              display: 'flex',
                               cursor: 'pointer'
                             }}
                           >
