@@ -73,6 +73,7 @@ import { Separator } from "./ui/separator";
 import { Checkbox } from './ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { highlightText } from '../lib/utils.tsx';
+import './data-table.css';
 
 /**
  * Interface defining the structure for a filterable column.
@@ -108,7 +109,7 @@ function DataTableFacetedFilter<TData>({
   title,
   options,
   onRemove,
-  globalFilter = '',
+  globalFilter,
 }: DataTableFacetedFilterProps<TData>) {
   const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
 
@@ -735,7 +736,7 @@ export function DataTable<TData>({
   });
 
   return (
-      <div className="space-y-4">
+      <div className="data-table-container">
         <div className="flex items-start justify-between gap-4">
             <div>
                 {tableTitle && <h2 className="text-lg font-semibold">{tableTitle}</h2>}
@@ -777,7 +778,7 @@ export function DataTable<TData>({
 
         <div 
             ref={tableContainerRef} 
-            className="rounded-md border border-gray-200 overflow-auto relative"
+            className="data-table-wrapper"
             style={{
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
@@ -945,8 +946,8 @@ export function DataTable<TData>({
         </div>
         
         {paginationEnabled && (
-          <div className="flex items-center justify-between py-4">
-            <div className="flex-1 text-sm text-gray-500">
+          <div className="data-table-pagination-container">
+            <div className="data-table-footer-info">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
@@ -979,8 +980,8 @@ export function DataTable<TData>({
         )}
 
         {!paginationEnabled && (
-          <div className="flex items-center py-4">
-            <div className="flex-1 text-sm text-gray-500">
+          <div className="data-table-pagination-container">
+            <div className="data-table-footer-info">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
