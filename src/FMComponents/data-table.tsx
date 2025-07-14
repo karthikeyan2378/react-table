@@ -43,6 +43,8 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { highlightText } from '../lib/utils.tsx';
 import './data-table.css';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
+import { alarmConfig } from "@/config/alarm-config";
+
 
 /**
  * Interface defining the structure for a filterable column.
@@ -96,57 +98,71 @@ function DataTableFacetedFilter<TData>({
   const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const { isOpen, setIsOpen } = useDropdown(dropdownRef);
+  const severityConfig = alarmConfig.fields.Severity.chartConfig;
+  const severityColors = severityConfig?.colors || {};
+
+  const handleFilterChange = (value: string, isSelected: boolean) => {
+    const newSelectedValues = new Set(selectedValues);
+    if (isSelected) {
+      newSelectedValues.delete(value);
+    } else {
+      newSelectedValues.add(value);
+    }
+    const filterValues = Array.from(newSelectedValues);
+    column?.setFilterValue(filterValues.length ? filterValues : undefined);
+  };
+
 
   return (
-    <div className={`dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
-      <button className="dt-button dt-button--outline" style={{ height: '2.25rem' }} onClick={() => setIsOpen(!isOpen)}>
-        <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
-        {title}
-        {selectedValues?.size > 0 && (
-          <>
-            <div style={{width: '1px', height: '1rem', backgroundColor: '#e5e7eb', margin: '0 0.5rem'}} />
-            <span className="dt-badge" style={{ backgroundColor: '#e5e7eb', color: '#1f2937' }}>
-              {selectedValues.size}
-            </span>
-          </>
-        )}
-      </button>
-      <div className="dt-dropdown-content">
-          {options.map((option) => {
-            const isSelected = selectedValues.has(option.value);
-            return (
-              <div
-                key={option.value}
-                className="dt-dropdown-item"
-                onClick={() => {
-                  if (isSelected) {
-                    selectedValues.delete(option.value);
-                  } else {
-                    selectedValues.add(option.value);
-                  }
-                  const filterValues = Array.from(selectedValues);
-                  column?.setFilterValue(
-                    filterValues.length ? filterValues : undefined
-                  );
-                }}
-              >
-                <input type="checkbox" className="dt-checkbox" readOnly checked={isSelected} />
-                <span>{highlightText(option.label, globalFilter)}</span>
-              </div>
-            );
-          })}
-          {selectedValues.size > 0 && (
-            <>
-              <div className="dt-dropdown-separator" />
-              <div
-                onClick={() => column?.setFilterValue(undefined)}
-                className="dt-dropdown-item" style={{justifyContent: 'center'}}
-              >
-                Clear filters
-              </div>
-            </>
-          )}
+    <div className="dt-facet-filter-container">
+        <div className={`dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
+        <button className="dt-button dt-button--outline" style={{ height: '2.25rem' }} onClick={() => setIsOpen(!isOpen)}>
+            <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
+            {title}
+        </button>
+        <div className="dt-dropdown-content">
+            {options.map((option) => {
+                const isSelected = selectedValues.has(option.value);
+                return (
+                <div
+                    key={option.value}
+                    className="dt-dropdown-item"
+                    onClick={() => handleFilterChange(option.value, isSelected)}
+                >
+                    <input type="checkbox" className="dt-checkbox" readOnly checked={isSelected} />
+                    <span>{highlightText(option.label, globalFilter)}</span>
+                </div>
+                );
+            })}
+            {selectedValues.size > 0 && (
+                <>
+                <div className="dt-dropdown-separator" />
+                <div
+                    onClick={() => column?.setFilterValue(undefined)}
+                    className="dt-dropdown-item" style={{justifyContent: 'center'}}
+                >
+                    Clear filters
+                </div>
+                </>
+            )}
+            </div>
         </div>
+
+        {Array.from(selectedValues).map(value => (
+            <span
+                key={value}
+                className="dt-badge dt-badge--filter"
+                style={{ backgroundColor: (severityColors as any)[value] || '#6B7280' }}
+            >
+                {value}
+                <button
+                    className="dt-badge-remove"
+                    onClick={() => handleFilterChange(value, true)}
+                >
+                    <X size={12} />
+                </button>
+            </span>
+        ))}
     </div>
   );
 }

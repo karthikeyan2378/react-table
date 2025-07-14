@@ -90,6 +90,13 @@
     height: 100%;
 }
 
+.dt-facet-filter-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
 /* Generic input, button, select styles */
 .dt-input {
     display: flex;
@@ -261,6 +268,29 @@
     color: #ffffff;
     text-transform: capitalize;
 }
+
+.dt-badge.dt-badge--filter {
+    padding-right: 0.25rem;
+    cursor: default;
+}
+
+.dt-badge-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 9999px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+.dt-badge-remove:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
 
 /* Dropdown */
 .dt-dropdown {
