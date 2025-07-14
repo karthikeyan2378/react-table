@@ -42,7 +42,6 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -52,14 +51,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Input } from "./ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import {
   Table,
   TableBody,
@@ -117,7 +108,7 @@ function DataTableFacetedFilter<TData>({
     <div className="relative">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-8 border-dashed pr-8">
+          <button className="dt-button dt-button--outline h-8 pr-8 border-dashed">
             <PlusCircle className="mr-2 h-4 w-4 text-blue-500" />
             {title}
             {selectedValues?.size > 0 && (
@@ -133,7 +124,7 @@ function DataTableFacetedFilter<TData>({
                 </Badge>
               </>
             )}
-          </Button>
+          </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-[200px]" align="start">
           {options.map((option) => {
@@ -171,14 +162,12 @@ function DataTableFacetedFilter<TData>({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-0 top-0 bottom-0 my-auto h-full px-2 text-gray-500 hover:text-gray-800"
+      <button
+          className="dt-button dt-button--ghost dt-button--icon absolute right-0 top-0 bottom-0 my-auto h-full px-2 text-gray-500 hover:text-gray-800"
           onClick={onRemove}
       >
           <X className="h-4 w-4" />
-      </Button>
+      </button>
     </div>
   );
 }
@@ -276,22 +265,22 @@ function DataTableToolbar<TData>({
     <div className="flex items-center justify-between gap-2 relative z-10 flex-wrap">
       {/* Left side: Filters */}
       <div className="flex flex-1 items-center space-x-2 flex-wrap gap-y-2">
-          <div className="relative flex items-center">
+          <div className="relative flex items-center w-[150px] lg:w-[250px]">
               <Search className="absolute left-2 h-4 w-4 text-gray-500" />
-              <Input
+              <input
                 placeholder="Search all columns..."
                 value={globalFilter ?? ""}
                 onChange={(event) => onGlobalFilterChange(event.target.value)}
-                className="h-8 w-[150px] lg:w-[250px] pl-8"
+                className="dt-input pl-8"
               />
           </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8">
+            <button className="dt-button dt-button--outline h-8">
               <Filter className="mr-2 h-4 w-4 text-blue-500" />
               Add Filter
-            </Button>
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
             <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
@@ -312,7 +301,7 @@ function DataTableToolbar<TData>({
           if (activeFilters.includes(col.id)) {
             return (
               <div key={col.id} className="relative w-[150px] lg:w-[250px] flex items-center">
-                <Input
+                <input
                   placeholder={`Filter ${col.name.toLowerCase()}...`}
                   value={
                     (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
@@ -321,16 +310,14 @@ function DataTableToolbar<TData>({
                     const value = event.target.value;
                     table.getColumn(col.id)?.setFilterValue(value || undefined);
                   }}
-                  className="h-8 w-full pr-8"
+                  className="dt-input w-full pr-8"
                 />
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 bottom-0 my-auto h-full px-2 text-gray-500 hover:text-gray-800"
+                <button
+                    className="dt-button dt-button--ghost dt-button--icon absolute right-0 top-0 bottom-0 my-auto h-full px-2 text-gray-500 hover:text-gray-800"
                     onClick={() => handleFilterToggle(col.id, true)}
                 >
                     <X className="h-4 w-4" />
-                </Button>
+                </button>
               </div>
             );
           }
@@ -357,14 +344,12 @@ function DataTableToolbar<TData>({
            <TooltipProvider>
               <Tooltip>
                   <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
+                      <button
                         onClick={clearAllFilters}
-                        className="h-8 w-8"
+                        className="dt-button dt-button--ghost dt-button--icon h-8 w-8"
                       >
                         <X className="h-4 w-4" />
-                      </Button>
+                      </button>
                   </TooltipTrigger>
                   <TooltipContent>
                       <p>Clear all filters</p>
@@ -380,9 +365,9 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.addRow !== false && onAddRow && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onAddRow}>
+                <button className="dt-button dt-button--ghost dt-button--icon" onClick={onAddRow}>
                   <PlusCircle className="h-4 w-4" />
-                </Button>
+                </button>
               </TooltipTrigger>
               <TooltipContent><p>Add Alarm</p></TooltipContent>
             </Tooltip>
@@ -391,9 +376,9 @@ function DataTableToolbar<TData>({
            {toolbarVisibility.updateRow !== false && onUpdateRow && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onUpdateRow} disabled={selectedRowCount !== 1}>
+                <button className="dt-button dt-button--ghost dt-button--icon" onClick={onUpdateRow} disabled={selectedRowCount !== 1}>
                   <Edit className="h-4 w-4" />
-                </Button>
+                </button>
               </TooltipTrigger>
               <TooltipContent><p>Update Alarm</p></TooltipContent>
             </Tooltip>
@@ -402,9 +387,9 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.toggleStreaming !== false && onToggleStreaming && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onToggleStreaming}>
+                <button className="dt-button dt-button--ghost dt-button--icon" onClick={onToggleStreaming}>
                   {isStreaming ? <Square className="h-4 w-4 text-red-500" /> : <Play className="h-4 w-4 text-green-500" />}
-                </Button>
+                </button>
               </TooltipTrigger>
               <TooltipContent><p>{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</p></TooltipContent>
             </Tooltip>
@@ -413,9 +398,9 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.deleteRows !== false && onDeleteSelectedRows && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={onDeleteSelectedRows} disabled={selectedRowCount === 0}>
+                <button className="dt-button dt-button--ghost dt-button--icon" onClick={onDeleteSelectedRows} disabled={selectedRowCount === 0}>
                   <Trash2 className="h-4 w-4" />
-                </Button>
+                </button>
               </TooltipTrigger>
               <TooltipContent><p>Delete Selected</p></TooltipContent>
             </Tooltip>
@@ -424,9 +409,9 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.toggleCharts !== false && (
              <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => onToggleCharts(!showCharts)}>
+                <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => onToggleCharts(!showCharts)}>
                   <PieChart className={cn("h-4 w-4", showCharts && "text-blue-500")} />
-                </Button>
+                </button>
               </TooltipTrigger>
               <TooltipContent><p>{showCharts ? 'Hide Charts' : 'Show Charts'}</p></TooltipContent>
             </Tooltip>
@@ -438,9 +423,9 @@ function DataTableToolbar<TData>({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <button className="dt-button dt-button--ghost dt-button--icon">
                           <Download className="h-4 w-4" />
-                      </Button>
+                      </button>
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
                   <TooltipContent><p>Export Data</p></TooltipContent>
@@ -460,9 +445,9 @@ function DataTableToolbar<TData>({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <button className="dt-button dt-button--ghost dt-button--icon">
                           <SlidersHorizontal className="h-4 w-4" />
-                      </Button>
+                      </button>
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
                   <TooltipContent><p>View Options</p></TooltipContent>
@@ -954,26 +939,28 @@ export function DataTable<TData>({
             <div className="flex items-center space-x-6 lg:space-x-8">
               <div className="flex items-center space-x-2">
                 <p className="text-sm font-medium">Rows per page</p>
-                <Select
-                  value={`${table.getState().pagination.pageSize}`}
-                  onValueChange={(value) => table.setPageSize(Number(value))}
+                <select
+                  className="dt-select w-[70px]"
+                  value={table.getState().pagination.pageSize}
+                  onChange={e => {
+                    table.setPageSize(Number(e.target.value))
+                  }}
                 >
-                  <SelectTrigger className="h-8 w-[70px]"><SelectValue placeholder={table.getState().pagination.pageSize} /></SelectTrigger>
-                  <SelectContent side="top">
-                    {rowsPerPageOptions.map((pageSize) => (
-                      <SelectItem key={pageSize} value={`${pageSize}`}>{pageSize}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {rowsPerPageOptions.map(pageSize => (
+                    <option key={pageSize} value={pageSize}>
+                      {pageSize}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex w-[100px] items-center justify-center text-sm font-medium">
                 Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
               </div>
               <div className="flex items-center space-x-2">
-                <Button variant="outline" className="hidden h-8 w-8 p-0 lg:flex" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></Button>
-                <Button variant="outline" className="h-8 w-8 p-0" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></Button>
-                <Button variant="outline" className="h-8 w-8 p-0" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></Button>
-                <Button variant="outline" className="hidden h-8 w-8 p-0 lg:flex" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></Button>
+                <button className="dt-button dt-button--outline dt-button--icon hidden lg:flex" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
+                <button className="dt-button dt-button--outline dt-button--icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></button>
+                <button className="dt-button dt-button--outline dt-button--icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></button>
+                <button className="dt-button dt-button--outline dt-button--icon hidden lg:flex" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
               </div>
             </div>
           </div>
