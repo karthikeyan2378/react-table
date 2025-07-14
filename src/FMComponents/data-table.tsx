@@ -826,10 +826,17 @@ export function DataTable<TData>({
                             e.preventDefault();
                             const draggedColumnId = e.dataTransfer.getData('text/plain');
                             const targetColumnId = header.id;
+                            
+                            const isDraggedFrozen = frozenColumnIds.includes(draggedColumnId);
+                            const isTargetFrozen = frozenColumnIds.includes(targetColumnId);
+
                             if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
-                                table.setColumnOrder(
-                                    (old) => reorderColumn(draggedColumnId, targetColumnId, old)
-                                );
+                                // Only allow reordering if both columns are in the same frozen state
+                                if (isDraggedFrozen === isTargetFrozen) {
+                                    table.setColumnOrder(
+                                        (old) => reorderColumn(draggedColumnId, targetColumnId, old)
+                                    );
+                                }
                             }
                           }}
                           onDragOver={(e) => e.preventDefault()}
