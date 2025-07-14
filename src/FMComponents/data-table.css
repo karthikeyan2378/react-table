@@ -568,3 +568,9 @@
     font-size: 0.875rem;
     color: #6b7280;
 }
+
+/* Styles for table card */
+.cygnet-table-card {
+    background-color: #ffffff;
+    padding: 0.5rem;
+}

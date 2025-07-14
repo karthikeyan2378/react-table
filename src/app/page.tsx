@@ -6,7 +6,6 @@ import { makeData, newAlarm } from '../lib/data';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
-import { ChevronDown } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { type Table as ReactTable, type ColumnFiltersState } from '@tanstack/react-table';
 import {
@@ -41,22 +40,6 @@ import { getColumns } from './columns';
  * This is derived from the keys of the `alarmConfig.fields`.
  */
 type ChartableColumn = keyof typeof alarmConfig.fields;
-
-const useDropdown = (ref: React.RefObject<HTMLDivElement>) => {
-    const [isOpen, setIsOpen] = React.useState(false);
-
-    React.useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (ref.current && !ref.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [ref]);
-
-    return { isOpen, setIsOpen };
-};
 
 /**
  * The main page component for the Alarm Dashboard application.
@@ -93,9 +76,6 @@ export default function Home() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
   // State to hold the data of the row being updated.
   const [rowToUpdate, setRowToUpdate] = React.useState<Alarm | null>(null);
-  // Dropdown state for "Add Chart" button
-  const addChartDropdownRef = React.useRef<HTMLDivElement>(null);
-  const { isOpen: isAddChartOpen, setIsOpen: setAddChartOpen } = useDropdown(addChartDropdownRef);
 
   /**
    * Memoized callback to get a unique ID for each row.
@@ -223,7 +203,6 @@ export default function Home() {
     if (!activeCharts.includes(columnId)) {
       setActiveCharts([...activeCharts, columnId]);
     }
-    setAddChartOpen(false);
   };
 
   /**
@@ -432,26 +411,6 @@ export default function Home() {
             {/* Charts Column */}
             {showCharts && (
               <div className="cygnet-charts-column">
-                  <div className="cygnet-charts-header">
-                      <h2>Visualizations</h2>
-                      <div className={`cygnet-dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
-                          <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setAddChartOpen(prev => !prev)}>
-                              Add Chart
-                              <ChevronDown className="lucide" style={{ marginLeft: '8px' }} />
-                          </button>
-                          <div className="cygnet-dt-dropdown-content">
-                              {summarizableColumns.map((key) => (
-                                  <div
-                                    key={key}
-                                    className={`cygnet-dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
-                                    onClick={() => handleAddChart(key)}
-                                  >
-                                  {alarmConfig.fields[key].label}
-                                  </div>
-                              ))}
-                          </div>
-                      </div>
-                  </div>
                   <div className="cygnet-charts-grid">
                     {activeCharts.map((columnId) => {
                         const activeFilter = columnFilters.find(f => f.id === columnId);
@@ -511,6 +470,9 @@ export default function Home() {
                           toggleCharts: true,
                           updateRow: true,
                          }}
+                         summarizableColumns={summarizableColumns}
+                         activeCharts={activeCharts}
+                         onAddChart={handleAddChart}
                     />
                 </div>
             </div>
