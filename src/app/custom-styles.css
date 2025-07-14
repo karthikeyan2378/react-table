@@ -1,10 +1,10 @@
 
-.page-header {
+.cygnet-page-header {
   text-align: center;
   margin-bottom: 2.5rem; /* mb-10 */
 }
 
-.page-header h1 {
+.cygnet-page-header h1 {
   font-size: 2.25rem; /* text-4xl */
   line-height: 2.5rem;
   font-weight: 800; /* font-extrabold */
@@ -13,13 +13,13 @@
 }
 
 @media (min-width: 1024px) {
-  .page-header h1 {
+  .cygnet-page-header h1 {
     font-size: 3rem; /* lg:text-5xl */
     line-height: 1;
   }
 }
 
-.page-header p {
+.cygnet-page-header p {
   margin-top: 1rem; /* mt-4 */
   max-width: 42rem; /* max-w-2xl */
   margin-left: auto;

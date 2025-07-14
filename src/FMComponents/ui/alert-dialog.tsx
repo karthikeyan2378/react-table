@@ -13,7 +13,7 @@ const AlertDialogOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
-    className={`alert-dialog-overlay ${className || ''}`}
+    className={`cygnet-alert-dialog-overlay ${className || ''}`}
     {...props}
     ref={ref}
   />
@@ -28,7 +28,7 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogOverlay />
     <AlertDialogPrimitive.Content
       ref={ref}
-      className={`alert-dialog-content ${className || ''}`}
+      className={`cygnet-alert-dialog-content ${className || ''}`}
       {...props}
     />
   </AlertDialogPortal>
@@ -40,7 +40,7 @@ const AlertDialogHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`alert-dialog-header ${className || ''}`}
+    className={`cygnet-alert-dialog-header ${className || ''}`}
     {...props}
   />
 )
@@ -51,7 +51,7 @@ const AlertDialogFooter = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`alert-dialog-footer ${className || ''}`}
+    className={`cygnet-alert-dialog-footer ${className || ''}`}
     {...props}
   />
 )
@@ -63,7 +63,7 @@ const AlertDialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Title
     ref={ref}
-    className={`alert-dialog-title ${className || ''}`}
+    className={`cygnet-alert-dialog-title ${className || ''}`}
     {...props}
   />
 ))
@@ -75,7 +75,7 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Description
     ref={ref}
-    className={`alert-dialog-description ${className || ''}`}
+    className={`cygnet-alert-dialog-description ${className || ''}`}
     {...props}
   />
 ))

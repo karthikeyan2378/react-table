@@ -114,32 +114,32 @@ function DataTableFacetedFilter<TData>({
 
 
   return (
-    <div className="dt-facet-filter-container">
-        <div className={`dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
-        <button className="dt-button dt-button--outline" style={{ height: '2.25rem' }} onClick={() => setIsOpen(!isOpen)}>
+    <div className="cygnet-dt-facet-filter-container">
+        <div className={`cygnet-dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
+        <button className="cygnet-dt-button cygnet-dt-button--outline" style={{ height: '2.25rem' }} onClick={() => setIsOpen(!isOpen)}>
             <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
             {title}
         </button>
-        <div className="dt-dropdown-content">
+        <div className="cygnet-dt-dropdown-content">
             {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);
                 return (
                 <div
                     key={option.value}
-                    className="dt-dropdown-item"
+                    className="cygnet-dt-dropdown-item"
                     onClick={() => handleFilterChange(option.value, isSelected)}
                 >
-                    <input type="checkbox" className="dt-checkbox" readOnly checked={isSelected} />
+                    <input type="checkbox" className="cygnet-dt-checkbox" readOnly checked={isSelected} />
                     <span>{highlightText(option.label, globalFilter)}</span>
                 </div>
                 );
             })}
             {selectedValues.size > 0 && (
                 <>
-                <div className="dt-dropdown-separator" />
+                <div className="cygnet-dt-dropdown-separator" />
                 <div
                     onClick={() => column?.setFilterValue(undefined)}
-                    className="dt-dropdown-item" style={{justifyContent: 'center'}}
+                    className="cygnet-dt-dropdown-item" style={{justifyContent: 'center'}}
                 >
                     Clear filters
                 </div>
@@ -151,12 +151,12 @@ function DataTableFacetedFilter<TData>({
         {Array.from(selectedValues).map(value => (
             <span
                 key={value}
-                className="dt-badge dt-badge--filter"
+                className="cygnet-dt-badge cygnet-dt-badge--filter"
                 style={{ backgroundColor: (severityColors as any)[value] || '#6B7280' }}
             >
                 {value}
                 <button
-                    className="dt-badge-remove"
+                    className="cygnet-dt-badge-remove"
                     onClick={() => handleFilterChange(value, true)}
                 >
                     <X size={12} />
@@ -264,36 +264,36 @@ function DataTableToolbar<TData>({
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
   return (
-    <div className="dt-toolbar">
+    <div className="cygnet-dt-toolbar">
       {/* Left side: Filters */}
-      <div className="dt-toolbar-left">
-          <div className="dt-search-container">
-              <Search className="dt-search-icon" />
+      <div className="cygnet-dt-toolbar-left">
+          <div className="cygnet-dt-search-container">
+              <Search className="cygnet-dt-search-icon" />
               <input
                 placeholder="Search all columns..."
                 value={globalFilter ?? ""}
                 onChange={(event) => onGlobalFilterChange(event.target.value)}
-                className="dt-input with-icon"
+                className="cygnet-dt-input with-icon"
               />
           </div>
 
-        <div className={`dt-dropdown ${isFilterOpen ? 'open' : ''}`} ref={filterDropdownRef}>
-            <button className="dt-button dt-button--outline" onClick={() => setFilterOpen(!isFilterOpen)}>
+        <div className={`cygnet-dt-dropdown ${isFilterOpen ? 'open' : ''}`} ref={filterDropdownRef}>
+            <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setFilterOpen(!isFilterOpen)}>
               <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
               Add Filter
             </button>
-            <div className="dt-dropdown-content">
-              <div className="dt-dropdown-label">Filter by column</div>
-              <div className="dt-dropdown-separator" />
+            <div className="cygnet-dt-dropdown-content">
+              <div className="cygnet-dt-dropdown-label">Filter by column</div>
+              <div className="cygnet-dt-dropdown-separator" />
               {filterableColumns.map((col) => (
                 <div
                     key={col.id}
-                    className="dt-dropdown-item"
+                    className="cygnet-dt-dropdown-item"
                     onClick={() => handleFilterToggle(col.id, activeFilters.includes(col.id))}
                 >
                   <input
                     type="checkbox"
-                    className="dt-checkbox"
+                    className="cygnet-dt-checkbox"
                     readOnly
                     checked={activeFilters.includes(col.id)}
                   />
@@ -306,7 +306,7 @@ function DataTableToolbar<TData>({
         {textFilterColumns.map((col) => {
           if (activeFilters.includes(col.id)) {
             return (
-              <div key={col.id} className="dt-filter-container">
+              <div key={col.id} className="cygnet-dt-filter-container">
                 <input
                   placeholder={`Filter ${col.name.toLowerCase()}...`}
                   value={
@@ -316,10 +316,10 @@ function DataTableToolbar<TData>({
                     const value = event.target.value;
                     table.getColumn(col.id)?.setFilterValue(value || undefined);
                   }}
-                  className="dt-input with-button"
+                  className="cygnet-dt-input with-button"
                 />
                 <button
-                    className="dt-button dt-button--ghost dt-button--icon dt-input-button"
+                    className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon cygnet-dt-input-button"
                     onClick={() => handleFilterToggle(col.id, true)}
                 >
                     <X className="h-4 w-4" />
@@ -347,109 +347,109 @@ function DataTableToolbar<TData>({
         })}
 
         {isFiltered && (
-            <div className="dt-tooltip-wrapper">
+            <div className="cygnet-dt-tooltip-wrapper">
                 <button
                 onClick={clearAllFilters}
-                className="dt-button dt-button--ghost dt-button--icon"
+                className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon"
                 >
                 <X className="h-4 w-4" />
                 </button>
-                <div className="dt-tooltip-content">Clear all filters</div>
+                <div className="cygnet-dt-tooltip-content">Clear all filters</div>
            </div>
         )}
       </div>
 
       {/* Right side: Actions & Settings */}
-      <div className="dt-toolbar-right">
+      <div className="cygnet-dt-toolbar-right">
           {toolbarVisibility.addRow !== false && onAddRow && (
-            <div className="dt-tooltip-wrapper">
-                <button className="dt-button dt-button--ghost dt-button--icon" onClick={onAddRow}>
+            <div className="cygnet-dt-tooltip-wrapper">
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onAddRow}>
                   <PlusCircle className="h-4 w-4" />
                 </button>
-                <div className="dt-tooltip-content">Add Alarm</div>
+                <div className="cygnet-dt-tooltip-content">Add Alarm</div>
             </div>
           )}
 
            {toolbarVisibility.updateRow !== false && onUpdateRow && (
-             <div className="dt-tooltip-wrapper">
-                <button className="dt-button dt-button--ghost dt-button--icon" onClick={onUpdateRow} disabled={selectedRowCount !== 1}>
+             <div className="cygnet-dt-tooltip-wrapper">
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onUpdateRow} disabled={selectedRowCount !== 1}>
                   <Edit className="h-4 w-4" />
                 </button>
-                <div className="dt-tooltip-content">Update Alarm</div>
+                <div className="cygnet-dt-tooltip-content">Update Alarm</div>
             </div>
           )}
 
           {toolbarVisibility.toggleStreaming !== false && onToggleStreaming && (
-            <div className="dt-tooltip-wrapper">
-                <button className="dt-button dt-button--ghost dt-button--icon" onClick={onToggleStreaming}>
+            <div className="cygnet-dt-tooltip-wrapper">
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onToggleStreaming}>
                   {isStreaming ? <Square className="h-4 w-4 text-red-500" /> : <Play className="h-4 w-4 text-green-500" />}
                 </button>
-                <div className="dt-tooltip-content">{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</div>
+                <div className="cygnet-dt-tooltip-content">{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</div>
             </div>
           )}
 
           {toolbarVisibility.deleteRows !== false && onDeleteSelectedRows && (
-            <div className="dt-tooltip-wrapper">
-                <button className="dt-button dt-button--ghost dt-button--icon" onClick={onDeleteSelectedRows} disabled={selectedRowCount === 0}>
+            <div className="cygnet-dt-tooltip-wrapper">
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onDeleteSelectedRows} disabled={selectedRowCount === 0}>
                   <Trash2 className="h-4 w-4" />
                 </button>
-                <div className="dt-tooltip-content">Delete Selected</div>
+                <div className="cygnet-dt-tooltip-content">Delete Selected</div>
             </div>
           )}
 
           {toolbarVisibility.toggleCharts !== false && (
-             <div className="dt-tooltip-wrapper">
-                <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => onToggleCharts(!showCharts)}>
+             <div className="cygnet-dt-tooltip-wrapper">
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => onToggleCharts(!showCharts)}>
                   <PieChart className="h-4 w-4" style={{color: showCharts ? 'hsl(var(--primary))' : 'inherit'}} />
                 </button>
-                <div className="dt-tooltip-content">{showCharts ? 'Hide Charts' : 'Show Charts'}</div>
+                <div className="cygnet-dt-tooltip-content">{showCharts ? 'Hide Charts' : 'Show Charts'}</div>
             </div>
           )}
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
-            <div className={`dt-dropdown ${isExportOpen ? 'open' : ''}`} ref={exportDropdownRef}>
-                <div className="dt-tooltip-wrapper">
-                    <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => setExportOpen(!isExportOpen)}>
+            <div className={`cygnet-dt-dropdown ${isExportOpen ? 'open' : ''}`} ref={exportDropdownRef}>
+                <div className="cygnet-dt-tooltip-wrapper">
+                    <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setExportOpen(!isExportOpen)}>
                         <Download className="h-4 w-4" />
                     </button>
-                    <div className="dt-tooltip-content">Export Data</div>
+                    <div className="cygnet-dt-tooltip-content">Export Data</div>
                 </div>
-              <div className="dt-dropdown-content">
-                  {onExportCsv && <div className="dt-dropdown-item" onClick={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</div>}
-                  {onExportXlsx && <div className="dt-dropdown-item" onClick={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</div>}
-                  {onExportPdf && <div className="dt-dropdown-item" onClick={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</div>}
+              <div className="cygnet-dt-dropdown-content">
+                  {onExportCsv && <div className="cygnet-dt-dropdown-item" onClick={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</div>}
+                  {onExportXlsx && <div className="cygnet-dt-dropdown-item" onClick={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</div>}
+                  {onExportPdf && <div className="cygnet-dt-dropdown-item" onClick={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</div>}
               </div>
             </div>
           )}
 
           {toolbarVisibility.viewOptions !== false && (
-            <div className={`dt-dropdown ${isViewOptionsOpen ? 'open' : ''}`} ref={viewOptionsDropdownRef}>
-                <div className="dt-tooltip-wrapper">
-                    <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => setViewOptionsOpen(!isViewOptionsOpen)}>
+            <div className={`cygnet-dt-dropdown ${isViewOptionsOpen ? 'open' : ''}`} ref={viewOptionsDropdownRef}>
+                <div className="cygnet-dt-tooltip-wrapper">
+                    <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setViewOptionsOpen(!isViewOptionsOpen)}>
                         <SlidersHorizontal className="h-4 w-4" />
                     </button>
-                    <div className="dt-tooltip-content">View Options</div>
+                    <div className="cygnet-dt-tooltip-content">View Options</div>
                 </div>
-              <div className="dt-dropdown-content">
-                <div className="dt-dropdown-label">Table Settings</div>
-                <div className="dt-dropdown-separator" />
+              <div className="cygnet-dt-dropdown-content">
+                <div className="cygnet-dt-dropdown-label">Table Settings</div>
+                <div className="cygnet-dt-dropdown-separator" />
                 {toolbarVisibility.toggleSorting !== false && (
-                  <div className="dt-dropdown-item" onClick={() => onSortingToggle(!sortingEnabled)}>
-                      <input type="checkbox" className="dt-checkbox" readOnly checked={sortingEnabled} />
+                  <div className="cygnet-dt-dropdown-item" onClick={() => onSortingToggle(!sortingEnabled)}>
+                      <input type="checkbox" className="cygnet-dt-checkbox" readOnly checked={sortingEnabled} />
                       Enable Sorting
                   </div>
                 )}
                 {toolbarVisibility.togglePagination !== false && (
-                  <div className="dt-dropdown-item" onClick={() => onPaginationToggle(!paginationEnabled)}>
-                      <input type="checkbox" className="dt-checkbox" readOnly checked={paginationEnabled} />
+                  <div className="cygnet-dt-dropdown-item" onClick={() => onPaginationToggle(!paginationEnabled)}>
+                      <input type="checkbox" className="cygnet-dt-checkbox" readOnly checked={paginationEnabled} />
                       Enable Pagination
                   </div>
                 )}
                 {toolbarVisibility.toggleColumns !== false && (
                   <>
-                    <div className="dt-dropdown-separator" />
-                    <div className="dt-dropdown-label">Toggle Columns</div>
-                    <div className="dt-dropdown-separator" />
+                    <div className="cygnet-dt-dropdown-separator" />
+                    <div className="cygnet-dt-dropdown-label">Toggle Columns</div>
+                    <div className="cygnet-dt-dropdown-separator" />
                     {table
                         .getAllColumns()
                         .filter((column) => column.getCanHide())
@@ -458,10 +458,10 @@ function DataTableToolbar<TData>({
                             return (
                             <div
                                 key={column.id}
-                                className="dt-dropdown-item"
+                                className="cygnet-dt-dropdown-item"
                                 onClick={() => column.toggleVisibility(!column.getIsVisible())}
                             >
-                                <input type="checkbox" className="dt-checkbox" readOnly checked={column.getIsVisible()} />
+                                <input type="checkbox" className="cygnet-dt-checkbox" readOnly checked={column.getIsVisible()} />
                                 {label}
                             </div>
                             );
@@ -737,7 +737,7 @@ export function DataTable<TData>({
   });
 
   return (
-      <div className="data-table-container">
+      <div className="cygnet-dt-container">
         <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem'}}>
             <div>
                 {tableTitle && <h2 style={{fontSize: '1.125rem', fontWeight: 600}}>{tableTitle}</h2>}
@@ -778,11 +778,11 @@ export function DataTable<TData>({
         />
 
         <div 
-            className="data-table-wrapper"
+            className="cygnet-dt-wrapper"
         >
           <div
             ref={tableContainerRef}
-            className="data-table-scroll-container"
+            className="cygnet-dt-scroll-container"
             style={{
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
@@ -798,7 +798,7 @@ export function DataTable<TData>({
                         <TableHead 
                           key={header.id} 
                           colSpan={header.colSpan}
-                          className={frozenColumnIds.includes(header.id) ? 'dt-header-cell--sticky' : ''}
+                          className={frozenColumnIds.includes(header.id) ? 'cygnet-dt-header-cell--sticky' : ''}
                           style={{ 
                             width: header.getSize(), 
                             display: 'flex', 
@@ -837,7 +837,7 @@ export function DataTable<TData>({
                               <div
                                 onMouseDown={header.getResizeHandler()}
                                 onTouchStart={header.getResizeHandler()}
-                                className={`dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
+                                className={`cygnet-dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
                               >
                                 <MoreVertical className="h-4 w-4 text-gray-400" />
                               </div>
@@ -860,7 +860,7 @@ export function DataTable<TData>({
                     return (
                         <TableRow
                             key={row.id}
-                            className='dt-table-row'
+                            className='cygnet-dt-table-row'
                             data-state={row.getIsSelected() ? "selected" : ""}
                             onDoubleClick={() => onRowDoubleClick?.(row.original)}
                             onContextMenu={(e) => { 
@@ -939,7 +939,7 @@ export function DataTable<TData>({
                             {row.getVisibleCells().map((cell) => (
                               <TableCell 
                                 key={cell.id} 
-                                className={`dt-table-cell ${frozenColumnIds.includes(cell.column.id) ? 'dt-table-cell--sticky' : ''}`}
+                                className={`cygnet-dt-table-cell ${frozenColumnIds.includes(cell.column.id) ? 'cygnet-dt-table-cell--sticky' : ''}`}
                                 style={{ 
                                   display: 'flex', 
                                   alignItems: 'center', 
@@ -966,8 +966,8 @@ export function DataTable<TData>({
         </div>
         
         {paginationEnabled && (
-          <div className="data-table-pagination-container">
-            <div className="data-table-footer-info">
+          <div className="cygnet-dt-pagination-container">
+            <div className="cygnet-dt-footer-info">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
@@ -975,7 +975,7 @@ export function DataTable<TData>({
               <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                 <p style={{fontSize: '0.875rem', fontWeight: 500}}>Rows per page</p>
                 <select
-                  className="dt-select"
+                  className="cygnet-dt-select"
                   style={{width: '70px'}}
                   value={table.getState().pagination.pageSize}
                   onChange={e => {
@@ -993,18 +993,18 @@ export function DataTable<TData>({
                 Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
               </div>
               <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                <button className="dt-button dt-button--outline dt-button--icon" style={{display: 'none'}} onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
-                <button className="dt-button dt-button--outline dt-button--icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></button>
-                <button className="dt-button dt-button--outline dt-button--icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></button>
-                <button className="dt-button dt-button--outline dt-button--icon" style={{display: 'none'}} onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
+                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" style={{display: 'none'}} onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
+                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></button>
+                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></button>
+                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" style={{display: 'none'}} onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
               </div>
             </div>
           </div>
         )}
 
         {!paginationEnabled && (
-          <div className="data-table-pagination-container">
-            <div className="data-table-footer-info">
+          <div className="cygnet-dt-pagination-container">
+            <div className="cygnet-dt-footer-info">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
@@ -1014,7 +1014,7 @@ export function DataTable<TData>({
         {contextMenu && contextMenuItems && contextMenuItems.length > 0 && (
             <div
                 ref={contextMenuRef}
-                className="dt-dropdown-content"
+                className="cygnet-dt-dropdown-content"
                 style={{
                     display: 'block',
                     position: "fixed",
@@ -1024,10 +1024,10 @@ export function DataTable<TData>({
             >
                 {contextMenuItems.map((item, index) => (
                     <React.Fragment key={index}>
-                        <div className="dt-dropdown-item" onClick={() => { item.onClick(contextMenu.row); setContextMenu(null); }}>
+                        <div className="cygnet-dt-dropdown-item" onClick={() => { item.onClick(contextMenu.row); setContextMenu(null); }}>
                             {item.label}
                         </div>
-                        {item.separator && <div className="dt-dropdown-separator" />}
+                        {item.separator && <div className="cygnet-dt-dropdown-separator" />}
                     </React.Fragment>
                 ))}
             </div>

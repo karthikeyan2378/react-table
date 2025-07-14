@@ -24,7 +24,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         header: ({ table }) => (
             <input
                 type="checkbox"
-                className="dt-checkbox"
+                className="cygnet-dt-checkbox"
                 checked={table.getIsAllPageRowsSelected()}
                 onChange={(value) => table.toggleAllPageRowsSelected(!!value.target.checked)}
                 aria-label="Select all rows"
@@ -33,7 +33,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         cell: ({ row }) => (
           <input
             type="checkbox"
-            className="dt-checkbox"
+            className="cygnet-dt-checkbox"
             checked={row.getIsSelected()}
             onChange={(value) => row.toggleSelected(!!value.target.checked)}
             aria-label="Select row"
@@ -52,25 +52,25 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         id: key,
         header: ({ column }) => {
             return (
-              <div className="dt-header-content">
-                <div className="dt-header-label">
+              <div className="cygnet-dt-header-content">
+                <div className="cygnet-dt-header-label">
                   <span>{config.label}</span>
                 </div>
-                <div className="dt-header-sorter">
+                <div className="cygnet-dt-header-sorter">
                   {column.getCanSort() && (
                     <div
-                      className="dt-sorter-button"
+                      className="cygnet-dt-sorter-button"
                       onClick={(e) => {
                         e.stopPropagation();
                         column.toggleSorting(column.getIsSorted() === 'asc');
                       }}
                     >
                       {column.getIsSorted() === 'desc' ? (
-                        <ArrowDown className="h-4 w-4" />
+                        <ArrowDown className="lucide" />
                       ) : column.getIsSorted() === 'asc' ? (
-                        <ArrowUp className="h-4 w-4" />
+                        <ArrowUp className="lucide" />
                       ) : (
-                        <ChevronsUpDown className="h-4 w-4" />
+                        <ChevronsUpDown className="lucide" />
                       )}
                     </div>
                   )}
@@ -99,9 +99,9 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                 const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
                 const formattedDate = format(value, formatString);
                 return (
-                    <div className="dt-tooltip-wrapper">
+                    <div className="cygnet-dt-tooltip-wrapper">
                         <span className="truncate">{formattedDate}</span>
-                        <div className="dt-tooltip-content">{formattedDate}</div>
+                        <div className="cygnet-dt-tooltip-content">{formattedDate}</div>
                     </div>
                 );
             } catch (e) {
@@ -111,24 +111,24 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           
           if (key === 'Severity') {
             return (
-                <div className="dt-tooltip-wrapper">
+                <div className="cygnet-dt-tooltip-wrapper">
                   <span
-                    className="dt-badge"
+                    className="cygnet-dt-badge"
                     style={{ backgroundColor: severityColors[value] || '#6B7280' }}
                   >
                     {highlightedContent}
                   </span>
-                  <div className="dt-tooltip-content">Severity: {value}</div>
+                  <div className="cygnet-dt-tooltip-content">Severity: {value}</div>
                 </div>
             );
           }
 
           return (
-            <div className="dt-tooltip-wrapper">
+            <div className="cygnet-dt-tooltip-wrapper">
                  <span className="truncate">
                      {highlightedContent}
                  </span>
-                 <div className="dt-tooltip-content">{String(value ?? '')}</div>
+                 <div className="cygnet-dt-tooltip-content">{String(value ?? '')}</div>
             </div>
           );
         },

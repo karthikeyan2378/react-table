@@ -16,7 +16,7 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={`dialog-overlay ${className || ''}`}
+    className={`cygnet-dialog-overlay ${className || ''}`}
     {...props}
   />
 ))
@@ -30,11 +30,11 @@ const DialogContent = React.forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
-      className={`dialog-content ${className || ''}`}
+      className={`cygnet-dialog-content ${className || ''}`}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="dialog-close">
+      <DialogPrimitive.Close className="cygnet-dialog-close">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -48,7 +48,7 @@ const DialogHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`dialog-header ${className || ''}`}
+    className={`cygnet-dialog-header ${className || ''}`}
     {...props}
   />
 )
@@ -59,7 +59,7 @@ const DialogFooter = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`dialog-footer ${className || ''}`}
+    className={`cygnet-dialog-footer ${className || ''}`}
     {...props}
   />
 )
@@ -71,7 +71,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={`dialog-title ${className || ''}`}
+    className={`cygnet-dialog-title ${className || ''}`}
     {...props}
   />
 ))
@@ -83,7 +83,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={`dialog-description ${className || ''}`}
+    className={`cygnet-dialog-description ${className || ''}`}
     {...props}
   />
 ))

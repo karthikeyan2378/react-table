@@ -417,9 +417,9 @@ export default function Home() {
   }
 
   return (
-    <div className="page-container">
-      <main className="main-content">
-        <div className="page-header">
+    <div className="cygnet-page-container">
+      <main className="cygnet-main-content">
+        <div className="cygnet-page-header">
           <h1>
             Real-Time Alarm Dashboard
           </h1>
@@ -428,22 +428,22 @@ export default function Home() {
           </p>
         </div>
         
-        <div className="content-layout">
+        <div className="cygnet-content-layout">
             {/* Charts Column */}
             {showCharts && (
-              <div className="charts-column">
-                  <div className="charts-header">
+              <div className="cygnet-charts-column">
+                  <div className="cygnet-charts-header">
                       <h2>Visualizations</h2>
-                      <div className={`dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
-                          <button className="dt-button dt-button--outline" onClick={() => setAddChartOpen(prev => !prev)}>
+                      <div className={`cygnet-dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
+                          <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setAddChartOpen(prev => !prev)}>
                               Add Chart
                               <ChevronDown className="lucide" style={{ marginLeft: '8px' }} />
                           </button>
-                          <div className="dt-dropdown-content">
+                          <div className="cygnet-dt-dropdown-content">
                               {summarizableColumns.map((key) => (
                                   <div
                                     key={key}
-                                    className={`dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
+                                    className={`cygnet-dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
                                     onClick={() => handleAddChart(key)}
                                   >
                                   {alarmConfig.fields[key].label}
@@ -452,7 +452,7 @@ export default function Home() {
                           </div>
                       </div>
                   </div>
-                  <div className="charts-grid">
+                  <div className="cygnet-charts-grid">
                     {activeCharts.map((columnId) => {
                         const activeFilter = columnFilters.find(f => f.id === columnId);
                         return (
@@ -472,8 +472,8 @@ export default function Home() {
             )}
 
             {/* Data Table Column */}
-            <div className={showCharts ? "table-column-expanded" : "table-column-full"}>
-                <div className="table-card">
+            <div className={showCharts ? "cygnet-table-column-expanded" : "cygnet-table-column-full"}>
+                <div className="cygnet-table-card">
                     <DataTable
                         tableContainerRef={tableContainerRef}
                         data={data}
@@ -527,7 +527,7 @@ export default function Home() {
               <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel className="dt-button dt-button--outline" onClick={() => setDialogRow(null)}>Close</AlertDialogCancel>
+              <AlertDialogCancel className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setDialogRow(null)}>Close</AlertDialogCancel>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -553,9 +553,9 @@ export default function Home() {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <button className="dt-button dt-button--outline">Cancel</button>
+                <button className="cygnet-dt-button cygnet-dt-button--outline">Cancel</button>
               </DialogClose>
-              <button className="dt-button" onClick={() => rowToUpdate && onRowUpdate(rowToUpdate)}>Save changes</button>
+              <button className="cygnet-dt-button" onClick={() => rowToUpdate && onRowUpdate(rowToUpdate)}>Save changes</button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

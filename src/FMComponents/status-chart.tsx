@@ -139,26 +139,26 @@ const ColumnChartComponent = ({
   const finalChartType = isNumerical ? 'bar' : chartType;
 
   return (
-    <div className="chart-card">
-      <div className="chart-card-header">
-        <h3 className="chart-card-title">{label} Distribution</h3>
-        <div className="chart-card-actions">
+    <div className="cygnet-chart-card">
+      <div className="cygnet-chart-card-header">
+        <h3 className="cygnet-chart-card-title">{label} Distribution</h3>
+        <div className="cygnet-chart-card-actions">
           {/* Dropdown to switch between chart types, hidden for numerical charts */}
           {!isNumerical && (
-            <div className={`dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
-              <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => setIsOpen(prev => !prev)}>
+            <div className={`cygnet-dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
+              <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setIsOpen(prev => !prev)}>
                 <ChartIcon className="lucide" />
               </button>
-              <div className="dt-dropdown-content">
-                <div className="dt-dropdown-item" onClick={() => { setChartType('pie'); setIsOpen(false); }}>
+              <div className="cygnet-dt-dropdown-content">
+                <div className="cygnet-dt-dropdown-item" onClick={() => { setChartType('pie'); setIsOpen(false); }}>
                   <PieChartIcon className="lucide lucide-dropdown" />
                   Pie Chart
                 </div>
-                <div className="dt-dropdown-item" onClick={() => { setChartType('doughnut'); setIsOpen(false); }}>
+                <div className="cygnet-dt-dropdown-item" onClick={() => { setChartType('doughnut'); setIsOpen(false); }}>
                   <Donut className="lucide lucide-dropdown" />
                   Doughnut Chart
                 </div>
-                <div className="dt-dropdown-item" onClick={() => { setChartType('bar'); setIsOpen(false); }}>
+                <div className="cygnet-dt-dropdown-item" onClick={() => { setChartType('bar'); setIsOpen(false); }}>
                   <BarChart2 className="lucide lucide-dropdown" />
                   Bar Chart
                 </div>
@@ -166,12 +166,12 @@ const ColumnChartComponent = ({
             </div>
           )}
           {/* Button to remove the chart */}
-          <button className="dt-button dt-button--ghost dt-button--icon" onClick={() => onRemove(columnId)}>
+          <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => onRemove(columnId)}>
             <XIcon className="lucide" />
           </button>
         </div>
       </div>
-      <div className="chart-card-content">
+      <div className="cygnet-chart-card-content">
         <ResponsiveContainer width="100%" height="100%">
           {finalChartType === 'bar' ? (
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 50 }}>

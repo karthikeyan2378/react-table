@@ -1,4 +1,4 @@
-.chart-card {
+.cygnet-chart-card {
     border-radius: 0.5rem;
     border: 1px solid #e5e7eb;
     background-color: #ffffff;
@@ -6,7 +6,7 @@
     height: auto;
 }
 
-.chart-card-header {
+.cygnet-chart-card-header {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -15,27 +15,27 @@
     border-bottom: 1px solid #e5e7eb;
 }
 
-.chart-card-title {
+.cygnet-chart-card-title {
     font-size: 0.875rem;
     font-weight: 500;
 }
 
-.chart-card-actions {
+.cygnet-chart-card-actions {
     display: flex;
     align-items: center;
     gap: 0.25rem;
 }
 
-.chart-card-actions .lucide {
+.cygnet-chart-card-actions .lucide {
     height: 1rem;
     width: 1rem;
 }
-.chart-card-actions .lucide-dropdown {
+.cygnet-chart-card-actions .lucide-dropdown {
     margin-right: 0.5rem;
 }
 
 
-.chart-card-content {
+.cygnet-chart-card-content {
     height: 200px;
     width: 100%;
     padding: 0;
