@@ -401,11 +401,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <main className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-blue-600">
+        <div className="page-header">
+          <h1>
             Real-Time Alarm Dashboard
           </h1>
-          <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-500">
+          <p>
             A config-driven data table for monitoring real-time alarm data with filtering, sorting, and charting.
           </p>
         </div>

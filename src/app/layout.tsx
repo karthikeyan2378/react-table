@@ -1,6 +1,7 @@
 
 import type {Metadata} from 'next';
 import { LayoutComponent } from './layout-component';
+import './custom-styles.css';
 
 export const metadata: Metadata = {
   title: 'React Data Stream Table',
