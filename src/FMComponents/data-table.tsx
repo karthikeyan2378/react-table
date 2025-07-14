@@ -1012,10 +1012,10 @@ export function DataTable<TData>({
                 Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
               </div>
               <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" style={{display: 'none'}} onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
+                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
                 <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></button>
                 <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></button>
-                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" style={{display: 'none'}} onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
+                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
               </div>
             </div>
           </div>
