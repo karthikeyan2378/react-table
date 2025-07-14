@@ -617,6 +617,7 @@ export function DataTable<TData>({
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStartRowIndex, setDragStartRowIndex] = React.useState<number | null>(null);
   const lastClickedRowIndex = React.useRef<number | null>(null);
+  const [dragSelectionStart, setDragSelectionStart] = React.useState({});
 
   // Effect to clean up drag-to-select state.
   React.useEffect(() => {
@@ -880,6 +881,7 @@ export function DataTable<TData>({
                                 
                                 setIsDragging(true);
                                 setDragStartRowIndex(rowIndex);
+                                setDragSelectionStart(rowSelection); // Store selection at drag start
 
                                 if (e.shiftKey && lastClickedRowIndex.current !== null) {
                                     const start = Math.min(lastClickedRowIndex.current, rowIndex);
@@ -913,7 +915,7 @@ export function DataTable<TData>({
                                     const start = Math.min(dragStartRowIndex, rowIndex);
                                     const end = Math.max(dragStartRowIndex, rowIndex);
 
-                                    const newSelection: {[key: string]: boolean} = {}; 
+                                    const newSelection: {[key: string]: boolean} = {...dragSelectionStart}; 
                                     for(let i = start; i <= end; i++) {
                                         const rowId = rows[i]?.id;
                                         if (rowId) {
