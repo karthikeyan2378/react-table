@@ -33,6 +33,7 @@ import autoTable from 'jspdf-autotable';
 import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
+import { Donut, PieChart as PieChartIcon, BarChart2, X as XIcon} from 'lucide-react';
 
 
 /**
@@ -40,6 +41,26 @@ import { getColumns } from './columns';
  * This is derived from the keys of the `alarmConfig.fields`.
  */
 type ChartableColumn = keyof typeof alarmConfig.fields;
+
+/**
+ * Custom Dropdown Hook
+ */
+const useDropdown = (ref: React.RefObject<HTMLDivElement>) => {
+    const [isOpen, setIsOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [ref]);
+
+    return { isOpen, setIsOpen };
+};
+
 
 /**
  * The main page component for the Alarm Dashboard application.
@@ -76,6 +97,8 @@ export default function Home() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
   // State to hold the data of the row being updated.
   const [rowToUpdate, setRowToUpdate] = React.useState<Alarm | null>(null);
+  const addChartDropdownRef = React.useRef<HTMLDivElement>(null);
+  const { isOpen: isAddChartOpen, setIsOpen: setAddChartOpen } = useDropdown(addChartDropdownRef);
 
   /**
    * Memoized callback to get a unique ID for each row.
@@ -411,6 +434,26 @@ export default function Home() {
             {/* Charts Column */}
             {showCharts && (
               <div className="cygnet-charts-column">
+                  <div className="cygnet-charts-header">
+                      <h2>Charts</h2>
+                      <div className={`cygnet-dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
+                        <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setAddChartOpen(!isAddChartOpen)}>
+                          <PieChartIcon style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />
+                          Add Chart
+                        </button>
+                        <div className="cygnet-dt-dropdown-content">
+                            {summarizableColumns.map((key) => (
+                                <div
+                                  key={key}
+                                  className={`cygnet-dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
+                                  onClick={() => { handleAddChart(key); setAddChartOpen(false); }}
+                                >
+                                {(alarmConfig.fields as any)[key].label}
+                                </div>
+                            ))}
+                        </div>
+                      </div>
+                  </div>
                   <div className="cygnet-charts-grid">
                     {activeCharts.map((columnId) => {
                         const activeFilter = columnFilters.find(f => f.id === columnId);
@@ -470,9 +513,6 @@ export default function Home() {
                           toggleCharts: true,
                           updateRow: true,
                          }}
-                         summarizableColumns={summarizableColumns}
-                         activeCharts={activeCharts}
-                         onAddChart={handleAddChart}
                     />
                 </div>
             </div>

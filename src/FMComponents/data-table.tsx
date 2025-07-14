@@ -212,9 +212,6 @@ interface DataTableToolbarProps<TData> {
   showCharts: boolean;
   onToggleCharts: (enabled: boolean) => void;
   toolbarVisibility: ToolbarVisibility;
-  summarizableColumns: ChartableColumn[];
-  activeCharts: ChartableColumn[];
-  onAddChart: (columnId: ChartableColumn) => void;
 }
 
 /**
@@ -240,9 +237,6 @@ function DataTableToolbar<TData>({
   showCharts,
   onToggleCharts,
   toolbarVisibility,
-  summarizableColumns,
-  activeCharts,
-  onAddChart,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
@@ -254,9 +248,7 @@ function DataTableToolbar<TData>({
   const { isOpen: isExportOpen, setIsOpen: setExportOpen } = useDropdown(exportDropdownRef);
   const viewOptionsDropdownRef = React.useRef<HTMLDivElement>(null);
   const { isOpen: isViewOptionsOpen, setIsOpen: setViewOptionsOpen } = useDropdown(viewOptionsDropdownRef);
-  const addChartDropdownRef = React.useRef<HTMLDivElement>(null);
-  const { isOpen: isAddChartOpen, setIsOpen: setAddChartOpen } = useDropdown(addChartDropdownRef);
-
+  
   const handleFilterToggle = (columnId: string, isActive?: boolean) => {
     if (isActive) {
        setActiveFilters((prev) => prev.filter((id) => id !== columnId));
@@ -417,26 +409,6 @@ function DataTableToolbar<TData>({
                 <div className="cygnet-dt-tooltip-content">{showCharts ? 'Hide Charts' : 'Show Charts'}</div>
             </div>
           )}
-
-          <div className={`cygnet-dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
-            <div className="cygnet-dt-tooltip-wrapper">
-                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setAddChartOpen(!isAddChartOpen)}>
-                  <PieChart className="h-4 w-4" />
-                </button>
-                <div className="cygnet-dt-tooltip-content">Add Chart</div>
-            </div>
-              <div className="cygnet-dt-dropdown-content">
-                  {summarizableColumns.map((key) => (
-                      <div
-                        key={key}
-                        className={`cygnet-dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
-                        onClick={() => { onAddChart(key); setAddChartOpen(false); }}
-                      >
-                      {(alarmConfig.fields as any)[key].label}
-                      </div>
-                  ))}
-              </div>
-          </div>
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
             <div className={`cygnet-dt-dropdown ${isExportOpen ? 'open' : ''}`} ref={exportDropdownRef}>
@@ -575,9 +547,6 @@ interface DataTableProps<TData> {
   showCharts: boolean;
   initialShowCharts?: boolean;
   onToggleCharts: (enabled: boolean) => void;
-  summarizableColumns: ChartableColumn[];
-  activeCharts: ChartableColumn[];
-  onAddChart: (columnId: ChartableColumn) => void;
 }
 
 /**
@@ -616,9 +585,6 @@ export function DataTable<TData>({
   onColumnFiltersChange,
   showCharts,
   onToggleCharts,
-  summarizableColumns,
-  activeCharts,
-  onAddChart,
 }: DataTableProps<TData>) {
   // State for sorting, column visibility, row selection, and context menu.
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
@@ -821,9 +787,6 @@ export function DataTable<TData>({
           showCharts={showCharts}
           onToggleCharts={onToggleCharts}
           toolbarVisibility={toolbarVisibility}
-          summarizableColumns={summarizableColumns}
-          activeCharts={activeCharts}
-          onAddChart={onAddChart}
         />
 
         <div 
