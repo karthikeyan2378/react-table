@@ -400,7 +400,7 @@
     white-space: nowrap;
 }
 
-/* New styles for row separator and font size */
+/* Row and Cell styles */
 .cygnet-dt-table-row {
     border-bottom: 1px solid #e5e7eb;
     background-color: #fff;
@@ -421,16 +421,16 @@
 .cygnet-dt-header-cell--sticky,
 .cygnet-dt-table-cell--sticky {
     position: sticky;
-    background-color: #fff; /* Default solid background */
+    z-index: 1; /* Default z-index for body cells */
 }
 
 .cygnet-dt-header-cell--sticky {
-    z-index: 3; /* Header cells need to be above body cells */
+    z-index: 3; /* Header cells above body */
     background-color: #f9fafb; /* Match header background */
 }
 
 .cygnet-dt-table-cell--sticky {
-    z-index: 1; /* Body cells */
+    background-color: #fff; /* Solid background for body cells */
 }
 
 /* Ensure sticky cells get correct background on hover/select */

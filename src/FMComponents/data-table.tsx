@@ -686,7 +686,7 @@ export function DataTable<TData>({
         return config?.isColumnToFreeze;
     }).map(c => c.id || c.accessorKey);
     // Ensure the order matches the current column order state
-    return table.getState().columnOrder.filter(id => frozen.includes(id));
+    return table.getState().columnOrder.filter(id => frozen.includes(id as string));
   }, [columnDefs, table.getState().columnOrder]);
 
   const getStickyStyles = (columnId: string): React.CSSProperties => {
@@ -801,7 +801,8 @@ export function DataTable<TData>({
               <TableHeader style={{ position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow 
-                    key={headerGroup.id} 
+                    key={headerGroup.id}
+                    className="cygnet-dt-table-row"
                   >
                       {headerGroup.headers.map((header) => {
                         const isFrozen = frozenColumnIds.includes(header.id);
@@ -836,7 +837,7 @@ export function DataTable<TData>({
                           onDragOver={(e) => e.preventDefault()}
                         >
                            <div 
-                              style={{display: 'flex', alignItems: 'center', height: '100%', overflow: 'hidden'}}
+                              className="cygnet-dt-header-content"
                               draggable
                               onDragStart={(e) => {
                                 e.dataTransfer.setData('text/plain', header.id);
