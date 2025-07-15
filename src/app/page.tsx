@@ -28,9 +28,6 @@ import {
 } from '../FMComponents/ui/dialog';
 import { Label } from '../FMComponents/ui/label';
 import { Textarea } from '../FMComponents/ui/textarea';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import ExcelJS from 'exceljs';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 import { Donut, PieChart as PieChartIcon, BarChart2, X as XIcon} from 'lucide-react';
@@ -367,6 +364,7 @@ export default function Home() {
       if (!exportData) return;
       const { headers, body } = exportData;
 
+      const ExcelJS = (await import('exceljs')).default;
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Alarms");
 
@@ -395,7 +393,7 @@ export default function Home() {
   /**
    * Exports the visible table data to a PDF file.
    */
-  const handleExportPdf = () => {
+  const handleExportPdf = async () => {
     const exportData = getExportableData(table, alarmConfig);
     if (!exportData) {
       toast({ title: "Error", description: "Could not get data for PDF export.", variant: "destructive" });
@@ -403,6 +401,9 @@ export default function Home() {
     }
     const { headers, body } = exportData;
     
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+
     const doc = new jsPDF({ orientation: 'landscape' });
     autoTable(doc, {
         head: [headers],
@@ -421,15 +422,6 @@ export default function Home() {
   return (
     <div className="cygnet-page-container">
       <main className="cygnet-main-content">
-        <div className="cygnet-page-header">
-          <h1>
-            Real-Time Alarm Dashboard
-          </h1>
-          <p>
-            A config-driven data table for monitoring real-time alarm data with filtering, sorting, and charting.
-          </p>
-        </div>
-        
         <div className="cygnet-content-layout">
             {/* Charts Column */}
             {showCharts && (
