@@ -159,6 +159,9 @@ body {
     padding-right: 1rem; /* Space between chart and table */
     box-sizing: border-box;
     margin-bottom: 0;
+    max-height: 68vh; /* Match table height */
+    overflow-y: auto;  /* Add scrollbar if charts overflow */
+    padding-right: 1.5rem; /* Add space for scrollbar */
   }
   
   /* On large screens, the chart grid becomes a single column to stack them vertically. */
