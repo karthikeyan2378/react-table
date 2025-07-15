@@ -110,8 +110,6 @@ function DataTableFacetedFilter<TData>({
   globalFilter?: string;
 }) {
   const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-  const { isOpen, setIsOpen } = useDropdown(dropdownRef);
   const severityConfig = alarmConfig.fields.Severity.chartConfig;
   const severityColors = severityConfig?.colors || {};
 
@@ -129,38 +127,39 @@ function DataTableFacetedFilter<TData>({
 
   return (
     <div className="cygnet-dt-facet-filter-container">
-        <div className={`cygnet-dt-dropdown ${isOpen ? 'open' : ''}`} ref={dropdownRef}>
-        <button className="cygnet-dt-button cygnet-dt-button--outline" style={{ height: '2.25rem' }} onClick={() => setIsOpen(!isOpen)}>
-            <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
-            {title}
-        </button>
-        <div className="cygnet-dt-dropdown-content">
-            {options.map((option) => {
-                const isSelected = selectedValues.has(option.value);
-                return (
-                <div
-                    key={option.value}
-                    className="cygnet-dt-dropdown-item"
-                    onClick={() => handleFilterChange(option.value, isSelected)}
-                >
-                    <input type="checkbox" className="cygnet-dt-checkbox" readOnly checked={isSelected} />
-                    <span>{highlightText(option.label, globalFilter)}</span>
-                </div>
-                );
-            })}
-            {selectedValues.size > 0 && (
-                <>
-                <div className="cygnet-dt-dropdown-separator" />
-                <div
-                    onClick={() => column?.setFilterValue(undefined)}
-                    className="cygnet-dt-dropdown-item" style={{justifyContent: 'center'}}
-                >
-                    Clear filters
-                </div>
-                </>
-            )}
-            </div>
-        </div>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <button className="cygnet-dt-button cygnet-dt-button--outline" style={{ height: '2.25rem' }}>
+                    <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
+                    {title}
+                </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                {options.map((option) => {
+                    const isSelected = selectedValues.has(option.value);
+                    return (
+                    <DropdownMenuCheckboxItem
+                        key={option.value}
+                        checked={isSelected}
+                        onCheckedChange={() => handleFilterChange(option.value, isSelected)}
+                    >
+                        {highlightText(option.label, globalFilter)}
+                    </DropdownMenuCheckboxItem>
+                    );
+                })}
+                {selectedValues.size > 0 && (
+                    <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        onClick={() => column?.setFilterValue(undefined)}
+                        className="justify-center"
+                    >
+                        Clear filters
+                    </DropdownMenuItem>
+                    </>
+                )}
+            </DropdownMenuContent>
+        </DropdownMenu>
 
         {Array.from(selectedValues).map(value => (
             <span
