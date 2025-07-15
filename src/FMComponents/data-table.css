@@ -259,6 +259,7 @@
     height: 41px; /* Consistent height */
     box-sizing: border-box;
     position: relative;
+    flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -490,7 +491,6 @@
 .cygnet-dt-table-row {
     border-bottom: 1px solid #e5e7eb;
     background-color: #fff;
-    width: 100%;
     display: flex;
 }
 .cygnet-dt-table-row:hover {

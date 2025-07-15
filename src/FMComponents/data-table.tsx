@@ -797,205 +797,202 @@ export function DataTable<TData>({
             className="cygnet-dt-scroll-container"
             style={{
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
-                paddingLeft: `${frozenColumnsWidth}px`,
-                marginLeft: `-${frozenColumnsWidth}px`
             }}
           >
-            <div style={{ width: '100%', position: 'relative' }}>
-              <div style={{ position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
-                <div 
-                  className="cygnet-dt-header-row"
-                >
-                    {table.getHeaderGroups().map((headerGroup) => (
-                        <React.Fragment key={headerGroup.id}>
-                          {headerGroup.headers.map((header) => {
-                            const isFrozen = frozenColumnIds.includes(header.id);
-                            const isLastFrozen = isFrozen && frozenColumnIds.indexOf(header.id) === frozenColumnIds.length - 1;
-                            const headerClasses = [
-                              'cygnet-dt-cell-common',
-                              isFrozen ? 'cygnet-dt-header-cell--sticky' : '',
-                              isLastFrozen ? 'cygnet-dt-header-cell--sticky-last' : ''
-                            ].join(' ').trim();
-                            
-                            return (
-                            <div 
-                              key={header.id} 
-                              className={headerClasses}
-                              style={{ 
-                                width: header.getSize(), 
-                                minWidth: header.column.columnDef.minSize,
-                                ...getStickyStyles(header.id) 
-                              }}
-                              onDrop={(e) => {
-                                e.preventDefault();
-                                const draggedColumnId = e.dataTransfer.getData('text/plain');
-                                const targetColumnId = header.id;
-                                
-                                const isDraggedFrozen = frozenColumnIds.includes(draggedColumnId);
-                                const isTargetFrozen = frozenColumnIds.includes(targetColumnId);
-
-                                if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
-                                    // Only allow reordering if both columns are in the same frozen state
-                                    if (isDraggedFrozen === isTargetFrozen) {
-                                        table.setColumnOrder(
-                                            (old) => reorderColumn(draggedColumnId, targetColumnId, old)
-                                        );
-                                    }
-                                }
-                              }}
-                              onDragOver={(e) => e.preventDefault()}
-                            >
-                               <div 
-                                  className="cygnet-dt-header-content"
-                                  draggable
-                                  onDragStart={(e) => {
-                                    e.dataTransfer.setData('text/plain', header.id);
-                                    e.stopPropagation();
-                                  }}
-                                >
-                                  {header.isPlaceholder
-                                    ? null
-                                    : flexRender(
-                                        header.column.columnDef.header,
-                                        header.getContext()
-                                      )}
-                                </div>
-                                {header.column.getCanResize() && (
-                                  <div
-                                    onMouseDown={header.getResizeHandler()}
-                                    onTouchStart={header.getResizeHandler()}
-                                    className={`cygnet-dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
-                                  >
-                                    <MoreVertical className="lucide" />
-                                  </div>
-                                )}
-                            </div>
-                          )})}
-                        </React.Fragment>
-                    ))}
-                </div>
-              </div>
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
               <div 
                 style={{ 
-                    height: rows.length > 0 ? `${rowVirtualizer.getTotalSize()}px` : '60px', 
-                    position: 'relative' 
+                  position: 'sticky', 
+                  top: 0, 
+                  zIndex: 5, 
+                  backgroundColor: '#f9fafb',
+                  width: `${table.getCenterTotalSize()}px`,
                 }}
               >
-                {rows.length > 0 ? (
-                  rowVirtualizer.getVirtualItems().map(virtualRow => {
-                    const row = rows[virtualRow.index];
-                    const rowIsSelected = row.getIsSelected();
-                    return (
-                        <div
-                            key={row.id}
-                            className="cygnet-dt-table-row"
-                            data-state={rowIsSelected ? "selected" : ""}
-                            onDoubleClick={() => onRowDoubleClick?.(row.original)}
-                            onContextMenu={(e) => { 
-                                e.preventDefault(); 
-                                setContextMenu({
-                                    x: e.clientX,
-                                    y: e.clientY,
-                                    row: row.original
-                                });
+                  {table.getHeaderGroups().map((headerGroup) => (
+                      <div
+                        key={headerGroup.id}
+                        className="cygnet-dt-header-row"
+                      >
+                        {headerGroup.headers.map((header) => {
+                          const isFrozen = frozenColumnIds.includes(header.id);
+                          const isLastFrozen = isFrozen && frozenColumnIds.indexOf(header.id) === frozenColumnIds.length - 1;
+                          const headerClasses = [
+                            'cygnet-dt-cell-common',
+                            isFrozen ? 'cygnet-dt-header-cell--sticky' : '',
+                            isLastFrozen ? 'cygnet-dt-header-cell--sticky-last' : ''
+                          ].join(' ').trim();
+                          
+                          return (
+                          <div 
+                            key={header.id} 
+                            className={headerClasses}
+                            style={{ 
+                              width: header.getSize(), 
+                              minWidth: header.column.columnDef.minSize,
+                              ...getStickyStyles(header.id) 
                             }}
-                            onMouseDown={(e) => {
-                                const target = e.target as HTMLElement;
-                                if (target.closest('[role="checkbox"]')) {
-                                  return;
-                                }
-                                e.preventDefault(); // Prevent text selection
-                                const rowIndex = virtualRow.index;
-                                
-                                setIsDragging(true);
-                                setDragStartRowIndex(rowIndex);
-                                setDragSelectionStart(rowSelection); // Store selection at drag start
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              const draggedColumnId = e.dataTransfer.getData('text/plain');
+                              const targetColumnId = header.id;
+                              
+                              const isDraggedFrozen = frozenColumnIds.includes(draggedColumnId);
+                              const isTargetFrozen = frozenColumnIds.includes(targetColumnId);
 
-                                if (e.shiftKey && lastClickedRowIndex.current !== null) {
-                                    const start = Math.min(lastClickedRowIndex.current, rowIndex);
-                                    const end = Math.max(lastClickedRowIndex.current, rowIndex);
-                                    
-                                    const newSelection: {[key: string]: boolean} = {}; 
-                                    for(let i = start; i <= end; i++) {
-                                        const rowId = rows[i]?.id;
-                                        if (rowId) {
-                                            newSelection[rowId] = true;
-                                        }
-                                    }
-                                    table.setRowSelection(newSelection);
-                                } else if (e.metaKey || e.ctrlKey) {
-                                    const newSelection = { ...rowSelection };
-                                    if ((newSelection as any)[row.id]) {
-                                        delete (newSelection as any)[row.id];
-                                    } else {
-                                        (newSelection as any)[row.id] = true;
-                                    }
-                                    table.setRowSelection(newSelection);
-                                    lastClickedRowIndex.current = rowIndex;
-                                } else {
-                                    table.setRowSelection({ [row.id]: true });
-                                    lastClickedRowIndex.current = rowIndex;
-                                }
+                              if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
+                                  if (isDraggedFrozen === isTargetFrozen) {
+                                      table.setColumnOrder(
+                                          (old) => reorderColumn(draggedColumnId, targetColumnId, old)
+                                      );
+                                  }
+                              }
                             }}
-                            onMouseEnter={() => {
-                                if (isDragging && dragStartRowIndex !== null) {
-                                    const rowIndex = virtualRow.index;
-                                    const start = Math.min(dragStartRowIndex, rowIndex);
-                                    const end = Math.max(dragStartRowIndex, rowIndex);
-
-                                    const newSelection: {[key: string]: boolean} = {...dragSelectionStart}; 
-                                    for(let i = start; i <= end; i++) {
-                                        const rowId = rows[i]?.id;
-                                        if (rowId) {
-                                            newSelection[rowId] = true;
-                                        }
-                                    }
-                                    table.setRowSelection(newSelection);
-                                }
-                            }}
-                            style={{
-                              position: 'absolute',
-                              transform: `translateY(${virtualRow.start}px)`,
-                              top: 0,
-                              left: 0,
-                              width: '100%',
-                              height: `${virtualRow.size}px`,
-                              cursor: 'pointer'
-                            }}
+                            onDragOver={(e) => e.preventDefault()}
                           >
-                            {row.getVisibleCells().map((cell) => {
-                                const isFrozen = frozenColumnIds.includes(cell.column.id);
-                                const isLastFrozen = isFrozen && frozenColumnIds.indexOf(cell.column.id) === frozenColumnIds.length - 1;
-                                const cellClasses = [
-                                  'cygnet-dt-cell-common',
-                                  'cygnet-dt-table-cell',
-                                  isFrozen ? 'cygnet-dt-table-cell--sticky' : '',
-                                  isLastFrozen ? 'cygnet-dt-table-cell--sticky-last' : ''
-                                ].join(' ').trim();
-
-                                return (
-                                  <div 
-                                    key={cell.id} 
-                                    className={cellClasses}
-                                    style={{ 
-                                      width: cell.column.getSize(), 
-                                      minWidth: cell.column.columnDef.minSize,
-                                      ...getStickyStyles(cell.column.id)
-                                    }}
-                                  >
-                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                  </div>
-                                );
-                            })}
-                        </div>
-                    )
-                  })
-                ) : (
-                  <div className="cygnet-dt-no-results">
-                    No results.
-                  </div>
-                )}
+                             <div 
+                                className="cygnet-dt-header-content"
+                                draggable
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData('text/plain', header.id);
+                                  e.stopPropagation();
+                                }}
+                              >
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                              </div>
+                              {header.column.getCanResize() && (
+                                <div
+                                  onMouseDown={header.getResizeHandler()}
+                                  onTouchStart={header.getResizeHandler()}
+                                  className={`cygnet-dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
+                                >
+                                  <MoreVertical className="lucide" />
+                                </div>
+                              )}
+                          </div>
+                        )})}
+                      </div>
+                  ))}
               </div>
+              {rows.length > 0 ? (
+                rowVirtualizer.getVirtualItems().map(virtualRow => {
+                  const row = rows[virtualRow.index];
+                  const rowIsSelected = row.getIsSelected();
+                  return (
+                      <div
+                          key={row.id}
+                          className="cygnet-dt-table-row"
+                          data-state={rowIsSelected ? "selected" : ""}
+                          onDoubleClick={() => onRowDoubleClick?.(row.original)}
+                          onContextMenu={(e) => { 
+                              e.preventDefault(); 
+                              setContextMenu({
+                                  x: e.clientX,
+                                  y: e.clientY,
+                                  row: row.original
+                              });
+                          }}
+                          onMouseDown={(e) => {
+                              const target = e.target as HTMLElement;
+                              if (target.closest('[role="checkbox"]')) {
+                                return;
+                              }
+                              e.preventDefault();
+                              const rowIndex = virtualRow.index;
+                              
+                              setIsDragging(true);
+                              setDragStartRowIndex(rowIndex);
+                              setDragSelectionStart(rowSelection);
+
+                              if (e.shiftKey && lastClickedRowIndex.current !== null) {
+                                  const start = Math.min(lastClickedRowIndex.current, rowIndex);
+                                  const end = Math.max(lastClickedRowIndex.current, rowIndex);
+                                  
+                                  const newSelection: {[key: string]: boolean} = {}; 
+                                  for(let i = start; i <= end; i++) {
+                                      const rowId = rows[i]?.id;
+                                      if (rowId) {
+                                          newSelection[rowId] = true;
+                                      }
+                                  }
+                                  table.setRowSelection(newSelection);
+                              } else if (e.metaKey || e.ctrlKey) {
+                                  const newSelection = { ...rowSelection };
+                                  if ((newSelection as any)[row.id]) {
+                                      delete (newSelection as any)[row.id];
+                                  } else {
+                                      (newSelection as any)[row.id] = true;
+                                  }
+                                  table.setRowSelection(newSelection);
+                                  lastClickedRowIndex.current = rowIndex;
+                              } else {
+                                  table.setRowSelection({ [row.id]: true });
+                                  lastClickedRowIndex.current = rowIndex;
+                              }
+                          }}
+                          onMouseEnter={() => {
+                              if (isDragging && dragStartRowIndex !== null) {
+                                  const rowIndex = virtualRow.index;
+                                  const start = Math.min(dragStartRowIndex, rowIndex);
+                                  const end = Math.max(dragStartRowIndex, rowIndex);
+
+                                  const newSelection: {[key: string]: boolean} = {...dragSelectionStart}; 
+                                  for(let i = start; i <= end; i++) {
+                                      const rowId = rows[i]?.id;
+                                      if (rowId) {
+                                          newSelection[rowId] = true;
+                                      }
+                                  }
+                                  table.setRowSelection(newSelection);
+                              }
+                          }}
+                          style={{
+                            position: 'absolute',
+                            transform: `translateY(${virtualRow.start}px)`,
+                            top: 0,
+                            left: 0,
+                            width: `${table.getCenterTotalSize()}px`,
+                            height: `${virtualRow.size}px`,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {row.getVisibleCells().map((cell) => {
+                              const isFrozen = frozenColumnIds.includes(cell.column.id);
+                              const isLastFrozen = isFrozen && frozenColumnIds.indexOf(cell.column.id) === frozenColumnIds.length - 1;
+                              const cellClasses = [
+                                'cygnet-dt-cell-common',
+                                'cygnet-dt-table-cell',
+                                isFrozen ? 'cygnet-dt-table-cell--sticky' : '',
+                                isLastFrozen ? 'cygnet-dt-table-cell--sticky-last' : ''
+                              ].join(' ').trim();
+
+                              return (
+                                <div 
+                                  key={cell.id} 
+                                  className={cellClasses}
+                                  style={{ 
+                                    width: cell.column.getSize(), 
+                                    minWidth: cell.column.columnDef.minSize,
+                                    ...getStickyStyles(cell.column.id)
+                                  }}
+                                >
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </div>
+                              );
+                          })}
+                      </div>
+                  )
+                })
+              ) : (
+                <div className="cygnet-dt-no-results">
+                  No results.
+                </div>
+              )}
             </div>
           </div>
         </div>
