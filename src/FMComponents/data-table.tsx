@@ -799,7 +799,7 @@ export function DataTable<TData>({
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
           >
-            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: `${table.getCenterTotalSize()}px` }}>
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: `${table.getCenterTotalSize()}px`, position: 'relative' }}>
               <div 
                 style={{ 
                   position: 'sticky', 
