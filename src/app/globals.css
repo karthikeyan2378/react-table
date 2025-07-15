@@ -145,7 +145,7 @@ body {
     align-items: flex-start;
   }
 
-  /* The charts column takes up a flexible 1/3 of the space. */
+  /* The charts column takes up a flexible space but has a max-width. */
   .cygnet-charts-column {
     flex: 1 1 320px;
     max-width: 350px;
