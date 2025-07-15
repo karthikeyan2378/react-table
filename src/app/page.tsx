@@ -469,47 +469,45 @@ export default function Home() {
           )}
 
           {/* Data Table Column */}
-          <div className="cygnet-table-column">
-              <div className="cygnet-table-card">
-                  <DataTable
-                      tableContainerRef={tableContainerRef}
-                      data={data}
-                      columns={columns}
-                      onSelectedRowsChange={setSelectedRows}
-                      getRowId={getRowId}
-                      filterableColumns={filterableColumns}
-                      initialColumnVisibility={initialColumnVisibility}
-                      initialSorting={initialSorting}
-                      onRowDoubleClick={setDialogRow}
-                      contextMenuItems={contextMenuItems}
-                      globalFilter={globalFilter}
-                      onGlobalFilterChange={setGlobalFilter}
-                      columnFilters={columnFilters}
-                      onColumnFiltersChange={setColumnFilters}
-                      onTableReady={setTable}
-                      onAddRow={addRow}
-                      onUpdateRow={handleUpdateRow}
-                      isStreaming={isStreaming}
-                      onToggleStreaming={() => setIsStreaming((prev) => !prev)}
-                      onDeleteSelectedRows={deleteSelectedRows}
-                      onExportCsv={handleExportCsv}
-                      onExportXlsx={handleExportXlsx}
-                      onExportPdf={handleExportPdf}
-                      showCharts={showCharts}
-                      initialShowCharts={false}
-                      onToggleCharts={setShowCharts}
-                      tableTitle="Live Alarm Feed"
-                      tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
-                      maxHeightWithPagination="60vh"
-                      maxHeightWithoutPagination="80vh"
-                      initialRowsPerPage={50}
-                      rowsPerPageOptions={[20, 50, 100, 200, 500]}
-                      toolbarVisibility={{ 
-                        toggleCharts: true,
-                        updateRow: true,
-                       }}
-                  />
-              </div>
+          <div className="cygnet-table-card">
+              <DataTable
+                  tableContainerRef={tableContainerRef}
+                  data={data}
+                  columns={columns}
+                  onSelectedRowsChange={setSelectedRows}
+                  getRowId={getRowId}
+                  filterableColumns={filterableColumns}
+                  initialColumnVisibility={initialColumnVisibility}
+                  initialSorting={initialSorting}
+                  onRowDoubleClick={setDialogRow}
+                  contextMenuItems={contextMenuItems}
+                  globalFilter={globalFilter}
+                  onGlobalFilterChange={setGlobalFilter}
+                  columnFilters={columnFilters}
+                  onColumnFiltersChange={setColumnFilters}
+                  onTableReady={setTable}
+                  onAddRow={addRow}
+                  onUpdateRow={handleUpdateRow}
+                  isStreaming={isStreaming}
+                  onToggleStreaming={() => setIsStreaming((prev) => !prev)}
+                  onDeleteSelectedRows={deleteSelectedRows}
+                  onExportCsv={handleExportCsv}
+                  onExportXlsx={handleExportXlsx}
+                  onExportPdf={handleExportPdf}
+                  showCharts={showCharts}
+                  initialShowCharts={false}
+                  onToggleCharts={setShowCharts}
+                  tableTitle="Live Alarm Feed"
+                  tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
+                  maxHeightWithPagination="60vh"
+                  maxHeightWithoutPagination="80vh"
+                  initialRowsPerPage={50}
+                  rowsPerPageOptions={[20, 50, 100, 200, 500]}
+                  toolbarVisibility={{ 
+                    toggleCharts: true,
+                    updateRow: true,
+                   }}
+              />
           </div>
         </div>
 
