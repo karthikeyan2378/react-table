@@ -789,13 +789,14 @@ export function DataTable<TData>({
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
           >
-            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: `${table.getCenterTotalSize()}px`, position: 'relative' }}>
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: table.getCenterTotalSize() }}>
               <div 
                 style={{ 
                   position: 'sticky', 
                   top: 0, 
                   zIndex: 25, 
                   backgroundColor: '#f9fafb',
+                  width: '100%'
                 }}
               >
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -869,6 +870,13 @@ export function DataTable<TData>({
                       </div>
                   ))}
               </div>
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  position: 'relative',
+                  width: '100%',
+                }}
+              >
               {rows.length > 0 ? (
                 rowVirtualizer.getVirtualItems().map(virtualRow => {
                   const row = rows[virtualRow.index];
@@ -877,6 +885,7 @@ export function DataTable<TData>({
                       <div
                           key={row.id}
                           className="cygnet-dt-table-row"
+                          data-index={virtualRow.index}
                           data-state={rowIsSelected ? "selected" : ""}
                           onDoubleClick={() => onRowDoubleClick?.(row.original)}
                           onContextMenu={(e) => { 
@@ -983,6 +992,7 @@ export function DataTable<TData>({
                   No results.
                 </div>
               )}
+              </div>
             </div>
           </div>
         </div>
