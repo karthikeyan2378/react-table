@@ -801,7 +801,7 @@ export function DataTable<TData>({
                 marginLeft: `-${frozenColumnsWidth}px`
             }}
           >
-            <div style={{ width: table.getTotalSize(), position: 'relative' }}>
+            <div style={{ width: '100%', position: 'relative' }}>
               <div style={{ position: 'sticky', top: 0, zIndex: 5, backgroundColor: '#f9fafb' }}>
                 <div 
                   className="cygnet-dt-header-row"

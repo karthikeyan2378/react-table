@@ -74,6 +74,7 @@ body {
   display: flex;
   flex-direction: column; /* Stacks items vertically on small screens */
   gap: 2rem;
+  align-items: flex-start; /* Prevents flex items from stretching to full height */
 }
 
 /*
