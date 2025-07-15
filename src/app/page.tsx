@@ -36,6 +36,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuPortal,
 } from '@/FMComponents/ui/dropdown-menu';
 
 
@@ -422,17 +423,19 @@ export default function Home() {
                           Add Chart
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {summarizableColumns.map((key) => (
-                          <DropdownMenuItem
-                            key={key}
-                            disabled={activeCharts.includes(key)}
-                            onSelect={() => handleAddChart(key)}
-                          >
-                            {(alarmConfig.fields as any)[key].label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
+                      <DropdownMenuPortal>
+                        <DropdownMenuContent>
+                          {summarizableColumns.map((key) => (
+                            <DropdownMenuItem
+                              key={key}
+                              disabled={activeCharts.includes(key)}
+                              onSelect={() => handleAddChart(key)}
+                            >
+                              {(alarmConfig.fields as any)[key].label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenuPortal>
                     </DropdownMenu>
                 </div>
                 <div className="cygnet-charts-grid">
@@ -545,3 +548,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

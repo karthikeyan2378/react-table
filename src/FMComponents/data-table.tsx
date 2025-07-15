@@ -71,26 +71,6 @@ export interface FilterableColumn {
 type ChartableColumn = keyof typeof alarmConfig.fields;
 
 /**
- * Custom Dropdown Hook
- */
-const useDropdown = (ref: React.RefObject<HTMLDivElement>) => {
-    const [isOpen, setIsOpen] = React.useState(false);
-
-    React.useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (ref.current && !ref.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [ref]);
-
-    return { isOpen, setIsOpen };
-};
-
-
-/**
  * A generic faceted filter component for categorical data.
  */
 function DataTableFacetedFilter<TData>({
@@ -134,31 +114,33 @@ function DataTableFacetedFilter<TData>({
                     {title}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                {options.map((option) => {
-                    const isSelected = selectedValues.has(option.value);
-                    return (
-                    <DropdownMenuCheckboxItem
-                        key={option.value}
-                        checked={isSelected}
-                        onCheckedChange={() => handleFilterChange(option.value, isSelected)}
-                    >
-                        {highlightText(option.label, globalFilter)}
-                    </DropdownMenuCheckboxItem>
-                    );
-                })}
-                {selectedValues.size > 0 && (
-                    <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onClick={() => column?.setFilterValue(undefined)}
-                        className="justify-center"
-                    >
-                        Clear filters
-                    </DropdownMenuItem>
-                    </>
-                )}
-            </DropdownMenuContent>
+            <DropdownMenuPortal>
+                <DropdownMenuContent>
+                    {options.map((option) => {
+                        const isSelected = selectedValues.has(option.value);
+                        return (
+                        <DropdownMenuCheckboxItem
+                            key={option.value}
+                            checked={isSelected}
+                            onCheckedChange={() => handleFilterChange(option.value, isSelected)}
+                        >
+                            {highlightText(option.label, globalFilter)}
+                        </DropdownMenuCheckboxItem>
+                        );
+                    })}
+                    {selectedValues.size > 0 && (
+                        <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            onClick={() => column?.setFilterValue(undefined)}
+                            className="justify-center"
+                        >
+                            Clear filters
+                        </DropdownMenuItem>
+                        </>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenuPortal>
         </DropdownMenu>
 
         {Array.from(selectedValues).map(value => (
@@ -1080,3 +1062,5 @@ export function DataTable<TData>({
       </div>
   );
 }
+
+    
