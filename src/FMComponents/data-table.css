@@ -261,6 +261,7 @@
     position: relative;
     flex-shrink: 0;
     border-bottom: 1px solid #e5e7eb;
+    overflow: hidden; /* Prevent content from spilling out */
 }
 
 /* ==========================================================================
@@ -576,3 +577,5 @@
     background-color: #ffffff;
     padding: 0.5rem;
 }
+
+    
