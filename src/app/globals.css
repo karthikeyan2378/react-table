@@ -1,3 +1,4 @@
+
 /*
  * Import the Inter font from Google Fonts for a modern, clean look.
  */
@@ -65,34 +66,23 @@ body {
 }
 
 /*
- * A flex container for the main layout, arranging charts and the table.
- * Stacks vertically on small screens, and horizontally on large screens.
+ * A flex container for the main layout, arranging charts and the table side-by-side.
  */
 .cygnet-content-layout {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 2rem;
 }
 
-@media (min-width: 1024px) {
-  .cygnet-content-layout {
-    flex-direction: row;
-  }
-}
 
 /*
- * The column containing the charts.
- * `order: 1` places it on the left on large screens.
+ * The column containing the charts, taking up one-third of the width.
  */
 .cygnet-charts-column {
-  width: 100%;
+  width: 33.333333%;
+  order: 1; /* Charts on the left */
 }
-@media (min-width: 1024px) {
-  .cygnet-charts-column {
-    width: 33.333333%;
-    order: 1; /* Charts on the left */
-  }
-}
+
 
 /*
  * Header for the charts column.
@@ -120,18 +110,16 @@ body {
 
 /*
  * The column containing the data table.
- * `order: 2` places it on the right on large screens.
- * These classes control the width of the table column based on whether charts are visible.
+ * Takes up two-thirds of the width when charts are visible.
  */
 .cygnet-table-column-expanded {
-  width: 100%;
+  width: 66.666667%;
+  order: 2; /* Table on the right */
 }
-@media (min-width: 1024px) {
-    .cygnet-table-column-expanded {
-        width: 66.666667%;
-        order: 2; /* Table on the right */
-    }
-}
+
+/*
+ * Takes up the full width when charts are hidden.
+ */
 .cygnet-table-column-full {
     width: 100%;
 }
