@@ -13,20 +13,34 @@
  * Using HSL or RGB values allows for easy manipulation (e.g., adding alpha transparency).
  */
 :root {
-  --background-rgb: 249 250 251; /* bg-gray-50 */
-  --foreground-rgb: 17, 24, 39; /* text-gray-900 */
-  --primary-rgb: 37, 99, 235; /* blue-600 */
-  --border-rgb: 229, 231, 235; /* gray-200 */
-  --ring-rgb: 59, 130, 246; /* blue-500 */
-  --primary: 221 83% 53%; /* HSL for blue-600 */
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 224.3 76.3% 48%;
+  --radius: 0.5rem;
 }
 
 /*
  * Basic styles applied to the body. Sets the default background, text color, and font.
  */
 body {
-  background-color: rgb(var(--background-rgb));
-  color: rgb(var(--foreground-rgb));
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: 'Inter', sans-serif;
 }
 
@@ -122,9 +136,9 @@ body {
 .cygnet-table-card {
   padding: 1rem;
   border-radius: 0.5rem;
-  border: 1px solid rgb(var(--border-rgb));
-  background-color: #ffffff;
-  color: rgb(var(--foreground-rgb));
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--card-foreground);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
@@ -175,8 +189,8 @@ body {
   max-width: 512px;
   transform: translate(-50%, -50%);
   gap: 1rem;
-  border: 1px solid rgb(var(--border-rgb));
-  background-color: white;
+  border: 1px solid var(--border);
+  background-color: var(--background);
   padding: 1.5rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   border-radius: 0.375rem;
@@ -224,7 +238,7 @@ body {
 
 .cygnet-alert-dialog-description, .cygnet-dialog-description {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--muted-foreground);
 }
 
 .cygnet-dialog-close {
@@ -291,17 +305,17 @@ body {
   gap: 1rem;
   overflow: hidden;
   border-radius: 0.375rem;
-  border: 1px solid rgb(var(--border-rgb));
+  border: 1px solid var(--border);
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-  background-color: white;
-  color: rgb(var(--foreground-rgb));
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 .cygnet-toast--destructive {
-  border-color: #F87171; /* red-400 */
-  background-color: #DC2626; /* red-600 */
-  color: white;
+  border-color: var(--destructive);
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
 }
 
 .cygnet-toast .cygnet-toast-title {
