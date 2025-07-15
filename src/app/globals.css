@@ -167,6 +167,7 @@ body {
   /* On large screens, the chart grid becomes a single column to stack them vertically. */
   .cygnet-charts-column .cygnet-charts-grid {
       grid-template-columns: 1fr;
+      display: block;
   }
 
   /* The table column takes up 2/3 of the space and also floats */
