@@ -115,10 +115,12 @@ body {
 
 /*
  * A grid layout for the individual chart cards.
+ * On smaller screens, it's a 2-column grid.
  */
 .cygnet-charts-grid {
     display: grid;
     gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
 }
 
 /*
@@ -148,7 +150,6 @@ body {
 @media (min-width: 1024px) {
   .cygnet-content-layout {
     display: flow-root; /* Clear the floats of children */
-    padding: 1rem;
   }
 
   /* The charts column takes up 1/3 of the space and floats left */
@@ -160,6 +161,11 @@ body {
     margin-bottom: 0;
   }
   
+  /* On large screens, the chart grid becomes a single column to stack them vertically. */
+  .cygnet-charts-column .cygnet-charts-grid {
+      grid-template-columns: 1fr;
+  }
+
   /* The table column takes up 2/3 of the space and also floats */
   .cygnet-table-column-expanded {
     float: left;

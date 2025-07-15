@@ -19,7 +19,7 @@ const config = {
         { value: 'Cleared', label: 'Cleared' },
       ],
       chartConfig: {
-        defaultChartType: 'pie' as ChartType,
+        defaultChartType: 'doughnut' as ChartType,
         colors: {
           'Critical': '#EF4444', // red-500
           'Major': '#F97316',    // orange-500
@@ -58,7 +58,7 @@ const config = {
         { value: 'Packet Loss', label: 'Packet Loss' },
       ],
       chartConfig: {
-        defaultChartType: 'bar' as ChartType,
+        defaultChartType: 'doughnut' as ChartType,
       }
     },
     NetworkRaisedTimeLong: {
