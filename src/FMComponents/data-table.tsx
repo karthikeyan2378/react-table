@@ -755,16 +755,6 @@ export function DataTable<TData>({
                 {tableTitle && <h2 style={{fontSize: '1.125rem', fontWeight: 600}}>{tableTitle}</h2>}
                 {tableDescription && <p style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem'}}>{tableDescription}</p>}
             </div>
-            <div style={{fontSize: '0.875rem', color: '#6b7280', textAlign: 'right', flexShrink: 0, paddingTop: '0.25rem'}}>
-                <span style={{fontWeight: 700, color: '#111827'}}>
-                    {table.getFilteredRowModel().rows.length.toLocaleString()}
-                </span>
-                {" "}of{" "}
-                <span style={{fontWeight: 700, color: '#111827'}}>
-                    {data.length.toLocaleString()}
-                </span>
-                {" "}rows
-            </div>
         </div>
 
         <DataTableToolbar 
@@ -804,7 +794,7 @@ export function DataTable<TData>({
                 style={{ 
                   position: 'sticky', 
                   top: 0, 
-                  zIndex: 5, 
+                  zIndex: 25, 
                   backgroundColor: '#f9fafb',
                 }}
               >
@@ -1004,31 +994,41 @@ export function DataTable<TData>({
               {table.getFilteredRowModel().rows.length} row(s) selected.
             </div>
             <div style={{display: 'flex', alignItems: 'center', gap: '2rem'}}>
-              <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                <p style={{fontSize: '0.875rem', fontWeight: 500}}>Rows per page</p>
-                <select
-                  className="cygnet-dt-select"
-                  value={table.getState().pagination.pageSize}
-                  onChange={e => {
-                    table.setPageSize(Number(e.target.value))
-                  }}
-                >
-                  {rowsPerPageOptions.map(pageSize => (
-                    <option key={pageSize} value={pageSize}>
-                      {pageSize}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div style={{display: 'flex', width: '100px', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: 500}}>
-                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-              </div>
-              <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
-                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></button>
-                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></button>
-                <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
-              </div>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                    <p style={{fontSize: '0.875rem', fontWeight: 500}}>Rows per page</p>
+                    <select
+                    className="cygnet-dt-select"
+                    value={table.getState().pagination.pageSize}
+                    onChange={e => {
+                        table.setPageSize(Number(e.target.value))
+                    }}
+                    >
+                    {rowsPerPageOptions.map(pageSize => (
+                        <option key={pageSize} value={pageSize}>
+                        {pageSize}
+                        </option>
+                    ))}
+                    </select>
+                </div>
+                <div style={{display: 'flex', width: '100px', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: 500}}>
+                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                </div>
+                <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
+                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></button>
+                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></button>
+                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
+                </div>
+                 <div style={{fontSize: '0.875rem', color: '#6b7280', textAlign: 'right', flexShrink: 0, paddingTop: '0.25rem'}}>
+                    <span style={{fontWeight: 700, color: '#111827'}}>
+                        {table.getFilteredRowModel().rows.length.toLocaleString()}
+                    </span>
+                    {" "}of{" "}
+                    <span style={{fontWeight: 700, color: '#111827'}}>
+                        {data.length.toLocaleString()}
+                    </span>
+                    {" "}rows
+                </div>
             </div>
           </div>
         )}
