@@ -413,6 +413,7 @@
     margin-top: 0.25rem; /* 4px */
     max-height: 288px; /* 18rem */
     overflow-y: auto;
+    overflow-x: hidden;
     right: 0; /* Align to the right of the trigger button */
 }
 
