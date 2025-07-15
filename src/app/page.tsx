@@ -336,6 +336,7 @@ export default function Home() {
    * Exports the visible table data to a CSV file.
    */
   const handleExportCsv = () => {
+      if (!table) return;
       const exportData = getExportableData(table, alarmConfig);
       if (!exportData) return;
       const { headers, body } = exportData;
@@ -360,6 +361,7 @@ export default function Home() {
    * Exports the visible table data to an Excel (XLSX) file.
    */
   const handleExportXlsx = async () => {
+      if (!table) return;
       const exportData = getExportableData(table, alarmConfig);
       if (!exportData) return;
       const { headers, body } = exportData;
@@ -394,6 +396,7 @@ export default function Home() {
    * Exports the visible table data to a PDF file.
    */
   const handleExportPdf = async () => {
+    if (!table) return;
     const exportData = getExportableData(table, alarmConfig);
     if (!exportData) {
       toast({ title: "Error", description: "Could not get data for PDF export.", variant: "destructive" });
@@ -466,7 +469,7 @@ export default function Home() {
             )}
 
             {/* Data Table Column */}
-            <div className={showCharts ? "cygnet-table-column-expanded" : "cygnet-table-column-full"}>
+            <div className="cygnet-table-column">
                 <div className="cygnet-table-card">
                     <DataTable
                         tableContainerRef={tableContainerRef}
