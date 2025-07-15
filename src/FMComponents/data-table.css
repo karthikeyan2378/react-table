@@ -392,6 +392,10 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
+.cygnet-dt-dropdown-content {
+    z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white p-1 text-gray-900 shadow-md
+}
+
 /* ==========================================================================
    Table Body, Row, and Cell Styles
    ========================================================================== */

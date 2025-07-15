@@ -27,7 +27,7 @@ import {
   DialogClose,
 } from '../FMComponents/ui/dialog';
 import { Label } from '../FMComponents/ui/label';
-import { Textarea } from '../FMComponents/ui/textarea';
+import { Input } from '../FMComponents/ui/input';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 import { PieChart as PieChartIcon} from 'lucide-react';
@@ -424,7 +424,7 @@ export default function Home() {
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuPortal>
-                        <DropdownMenuContent>
+                        <DropdownMenuContent className="cygnet-dt-dropdown-content">
                           {summarizableColumns.map((key) => (
                             <DropdownMenuItem
                               key={key}
@@ -527,7 +527,7 @@ export default function Home() {
                 <Label htmlFor="additionalText" style={{textAlign: 'right'}}>
                   Additional Text
                 </Label>
-                <Textarea
+                <Input
                   id="additionalText"
                   defaultValue={rowToUpdate?.AdditionalText}
                   onChange={(e) => setRowToUpdate(prev => prev ? { ...prev, AdditionalText: e.target.value } : null)}

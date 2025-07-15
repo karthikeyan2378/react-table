@@ -271,7 +271,7 @@ function DataTableToolbar<TData>({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuPortal>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="cygnet-dt-dropdown-content">
               <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
               <DropdownMenuSeparator />
                 {filterableColumns.map((col) => (
@@ -399,7 +399,7 @@ function DataTableToolbar<TData>({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="cygnet-dt-dropdown-content">
                     {onExportCsv && <DropdownMenuItem onSelect={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</DropdownMenuItem>}
                     {onExportXlsx && <DropdownMenuItem onSelect={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</DropdownMenuItem>}
                     {onExportPdf && <DropdownMenuItem onSelect={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</DropdownMenuItem>}
@@ -416,7 +416,7 @@ function DataTableToolbar<TData>({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuPortal>
-                <DropdownMenuContent>
+                <DropdownMenuContent className="cygnet-dt-dropdown-content">
                   <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {toolbarVisibility.toggleSorting !== false && (
@@ -1040,6 +1040,7 @@ export function DataTable<TData>({
                 <DropdownMenuPortal>
                     <DropdownMenuContent
                         ref={contextMenuRef}
+                        className="cygnet-dt-dropdown-content"
                         style={{
                             position: "fixed",
                             left: contextMenu.x,

@@ -4,8 +4,8 @@
 import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { Check, ChevronRight, Circle } from "lucide-react"
+import clsx from "clsx"
 
-import { cn } from "../../lib/cn"
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -27,7 +27,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
 >(({ className, inset, children, ...props }, ref) => (
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
-    className={cn(
+    className={clsx(
       "flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-gray-100 data-[state=open]:bg-gray-100",
       inset && "pl-8",
       className
@@ -47,7 +47,7 @@ const DropdownMenuSubContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.SubContent
     ref={ref}
-    className={cn(
+    className={clsx(
       "z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white p-1 text-gray-900 shadow-lg",
       className
     )}
@@ -65,7 +65,7 @@ const DropdownMenuContent = React.forwardRef<
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
-      className={cn(
+      className={clsx(
         "z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white p-1 text-gray-900 shadow-md",
         className
       )}
@@ -83,7 +83,7 @@ const DropdownMenuItem = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
-    className={cn(
+    className={clsx(
       "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-800 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
       className
@@ -99,7 +99,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 >(({ className, children, checked, ...props }, ref) => (
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
-    className={cn(
+    className={clsx(
       "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-800 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
@@ -123,7 +123,7 @@ const DropdownMenuRadioItem = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
-    className={cn(
+    className={clsx(
       "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-gray-100 focus:text-gray-800 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
@@ -147,7 +147,7 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
-    className={cn(
+    className={clsx(
       "px-2 py-1.5 text-sm font-semibold",
       inset && "pl-8",
       className
@@ -163,7 +163,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-gray-200", className)}
+    className={clsx("-mx-1 my-1 h-px bg-gray-200", className)}
     {...props}
   />
 ))
@@ -175,7 +175,7 @@ const DropdownMenuShortcut = ({
 }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
-      className={cn("ml-auto text-xs tracking-widest opacity-60", className)}
+      className={clsx("ml-auto text-xs tracking-widest opacity-60", className)}
       {...props}
     />
   )
