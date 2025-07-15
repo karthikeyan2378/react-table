@@ -43,6 +43,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { highlightText } from '../lib/utils.tsx';
 import './data-table.css';
 import { alarmConfig, type Alarm } from "@/config/alarm-config";
+import * as DropdownMenu from './ui/dropdown-menu';
 
 
 /**
@@ -241,13 +242,6 @@ function DataTableToolbar<TData>({
   const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
   const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
-
-  const filterDropdownRef = React.useRef<HTMLDivElement>(null);
-  const { isOpen: isFilterOpen, setIsOpen: setFilterOpen } = useDropdown(filterDropdownRef);
-  const exportDropdownRef = React.useRef<HTMLDivElement>(null);
-  const { isOpen: isExportOpen, setIsOpen: setExportOpen } = useDropdown(exportDropdownRef);
-  const viewOptionsDropdownRef = React.useRef<HTMLDivElement>(null);
-  const { isOpen: isViewOptionsOpen, setIsOpen: setViewOptionsOpen } = useDropdown(viewOptionsDropdownRef);
   
   const handleFilterToggle = (columnId: string, isActive?: boolean) => {
     if (isActive) {
@@ -281,31 +275,30 @@ function DataTableToolbar<TData>({
               />
           </div>
 
-        <div className={`cygnet-dt-dropdown ${isFilterOpen ? 'open' : ''}`} ref={filterDropdownRef}>
-            <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setFilterOpen(!isFilterOpen)}>
+        <DropdownMenu.DropdownMenu>
+          <DropdownMenu.DropdownMenuTrigger asChild>
+            <button className="cygnet-dt-button cygnet-dt-button--outline">
               <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
               Add Filter
             </button>
-            <div className="cygnet-dt-dropdown-content">
-              <div className="cygnet-dt-dropdown-label">Filter by column</div>
-              <div className="cygnet-dt-dropdown-separator" />
-              {filterableColumns.map((col) => (
-                <div
-                    key={col.id}
-                    className="cygnet-dt-dropdown-item"
-                    onClick={() => handleFilterToggle(col.id, activeFilters.includes(col.id))}
-                >
-                  <input
-                    type="checkbox"
-                    className="cygnet-dt-checkbox"
-                    readOnly
-                    checked={activeFilters.includes(col.id)}
-                  />
-                  {highlightText(col.name, globalFilter)}
-                </div>
-              ))}
-            </div>
-        </div>
+          </DropdownMenu.DropdownMenuTrigger>
+          <DropdownMenu.DropdownMenuPortal>
+            <DropdownMenu.DropdownMenuContent>
+              <DropdownMenu.DropdownMenuLabel>Filter by column</DropdownMenu.DropdownMenuLabel>
+              <DropdownMenu.DropdownMenuSeparator />
+                {filterableColumns.map((col) => (
+                  <DropdownMenu.DropdownMenuCheckboxItem
+                      key={col.id}
+                      checked={activeFilters.includes(col.id)}
+                      onCheckedChange={() => handleFilterToggle(col.id, activeFilters.includes(col.id))}
+                      onSelect={(e) => e.preventDefault()}
+                  >
+                    {highlightText(col.name, globalFilter)}
+                  </DropdownMenu.DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenu.DropdownMenuContent>
+          </DropdownMenu.DropdownMenuPortal>
+        </DropdownMenu.DropdownMenu>
 
         {textFilterColumns.map((col) => {
           if (activeFilters.includes(col.id)) {
@@ -411,69 +404,74 @@ function DataTableToolbar<TData>({
           )}
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
-            <div className={`cygnet-dt-dropdown ${isExportOpen ? 'open' : ''}`} ref={exportDropdownRef}>
-                <div className="cygnet-dt-tooltip-wrapper">
-                    <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setExportOpen(!isExportOpen)}>
-                        <Download className="h-4 w-4" />
-                    </button>
-                    <div className="cygnet-dt-tooltip-content">Export Data</div>
-                </div>
-              <div className="cygnet-dt-dropdown-content">
-                  {onExportCsv && <div className="cygnet-dt-dropdown-item" onClick={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</div>}
-                  {onExportXlsx && <div className="cygnet-dt-dropdown-item" onClick={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</div>}
-                  {onExportPdf && <div className="cygnet-dt-dropdown-item" onClick={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</div>}
-              </div>
-            </div>
+            <DropdownMenu.DropdownMenu>
+              <DropdownMenu.DropdownMenuTrigger asChild>
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon">
+                  <Download className="h-4 w-4" />
+                </button>
+              </DropdownMenu.DropdownMenuTrigger>
+              <DropdownMenu.DropdownMenuPortal>
+                <DropdownMenu.DropdownMenuContent>
+                    {onExportCsv && <DropdownMenu.DropdownMenuItem onSelect={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</DropdownMenu.DropdownMenuItem>}
+                    {onExportXlsx && <DropdownMenu.DropdownMenuItem onSelect={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</DropdownMenu.DropdownMenuItem>}
+                    {onExportPdf && <DropdownMenu.DropdownMenuItem onSelect={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</DropdownMenu.DropdownMenuItem>}
+                </DropdownMenu.DropdownMenuContent>
+              </DropdownMenu.DropdownMenuPortal>
+            </DropdownMenu.DropdownMenu>
           )}
 
           {toolbarVisibility.viewOptions !== false && (
-            <div className={`cygnet-dt-dropdown ${isViewOptionsOpen ? 'open' : ''}`} ref={viewOptionsDropdownRef}>
-                <div className="cygnet-dt-tooltip-wrapper">
-                    <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setViewOptionsOpen(!isViewOptionsOpen)}>
-                        <SlidersHorizontal className="h-4 w-4" />
-                    </button>
-                    <div className="cygnet-dt-tooltip-content">View Options</div>
-                </div>
-              <div className="cygnet-dt-dropdown-content">
-                <div className="cygnet-dt-dropdown-label">Table Settings</div>
-                <div className="cygnet-dt-dropdown-separator" />
-                {toolbarVisibility.toggleSorting !== false && (
-                  <div className="cygnet-dt-dropdown-item" onClick={() => onSortingToggle(!sortingEnabled)}>
-                      <input type="checkbox" className="cygnet-dt-checkbox" readOnly checked={sortingEnabled} />
+            <DropdownMenu.DropdownMenu>
+              <DropdownMenu.DropdownMenuTrigger asChild>
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </button>
+              </DropdownMenu.DropdownMenuTrigger>
+              <DropdownMenu.DropdownMenuPortal>
+                <DropdownMenu.DropdownMenuContent>
+                  <DropdownMenu.DropdownMenuLabel>Table Settings</DropdownMenu.DropdownMenuLabel>
+                  <DropdownMenu.DropdownMenuSeparator />
+                  {toolbarVisibility.toggleSorting !== false && (
+                    <DropdownMenu.DropdownMenuCheckboxItem
+                      checked={sortingEnabled}
+                      onCheckedChange={onSortingToggle}
+                    >
                       Enable Sorting
-                  </div>
-                )}
-                {toolbarVisibility.togglePagination !== false && (
-                  <div className="cygnet-dt-dropdown-item" onClick={() => onPaginationToggle(!paginationEnabled)}>
-                      <input type="checkbox" className="cygnet-dt-checkbox" readOnly checked={paginationEnabled} />
+                    </DropdownMenu.DropdownMenuCheckboxItem>
+                  )}
+                  {toolbarVisibility.togglePagination !== false && (
+                    <DropdownMenu.DropdownMenuCheckboxItem
+                      checked={paginationEnabled}
+                      onCheckedChange={onPaginationToggle}
+                    >
                       Enable Pagination
-                  </div>
-                )}
-                {toolbarVisibility.toggleColumns !== false && (
-                  <>
-                    <div className="cygnet-dt-dropdown-separator" />
-                    <div className="cygnet-dt-dropdown-label">Toggle Columns</div>
-                    <div className="cygnet-dt-dropdown-separator" />
-                    {table
-                        .getAllColumns()
-                        .filter((column) => column.getCanHide())
-                        .map((column) => {
-                            const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                            return (
-                            <div
-                                key={column.id}
-                                className="cygnet-dt-dropdown-item"
-                                onClick={() => column.toggleVisibility(!column.getIsVisible())}
-                            >
-                                <input type="checkbox" className="cygnet-dt-checkbox" readOnly checked={column.getIsVisible()} />
-                                {label}
-                            </div>
-                            );
-                    })}
-                  </>
-                )}
-              </div>
-            </div>
+                    </DropdownMenu.DropdownMenuCheckboxItem>
+                  )}
+                  {toolbarVisibility.toggleColumns !== false && (
+                    <>
+                      <DropdownMenu.DropdownMenuSeparator />
+                      <DropdownMenu.DropdownMenuLabel>Toggle Columns</DropdownMenu.DropdownMenuLabel>
+                      <DropdownMenu.DropdownMenuSeparator />
+                      {table
+                          .getAllColumns()
+                          .filter((column) => column.getCanHide())
+                          .map((column) => {
+                              const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                              return (
+                                <DropdownMenu.DropdownMenuCheckboxItem
+                                  key={column.id}
+                                  checked={column.getIsVisible()}
+                                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                >
+                                  {label}
+                                </DropdownMenu.DropdownMenuCheckboxItem>
+                              );
+                      })}
+                    </>
+                  )}
+                </DropdownMenu.DropdownMenuContent>
+              </DropdownMenu.DropdownMenuPortal>
+            </DropdownMenu.DropdownMenu>
           )}
       </div>
     </div>
@@ -779,9 +777,7 @@ export function DataTable<TData>({
           toolbarVisibility={toolbarVisibility}
         />
 
-        <div 
-            className="cygnet-dt-wrapper"
-        >
+        <div className="cygnet-dt-wrapper">
           <div
             ref={tableContainerRef}
             className="cygnet-dt-scroll-container"
