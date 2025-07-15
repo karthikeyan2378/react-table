@@ -17,7 +17,6 @@
     border-radius: 0.375rem;
     border: 1px solid #e5e7eb;
     position: relative;
-    overflow: hidden; /* Contain the inner elements */
 }
 
 /*
