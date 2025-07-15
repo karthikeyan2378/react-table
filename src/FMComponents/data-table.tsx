@@ -812,6 +812,7 @@ export function DataTable<TData>({
                       <div
                         key={headerGroup.id}
                         className="cygnet-dt-header-row"
+                        style={{ width: `${table.getCenterTotalSize()}px` }}
                       >
                         {headerGroup.headers.map((header) => {
                           const isFrozen = frozenColumnIds.includes(header.id);
@@ -955,7 +956,7 @@ export function DataTable<TData>({
                             transform: `translateY(${virtualRow.start}px)`,
                             top: 0,
                             left: 0,
-                            width: '100%',
+                            width: `${table.getCenterTotalSize()}px`,
                             height: `${virtualRow.size}px`,
                             cursor: 'pointer'
                           }}
