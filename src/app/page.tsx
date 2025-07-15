@@ -30,7 +30,7 @@ import { Label } from '../FMComponents/ui/label';
 import { Textarea } from '../FMComponents/ui/textarea';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
-import { Donut, PieChart as PieChartIcon, BarChart2, X as XIcon} from 'lucide-react';
+import { PieChart as PieChartIcon} from 'lucide-react';
 
 
 /**

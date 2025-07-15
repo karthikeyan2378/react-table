@@ -13,7 +13,7 @@
  * Using HSL or RGB values allows for easy manipulation (e.g., adding alpha transparency).
  */
 :root {
-    --background: 0 0% 100%;
+    --background: 240 10% 98%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -148,7 +148,7 @@ body {
   /* The charts column takes up a fixed space and becomes scrollable if needed. */
   .cygnet-charts-column {
     flex: 0 0 350px; /* Flex-grow: 0, Flex-shrink: 0, Flex-basis: 350px */
-    max-height: 68vh; /* Match table height */
+    max-height: 80vh; /* Match table height */
     overflow-y: auto;  /* Add scrollbar if charts overflow */
     padding-right: 0.5rem; /* Space for scrollbar */
   }
@@ -159,7 +159,7 @@ body {
   }
   
   /* On large screens, the chart grid becomes a single column to stack them vertically. */
-  .cygnet-charts-column .cygnet-charts-grid {
+  .cygnet-charts-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 1rem;

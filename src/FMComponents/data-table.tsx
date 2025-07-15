@@ -43,7 +43,16 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { highlightText } from '../lib/utils.tsx';
 import './data-table.css';
 import { alarmConfig, type Alarm } from "@/config/alarm-config";
-import * as DropdownMenu from './ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 
 /**
@@ -275,30 +284,30 @@ function DataTableToolbar<TData>({
               />
           </div>
 
-        <DropdownMenu.DropdownMenu>
-          <DropdownMenu.DropdownMenuTrigger asChild>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <button className="cygnet-dt-button cygnet-dt-button--outline">
               <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
               Add Filter
             </button>
-          </DropdownMenu.DropdownMenuTrigger>
-          <DropdownMenu.DropdownMenuPortal>
-            <DropdownMenu.DropdownMenuContent>
-              <DropdownMenu.DropdownMenuLabel>Filter by column</DropdownMenu.DropdownMenuLabel>
-              <DropdownMenu.DropdownMenuSeparator />
+          </DropdownMenuTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuContent>
+              <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
+              <DropdownMenuSeparator />
                 {filterableColumns.map((col) => (
-                  <DropdownMenu.DropdownMenuCheckboxItem
+                  <DropdownMenuCheckboxItem
                       key={col.id}
                       checked={activeFilters.includes(col.id)}
                       onCheckedChange={() => handleFilterToggle(col.id, activeFilters.includes(col.id))}
                       onSelect={(e) => e.preventDefault()}
                   >
                     {highlightText(col.name, globalFilter)}
-                  </DropdownMenu.DropdownMenuCheckboxItem>
+                  </DropdownMenuCheckboxItem>
                 ))}
-            </DropdownMenu.DropdownMenuContent>
-          </DropdownMenu.DropdownMenuPortal>
-        </DropdownMenu.DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenuPortal>
+        </DropdownMenu>
 
         {textFilterColumns.map((col) => {
           if (activeFilters.includes(col.id)) {
@@ -404,74 +413,74 @@ function DataTableToolbar<TData>({
           )}
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
-            <DropdownMenu.DropdownMenu>
-              <DropdownMenu.DropdownMenuTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon">
                   <Download className="h-4 w-4" />
                 </button>
-              </DropdownMenu.DropdownMenuTrigger>
-              <DropdownMenu.DropdownMenuPortal>
-                <DropdownMenu.DropdownMenuContent>
-                    {onExportCsv && <DropdownMenu.DropdownMenuItem onSelect={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</DropdownMenu.DropdownMenuItem>}
-                    {onExportXlsx && <DropdownMenu.DropdownMenuItem onSelect={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</DropdownMenu.DropdownMenuItem>}
-                    {onExportPdf && <DropdownMenu.DropdownMenuItem onSelect={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</DropdownMenu.DropdownMenuItem>}
-                </DropdownMenu.DropdownMenuContent>
-              </DropdownMenu.DropdownMenuPortal>
-            </DropdownMenu.DropdownMenu>
+              </DropdownMenuTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuContent>
+                    {onExportCsv && <DropdownMenuItem onSelect={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</DropdownMenuItem>}
+                    {onExportXlsx && <DropdownMenuItem onSelect={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</DropdownMenuItem>}
+                    {onExportPdf && <DropdownMenuItem onSelect={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</DropdownMenuItem>}
+                </DropdownMenuContent>
+              </DropdownMenuPortal>
+            </DropdownMenu>
           )}
 
           {toolbarVisibility.viewOptions !== false && (
-            <DropdownMenu.DropdownMenu>
-              <DropdownMenu.DropdownMenuTrigger asChild>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon">
                   <SlidersHorizontal className="h-4 w-4" />
                 </button>
-              </DropdownMenu.DropdownMenuTrigger>
-              <DropdownMenu.DropdownMenuPortal>
-                <DropdownMenu.DropdownMenuContent>
-                  <DropdownMenu.DropdownMenuLabel>Table Settings</DropdownMenu.DropdownMenuLabel>
-                  <DropdownMenu.DropdownMenuSeparator />
+              </DropdownMenuTrigger>
+              <DropdownMenuPortal>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
                   {toolbarVisibility.toggleSorting !== false && (
-                    <DropdownMenu.DropdownMenuCheckboxItem
+                    <DropdownMenuCheckboxItem
                       checked={sortingEnabled}
                       onCheckedChange={onSortingToggle}
                     >
                       Enable Sorting
-                    </DropdownMenu.DropdownMenuCheckboxItem>
+                    </DropdownMenuCheckboxItem>
                   )}
                   {toolbarVisibility.togglePagination !== false && (
-                    <DropdownMenu.DropdownMenuCheckboxItem
+                    <DropdownMenuCheckboxItem
                       checked={paginationEnabled}
                       onCheckedChange={onPaginationToggle}
                     >
                       Enable Pagination
-                    </DropdownMenu.DropdownMenuCheckboxItem>
+                    </DropdownMenuCheckboxItem>
                   )}
                   {toolbarVisibility.toggleColumns !== false && (
                     <>
-                      <DropdownMenu.DropdownMenuSeparator />
-                      <DropdownMenu.DropdownMenuLabel>Toggle Columns</DropdownMenu.DropdownMenuLabel>
-                      <DropdownMenu.DropdownMenuSeparator />
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
                       {table
                           .getAllColumns()
                           .filter((column) => column.getCanHide())
                           .map((column) => {
                               const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                               return (
-                                <DropdownMenu.DropdownMenuCheckboxItem
+                                <DropdownMenuCheckboxItem
                                   key={column.id}
                                   checked={column.getIsVisible()}
                                   onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                 >
                                   {label}
-                                </DropdownMenu.DropdownMenuCheckboxItem>
+                                </DropdownMenuCheckboxItem>
                               );
                       })}
                     </>
                   )}
-                </DropdownMenu.DropdownMenuContent>
-              </DropdownMenu.DropdownMenuPortal>
-            </DropdownMenu.DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenuPortal>
+            </DropdownMenu>
           )}
       </div>
     </div>
@@ -748,11 +757,9 @@ export function DataTable<TData>({
 
   return (
       <div className="cygnet-dt-container">
-        <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem'}}>
-            <div>
-                {tableTitle && <h2 style={{fontSize: '1.125rem', fontWeight: 600}}>{tableTitle}</h2>}
-                {tableDescription && <p style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem'}}>{tableDescription}</p>}
-            </div>
+        <div>
+            {tableTitle && <h2 style={{fontSize: '1.125rem', fontWeight: 600}}>{tableTitle}</h2>}
+            {tableDescription && <p style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem'}}>{tableDescription}</p>}
         </div>
 
         <DataTableToolbar 
