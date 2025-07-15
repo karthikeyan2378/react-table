@@ -260,6 +260,7 @@
     box-sizing: border-box;
     position: relative;
     flex-shrink: 0;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 /* ==========================================================================
@@ -491,7 +492,6 @@
  * These are applied to the `div` that wraps the cells in a virtualized row.
  */
 .cygnet-dt-table-row {
-    border-bottom: 1px solid #e5e7eb;
     background-color: #fff;
     display: flex;
 }
