@@ -261,7 +261,6 @@
     position: relative;
     flex-shrink: 0;
     border-bottom: 1px solid #e5e7eb;
-    overflow: hidden; /* Prevent content from spilling out */
 }
 
 /* ==========================================================================
@@ -346,7 +345,7 @@
     border-radius: 0.375rem;
     padding: 0.375rem 0.75rem;
     position: absolute;
-    z-index: 20;
+    z-index: 50;
     bottom: 125%;
     left: 50%;
     transform: translateX(-50%);
