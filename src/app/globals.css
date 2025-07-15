@@ -66,23 +66,21 @@ body {
 }
 
 /*
- * A flex container for the main layout, arranging charts and the table side-by-side.
+ * A flex container for the main layout. On small screens (default), it stacks items vertically.
+ * On larger screens, a media query will change it to a row layout.
  */
 .cygnet-content-layout {
   display: flex;
-  flex-direction: row;
+  flex-direction: column; /* Mobile-first: stack vertically */
   gap: 2rem;
 }
 
-
 /*
- * The column containing the charts, taking up one-third of the width.
+ * The column containing the charts. Defaults to full width for mobile.
  */
 .cygnet-charts-column {
-  width: 33.333333%;
-  order: 1; /* Charts on the left */
+  width: 100%;
 }
-
 
 /*
  * Header for the charts column.
@@ -110,16 +108,9 @@ body {
 
 /*
  * The column containing the data table.
- * Takes up two-thirds of the width when charts are visible.
+ * Defaults to full width when charts are visible (on mobile).
  */
-.cygnet-table-column-expanded {
-  width: 66.666667%;
-  order: 2; /* Table on the right */
-}
-
-/*
- * Takes up the full width when charts are hidden.
- */
+.cygnet-table-column-expanded,
 .cygnet-table-column-full {
     width: 100%;
 }
@@ -134,6 +125,31 @@ body {
   background-color: #ffffff;
   color: rgb(var(--foreground-rgb));
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/*
+ * Media query for larger screens (tablets and desktops).
+ * Switches the layout to be side-by-side.
+ */
+@media (min-width: 1024px) {
+  .cygnet-content-layout {
+    flex-direction: row; /* Side-by-side layout on larger screens */
+  }
+
+  .cygnet-charts-column {
+    width: 33.333333%; /* Takes up one-third of the width */
+    order: 1; /* Charts appear on the left */
+  }
+  
+  .cygnet-table-column-expanded {
+    width: 66.666667%; /* Takes up two-thirds of the width */
+    order: 2; /* Table appears on the right */
+  }
+
+  .cygnet-table-column-full {
+    width: 100%;
+    order: 2;
+  }
 }
 
 /* ==========================================================================
