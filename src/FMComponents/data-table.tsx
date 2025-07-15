@@ -858,7 +858,6 @@ export function DataTable<TData>({
               </div>
               <div
                 style={{
-                  height: `${rowVirtualizer.getTotalSize()}px`,
                   position: 'relative',
                   width: '100%',
                 }}
@@ -1039,28 +1038,29 @@ export function DataTable<TData>({
         )}
 
         {contextMenu && contextMenuItems && contextMenuItems.length > 0 && (
-            <div
-                ref={contextMenuRef}
-                className="cygnet-dt-dropdown-content"
-                style={{
-                    display: 'block',
-                    position: "fixed",
-                    left: contextMenu.x,
-                    top: contextMenu.y,
-                }}
-            >
-                {contextMenuItems.map((item, index) => (
-                    <React.Fragment key={index}>
-                        <div className="cygnet-dt-dropdown-item" onClick={() => { item.onClick(contextMenu.row); setContextMenu(null); }}>
-                            {item.label}
-                        </div>
-                        {item.separator && <div className="cygnet-dt-dropdown-separator" />}
-                    </React.Fragment>
-                ))}
-            </div>
+            <DropdownMenu open={!!contextMenu} onOpenChange={() => setContextMenu(null)}>
+                <DropdownMenuPortal>
+                    <DropdownMenuContent
+                        ref={contextMenuRef}
+                        style={{
+                            position: "fixed",
+                            left: contextMenu.x,
+                            top: contextMenu.y,
+                        }}
+                        onCloseAutoFocus={(e) => e.preventDefault()}
+                    >
+                        {contextMenuItems.map((item, index) => (
+                            <React.Fragment key={index}>
+                                <DropdownMenuItem onClick={() => { item.onClick(contextMenu.row); setContextMenu(null); }}>
+                                    {item.label}
+                                </DropdownMenuItem>
+                                {item.separator && <DropdownMenuSeparator />}
+                            </React.Fragment>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenuPortal>
+            </DropdownMenu>
         )}
       </div>
   );
 }
-
-    

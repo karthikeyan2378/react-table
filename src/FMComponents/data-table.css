@@ -392,54 +392,6 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-.cygnet-dt-dropdown {
-    position: relative;
-    display: inline-block;
-}
-.cygnet-dt-dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #ffffff;
-    min-width: 200px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 20;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.375rem;
-    padding: 0.25rem;
-    max-height: 288px;
-    overflow-y: auto;
-}
-.cygnet-dt-dropdown.open .cygnet-dt-dropdown-content {
-    display: block;
-}
-.cygnet-dt-dropdown-label {
-    padding: 0.5rem 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-}
-.cygnet-dt-dropdown-separator {
-    height: 1px;
-    background-color: #e5e7eb;
-    margin: 0.25rem -0.25rem;
-}
-.cygnet-dt-dropdown-item {
-    padding: 0.5rem;
-    cursor: pointer;
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-}
-.cygnet-dt-dropdown-item:hover {
-    background-color: #f3f4f6;
-}
-.cygnet-dt-dropdown-item.is-disabled {
-    opacity: 0.5;
-    pointer-events: none;
-}
-.cygnet-dt-dropdown-item input[type="checkbox"] {
-    margin-right: 0.5rem;
-}
-
 /* ==========================================================================
    Table Body, Row, and Cell Styles
    ========================================================================== */
@@ -576,4 +528,6 @@
     padding: 0.5rem;
 }
 
-    
+.cygnet-dt-header {
+    margin-bottom: 1rem;
+}
