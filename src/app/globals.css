@@ -138,17 +138,14 @@ body {
 
   .cygnet-charts-column {
     width: 33.333333%; /* Takes up one-third of the width */
-    order: 1; /* Charts appear on the left */
   }
   
   .cygnet-table-column-expanded {
     width: 66.666667%; /* Takes up two-thirds of the width */
-    order: 2; /* Table appears on the right */
   }
 
   .cygnet-table-column-full {
     width: 100%;
-    order: 2;
   }
 }
 
@@ -329,3 +326,5 @@ body {
 .cygnet-toast:hover .cygnet-toast-close {
   opacity: 1;
 }
+
+    
