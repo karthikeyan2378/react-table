@@ -25,7 +25,6 @@
  */
 .cygnet-dt-scroll-container {
     overflow: auto;
-    position: relative;
 }
 
 /*
@@ -271,7 +270,6 @@
  */
 .cygnet-dt-header-row {
     display: flex;
-    width: 100%;
 }
 
 /*

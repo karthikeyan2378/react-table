@@ -799,14 +799,13 @@ export function DataTable<TData>({
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
           >
-            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: `${table.getCenterTotalSize()}px` }}>
               <div 
                 style={{ 
                   position: 'sticky', 
                   top: 0, 
                   zIndex: 5, 
                   backgroundColor: '#f9fafb',
-                  width: `${table.getCenterTotalSize()}px`,
                 }}
               >
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -956,7 +955,7 @@ export function DataTable<TData>({
                             transform: `translateY(${virtualRow.start}px)`,
                             top: 0,
                             left: 0,
-                            width: `${table.getCenterTotalSize()}px`,
+                            width: '100%',
                             height: `${virtualRow.size}px`,
                             cursor: 'pointer'
                           }}
