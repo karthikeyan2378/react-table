@@ -132,33 +132,39 @@ body {
   background-color: var(--card);
   color: var(--card-foreground);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  width: 100%;
 }
 
 /*
  * Media query for larger screens (tablets and desktops).
- * This is where the layout switches to a side-by-side CSS Grid layout.
+ * This is where the layout switches to a side-by-side Flexbox layout.
  */
 @media (min-width: 1024px) {
   .cygnet-content-layout {
-    display: grid;
-    grid-template-columns: minmax(320px, 1fr) 3fr;
-    gap: 2rem;
+    flex-direction: row;
     align-items: flex-start;
   }
 
-  /* The charts column takes up the first grid column. */
+  /* The charts column takes up a flexible 1/3 of the space. */
   .cygnet-charts-column {
+    flex: 1 1 320px;
+    max-width: 350px;
     max-height: 68vh; /* Match table height */
     overflow-y: auto;  /* Add scrollbar if charts overflow */
     padding-right: 0.5rem; /* Space for scrollbar */
+  }
+
+  /* The table takes up the remaining flexible space. */
+  .cygnet-table-card {
+    flex: 3 1 0;
   }
   
   /* On large screens, the chart grid becomes a single column to stack them vertically. */
   .cygnet-charts-column .cygnet-charts-grid {
       display: grid;
       grid-template-columns: 1fr;
+      gap: 1rem;
   }
-
 }
 
 
