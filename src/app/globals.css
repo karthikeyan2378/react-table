@@ -77,7 +77,7 @@ body {
 }
 
 /*
- * The column containing the charts. Defaults to full width for mobile.
+ * The column containing the charts.
  */
 .cygnet-charts-column {
   width: 100%;
