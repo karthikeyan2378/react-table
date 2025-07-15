@@ -526,7 +526,7 @@
  * They also need a solid background color.
  */
 .cygnet-dt-header-cell--sticky {
-    z-index: 3;
+    z-index: 20;
     background-color: #f9fafb; /* Match header background */
 }
 
