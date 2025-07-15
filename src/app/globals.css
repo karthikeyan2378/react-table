@@ -66,12 +66,13 @@ body {
 }
 
 /*
- * A flex container for the main layout. On small screens (default), it stacks items vertically.
- * On larger screens, a media query will change it to a row layout.
+ * This is the main layout container for the charts and table.
+ * It uses flexbox to arrange its children.
+ * By default (mobile-first), it stacks items vertically.
  */
 .cygnet-content-layout {
   display: flex;
-  flex-direction: column; /* Mobile-first: stack vertically */
+  flex-direction: column; /* Stacks items vertically on small screens */
   gap: 2rem;
 }
 
@@ -107,8 +108,7 @@ body {
 }
 
 /*
- * The column containing the data table.
- * Defaults to full width when charts are visible (on mobile).
+ * Base styles for the data table column. It takes full width by default.
  */
 .cygnet-table-column-expanded,
 .cygnet-table-column-full {
@@ -129,25 +129,29 @@ body {
 
 /*
  * Media query for larger screens (tablets and desktops).
- * Switches the layout to be side-by-side.
+ * This is where the layout switches to be side-by-side.
  */
 @media (min-width: 1024px) {
   .cygnet-content-layout {
-    flex-direction: row; /* Side-by-side layout on larger screens */
+    flex-direction: row; /* Switches to a horizontal layout */
   }
 
+  /* The charts column takes up 1/3 of the space */
   .cygnet-charts-column {
-    width: 33.333333%; /* Takes up one-third of the width */
+    width: 33.333333%;
   }
   
+  /* The table column takes up 2/3 of the space when charts are visible */
   .cygnet-table-column-expanded {
-    width: 66.666667%; /* Takes up two-thirds of the width */
+    width: 66.666667%;
   }
 
+  /* The table column takes up the full width when charts are hidden */
   .cygnet-table-column-full {
     width: 100%;
   }
 }
+
 
 /* ==========================================================================
    Dialog and Alert Styles
@@ -326,5 +330,3 @@ body {
 .cygnet-toast:hover .cygnet-toast-close {
   opacity: 1;
 }
-
-    
