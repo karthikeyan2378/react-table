@@ -757,11 +757,13 @@ export function DataTable<TData>({
 
   return (
       <div className="cygnet-dt-container">
-        <div>
-            {tableTitle && <h2 style={{fontSize: '1.125rem', fontWeight: 600}}>{tableTitle}</h2>}
-            {tableDescription && <p style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem'}}>{tableDescription}</p>}
-        </div>
-
+        {tableTitle && (
+            <div className="cygnet-dt-header">
+                <h2 style={{ fontSize: '1.125rem', fontWeight: 600 }}>{tableTitle}</h2>
+                {tableDescription && <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>{tableDescription}</p>}
+            </div>
+        )}
+        
         <DataTableToolbar 
           table={table} 
           filterableColumns={filterableColumns} 
