@@ -31,6 +31,12 @@ import { Textarea } from '../FMComponents/ui/textarea';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 import { PieChart as PieChartIcon} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/FMComponents/ui/dropdown-menu';
 
 
 /**
@@ -38,26 +44,6 @@ import { PieChart as PieChartIcon} from 'lucide-react';
  * This is derived from the keys of the `alarmConfig.fields`.
  */
 type ChartableColumn = keyof typeof alarmConfig.fields;
-
-/**
- * Custom Dropdown Hook
- */
-const useDropdown = (ref: React.RefObject<HTMLDivElement>) => {
-    const [isOpen, setIsOpen] = React.useState(false);
-
-    React.useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (ref.current && !ref.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [ref]);
-
-    return { isOpen, setIsOpen };
-};
-
 
 /**
  * The main page component for the Alarm Dashboard application.
@@ -94,8 +80,6 @@ export default function Home() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
   // State to hold the data of the row being updated.
   const [rowToUpdate, setRowToUpdate] = React.useState<Alarm | null>(null);
-  const addChartDropdownRef = React.useRef<HTMLDivElement>(null);
-  const { isOpen: isAddChartOpen, setIsOpen: setAddChartOpen } = useDropdown(addChartDropdownRef);
 
   /**
    * Memoized callback to get a unique ID for each row.
@@ -431,23 +415,25 @@ export default function Home() {
             <div className="cygnet-charts-column">
                 <div className="cygnet-charts-header">
                     <h2>Charts</h2>
-                    <div className={`cygnet-dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
-                      <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setAddChartOpen(!isAddChartOpen)}>
-                        <PieChartIcon style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />
-                        Add Chart
-                      </button>
-                      <div className="cygnet-dt-dropdown-content">
-                          {summarizableColumns.map((key) => (
-                              <div
-                                key={key}
-                                className={`cygnet-dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
-                                onClick={() => { handleAddChart(key); setAddChartOpen(false); }}
-                              >
-                              {(alarmConfig.fields as any)[key].label}
-                              </div>
-                          ))}
-                      </div>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="cygnet-dt-button cygnet-dt-button--outline">
+                          <PieChartIcon style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />
+                          Add Chart
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        {summarizableColumns.map((key) => (
+                          <DropdownMenuItem
+                            key={key}
+                            disabled={activeCharts.includes(key)}
+                            onSelect={() => handleAddChart(key)}
+                          >
+                            {(alarmConfig.fields as any)[key].label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                 <div className="cygnet-charts-grid">
                   {activeCharts.map((columnId) => {
