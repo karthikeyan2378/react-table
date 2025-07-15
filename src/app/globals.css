@@ -162,6 +162,7 @@ body {
   
   /* On large screens, the chart grid becomes a single column to stack them vertically. */
   .cygnet-charts-column .cygnet-charts-grid {
+      display: grid;
       grid-template-columns: 1fr;
   }
 
