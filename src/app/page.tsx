@@ -31,13 +31,7 @@ import { Input } from '../FMComponents/ui/input';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 import { PieChart as PieChartIcon} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from '@/FMComponents/ui/dropdown-menu';
+import { useDropdown } from '@/hooks/use-dropdown';
 
 
 /**
@@ -81,6 +75,7 @@ export default function Home() {
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
   // State to hold the data of the row being updated.
   const [rowToUpdate, setRowToUpdate] = React.useState<Alarm | null>(null);
+  const { dropdownRef: addChartRef, isOpen: isAddChartOpen, setIsOpen: setIsAddChartOpen } = useDropdown();
 
   /**
    * Memoized callback to get a unique ID for each row.
@@ -208,6 +203,7 @@ export default function Home() {
     if (!activeCharts.includes(columnId)) {
       setActiveCharts([...activeCharts, columnId]);
     }
+    setIsAddChartOpen(false);
   };
 
   /**
@@ -416,27 +412,26 @@ export default function Home() {
             <div className="cygnet-charts-column">
                 <div className="cygnet-charts-header">
                     <h2>Charts</h2>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="cygnet-dt-button cygnet-dt-button--outline">
-                          <PieChartIcon style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />
-                          Add Chart
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuContent className="cygnet-dt-dropdown-content">
-                          {summarizableColumns.map((key) => (
-                            <DropdownMenuItem
-                              key={key}
-                              disabled={activeCharts.includes(key)}
-                              onSelect={() => handleAddChart(key)}
-                            >
-                              {(alarmConfig.fields as any)[key].label}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenu>
+                    <div ref={addChartRef} className="cygnet-dt-dropdown-container">
+                      <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setIsAddChartOpen(!isAddChartOpen)}>
+                        <PieChartIcon style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />
+                        Add Chart
+                      </button>
+                      {isAddChartOpen && (
+                          <div className="cygnet-dt-dropdown-content">
+                            {summarizableColumns.map((key) => (
+                              <button
+                                key={key}
+                                className="cygnet-dt-dropdown-item"
+                                disabled={activeCharts.includes(key)}
+                                onClick={() => handleAddChart(key)}
+                              >
+                                {(alarmConfig.fields as any)[key].label}
+                              </button>
+                            ))}
+                          </div>
+                      )}
+                    </div>
                 </div>
                 <div className="cygnet-charts-grid">
                   {activeCharts.map((columnId) => {

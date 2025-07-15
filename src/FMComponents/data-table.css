@@ -328,7 +328,7 @@
 }
 
 /* ==========================================================================
-   Component-Specific Styles (Tooltip, Badge, Dropdown)
+   Component-Specific Styles (Tooltip, Badge)
    ========================================================================== */
 
 .cygnet-dt-tooltip-wrapper {
@@ -392,16 +392,66 @@
     background-color: rgba(0, 0, 0, 0.2);
 }
 
+/* ==========================================================================
+   Custom Dropdown Styles
+   ========================================================================== */
+.cygnet-dt-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
 .cygnet-dt-dropdown-content {
-    z-index: 50;
-    min-width: 8rem;
-    overflow: hidden;
-    border-radius: 0.375rem;
-    border: 1px solid #e5e7eb;
+    display: block;
+    position: absolute;
     background-color: #ffffff;
-    padding: 0.25rem;
-    color: #111827;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 50;
+    border-radius: 0.375rem; /* 6px */
+    border: 1px solid #e5e7eb; /* gray-200 */
+    padding: 0.25rem; /* 4px */
+    margin-top: 0.25rem; /* 4px */
+    max-height: 288px; /* 18rem */
+    overflow-y: auto;
+    right: 0; /* Align to the right of the trigger button */
+}
+
+.cygnet-dt-dropdown-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem 0.75rem; /* 8px 12px */
+    font-size: 0.875rem; /* 14px */
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 0.25rem; /* 4px */
+}
+
+.cygnet-dt-dropdown-item:hover {
+    background-color: #f3f4f6; /* gray-100 */
+}
+
+.cygnet-dt-dropdown-item--checkbox {
+    gap: 0.5rem; /* space between checkbox and label */
+}
+.cygnet-dt-dropdown-item--checkbox input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+}
+
+.cygnet-dt-dropdown-separator {
+    height: 1px;
+    background-color: #e5e7eb; /* gray-200 */
+    margin: 0.25rem -0.25rem; /* my-1 -mx-1 */
+}
+
+.cygnet-dt-dropdown-label {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #4b5563; /* gray-600 */
 }
 
 

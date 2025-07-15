@@ -43,17 +43,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { highlightText } from '../lib/utils.tsx';
 import './data-table.css';
 import { alarmConfig, type Alarm } from "@/config/alarm-config";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-
+import { useDropdown } from "@/hooks/use-dropdown.ts";
 
 /**
  * Interface defining the structure for a filterable column.
@@ -92,6 +82,7 @@ function DataTableFacetedFilter<TData>({
   const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
   const severityConfig = alarmConfig.fields.Severity.chartConfig;
   const severityColors = severityConfig?.colors || {};
+  const { dropdownRef, isOpen, setIsOpen } = useDropdown();
 
   const handleFilterChange = (value: string, isSelected: boolean) => {
     const newSelectedValues = new Set(selectedValues);
@@ -107,39 +98,43 @@ function DataTableFacetedFilter<TData>({
 
   return (
     <div className="cygnet-dt-facet-filter-container">
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button className="cygnet-dt-button cygnet-dt-button--outline" style={{ height: '2.25rem' }}>
-                    <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
-                    {title}
-                </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                {options.map((option) => {
-                    const isSelected = selectedValues.has(option.value);
-                    return (
-                    <DropdownMenuCheckboxItem
-                        key={option.value}
-                        checked={isSelected}
-                        onCheckedChange={() => handleFilterChange(option.value, isSelected)}
-                    >
-                        {highlightText(option.label, globalFilter)}
-                    </DropdownMenuCheckboxItem>
-                    );
-                })}
-                {selectedValues.size > 0 && (
-                    <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                        onClick={() => column?.setFilterValue(undefined)}
-                        className="justify-center"
-                    >
-                        Clear filters
-                    </DropdownMenuItem>
-                    </>
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <div ref={dropdownRef} className="cygnet-dt-dropdown-container">
+            <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setIsOpen(!isOpen)}>
+                <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
+                {title}
+            </button>
+            {isOpen && (
+                <div className="cygnet-dt-dropdown-content">
+                    {options.map((option) => {
+                        const isSelected = selectedValues.has(option.value);
+                        return (
+                        <label key={option.value} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleFilterChange(option.value, isSelected)}
+                            />
+                            {highlightText(option.label, globalFilter)}
+                        </label>
+                        );
+                    })}
+                    {selectedValues.size > 0 && (
+                        <>
+                        <div className="cygnet-dt-dropdown-separator" />
+                        <button
+                            onClick={() => {
+                                column?.setFilterValue(undefined)
+                                setIsOpen(false)
+                            }}
+                            className="cygnet-dt-dropdown-item justify-center"
+                        >
+                            Clear filters
+                        </button>
+                        </>
+                    )}
+                </div>
+            )}
+        </div>
 
         {Array.from(selectedValues).map(value => (
             <span
@@ -231,6 +226,10 @@ function DataTableToolbar<TData>({
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
   const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
   
+  const { dropdownRef: addFilterRef, isOpen: isAddFilterOpen, setIsOpen: setIsAddFilterOpen } = useDropdown();
+  const { dropdownRef: exportRef, isOpen: isExportOpen, setIsOpen: setIsExportOpen } = useDropdown();
+  const { dropdownRef: viewOptionsRef, isOpen: isViewOptionsOpen, setIsOpen: setIsViewOptionsOpen } = useDropdown();
+
   const handleFilterToggle = (columnId: string, isActive?: boolean) => {
     if (isActive) {
        setActiveFilters((prev) => prev.filter((id) => id !== columnId));
@@ -262,31 +261,29 @@ function DataTableToolbar<TData>({
                 className="cygnet-dt-input with-icon"
               />
           </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="cygnet-dt-button cygnet-dt-button--outline">
-              <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
-              Add Filter
+          
+          <div ref={addFilterRef} className="cygnet-dt-dropdown-container">
+            <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setIsAddFilterOpen(!isAddFilterOpen)}>
+                <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
+                Add Filter
             </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuContent className="cygnet-dt-dropdown-content">
-              <DropdownMenuLabel>Filter by column</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-                {filterableColumns.map((col) => (
-                  <DropdownMenuCheckboxItem
-                      key={col.id}
-                      checked={activeFilters.includes(col.id)}
-                      onCheckedChange={() => handleFilterToggle(col.id, activeFilters.includes(col.id))}
-                      onSelect={(e) => e.preventDefault()}
-                  >
-                    {highlightText(col.name, globalFilter)}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenuPortal>
-        </DropdownMenu>
+            {isAddFilterOpen && (
+                <div className="cygnet-dt-dropdown-content">
+                    <div className="cygnet-dt-dropdown-label">Filter by column</div>
+                    <div className="cygnet-dt-dropdown-separator" />
+                    {filterableColumns.map((col) => (
+                        <label key={col.id} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
+                            <input
+                                type="checkbox"
+                                checked={activeFilters.includes(col.id)}
+                                onChange={() => handleFilterToggle(col.id, activeFilters.includes(col.id))}
+                            />
+                            {highlightText(col.name, globalFilter)}
+                        </label>
+                    ))}
+                </div>
+            )}
+        </div>
 
         {textFilterColumns.map((col) => {
           if (activeFilters.includes(col.id)) {
@@ -392,74 +389,67 @@ function DataTableToolbar<TData>({
           )}
           
           {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon">
+             <div ref={exportRef} className="cygnet-dt-dropdown-container">
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setIsExportOpen(!isExportOpen)}>
                   <Download className="h-4 w-4" />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuContent className="cygnet-dt-dropdown-content">
-                    {onExportCsv && <DropdownMenuItem onSelect={onExportCsv}><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</DropdownMenuItem>}
-                    {onExportXlsx && <DropdownMenuItem onSelect={onExportXlsx}><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</DropdownMenuItem>}
-                    {onExportPdf && <DropdownMenuItem onSelect={onExportPdf}><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</DropdownMenuItem>}
-                </DropdownMenuContent>
-              </DropdownMenuPortal>
-            </DropdownMenu>
+                {isExportOpen && (
+                    <div className="cygnet-dt-dropdown-content">
+                        {onExportCsv && <button onClick={() => { onExportCsv(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</button>}
+                        {onExportXlsx && <button onClick={() => { onExportXlsx(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</button>}
+                        {onExportPdf && <button onClick={() => { onExportPdf(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</button>}
+                    </div>
+                )}
+            </div>
           )}
 
           {toolbarVisibility.viewOptions !== false && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon">
-                  <SlidersHorizontal className="h-4 w-4" />
+             <div ref={viewOptionsRef} className="cygnet-dt-dropdown-container">
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setIsViewOptionsOpen(!isViewOptionsOpen)}>
+                    <SlidersHorizontal className="h-4 w-4" />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuContent className="cygnet-dt-dropdown-content">
-                  <DropdownMenuLabel>Table Settings</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {toolbarVisibility.toggleSorting !== false && (
-                    <DropdownMenuCheckboxItem
-                      checked={sortingEnabled}
-                      onCheckedChange={onSortingToggle}
-                    >
-                      Enable Sorting
-                    </DropdownMenuCheckboxItem>
-                  )}
-                  {toolbarVisibility.togglePagination !== false && (
-                    <DropdownMenuCheckboxItem
-                      checked={paginationEnabled}
-                      onCheckedChange={onPaginationToggle}
-                    >
-                      Enable Pagination
-                    </DropdownMenuCheckboxItem>
-                  )}
-                  {toolbarVisibility.toggleColumns !== false && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {table
-                          .getAllColumns()
-                          .filter((column) => column.getCanHide())
-                          .map((column) => {
-                              const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                              return (
-                                <DropdownMenuCheckboxItem
-                                  key={column.id}
-                                  checked={column.getIsVisible()}
-                                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                >
-                                  {label}
-                                </DropdownMenuCheckboxItem>
-                              );
-                      })}
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenuPortal>
-            </DropdownMenu>
+                {isViewOptionsOpen && (
+                    <div className="cygnet-dt-dropdown-content">
+                        <div className="cygnet-dt-dropdown-label">Table Settings</div>
+                        <div className="cygnet-dt-dropdown-separator" />
+                        {toolbarVisibility.toggleSorting !== false && (
+                            <label className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
+                                <input type="checkbox" checked={sortingEnabled} onChange={(e) => onSortingToggle(e.target.checked)} />
+                                Enable Sorting
+                            </label>
+                        )}
+                        {toolbarVisibility.togglePagination !== false && (
+                            <label className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
+                                <input type="checkbox" checked={paginationEnabled} onChange={(e) => onPaginationToggle(e.target.checked)} />
+                                Enable Pagination
+                            </label>
+                        )}
+                        {toolbarVisibility.toggleColumns !== false && (
+                            <>
+                            <div className="cygnet-dt-dropdown-separator" />
+                            <div className="cygnet-dt-dropdown-label">Toggle Columns</div>
+                            <div className="cygnet-dt-dropdown-separator" />
+                            {table
+                                .getAllColumns()
+                                .filter((column) => column.getCanHide())
+                                .map((column) => {
+                                    const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                                    return (
+                                        <label key={column.id} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
+                                            <input
+                                                type="checkbox"
+                                                checked={column.getIsVisible()}
+                                                onChange={(e) => column.toggleVisibility(!!e.target.checked)}
+                                            />
+                                            {label}
+                                        </label>
+                                    );
+                            })}
+                            </>
+                        )}
+                    </div>
+                )}
+            </div>
           )}
       </div>
     </div>
@@ -576,23 +566,7 @@ export function DataTable<TData>({
   const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
   const [rowSelection, setRowSelection] = React.useState({});
-  const [contextMenu, setContextMenu] = React.useState<{ x: number; y: number; row: TData } | null>(null);
-  const contextMenuRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
-        setContextMenu(null);
-      }
-    };
-    if (contextMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [contextMenu]);
-
+  const { dropdownRef: contextMenuRef, isOpen: isContextMenuOpen, setIsOpen: setIsContextMenuOpen, position: contextMenuPosition, setPosition: setContextMenuPosition } = useDropdown();
 
   // State for toggling table features like pagination and sorting.
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
@@ -608,6 +582,7 @@ export function DataTable<TData>({
   const [dragStartRowIndex, setDragStartRowIndex] = React.useState<number | null>(null);
   const lastClickedRowIndex = React.useRef<number | null>(null);
   const [dragSelectionStart, setDragSelectionStart] = React.useState({});
+  const [contextMenuRow, setContextMenuRow] = React.useState<TData | null>(null);
 
   // Effect to clean up drag-to-select state.
   React.useEffect(() => {
@@ -873,11 +848,9 @@ export function DataTable<TData>({
                           onDoubleClick={() => onRowDoubleClick?.(row.original)}
                           onContextMenu={(e) => { 
                               e.preventDefault(); 
-                              setContextMenu({
-                                  x: e.clientX,
-                                  y: e.clientY,
-                                  row: row.original
-                              });
+                              setContextMenuPosition({ x: e.clientX, y: e.clientY });
+                              setContextMenuRow(row.original);
+                              setIsContextMenuOpen(true);
                           }}
                           onMouseDown={(e) => {
                               const target = e.target as HTMLElement;
@@ -1035,30 +1008,26 @@ export function DataTable<TData>({
           </div>
         )}
 
-        {contextMenu && contextMenuItems && contextMenuItems.length > 0 && (
-            <DropdownMenu open={!!contextMenu} onOpenChange={() => setContextMenu(null)}>
-                <DropdownMenuPortal>
-                    <DropdownMenuContent
-                        ref={contextMenuRef}
-                        className="cygnet-dt-dropdown-content"
-                        style={{
-                            position: "fixed",
-                            left: contextMenu.x,
-                            top: contextMenu.y,
-                        }}
-                        onCloseAutoFocus={(e) => e.preventDefault()}
-                    >
-                        {contextMenuItems.map((item, index) => (
-                            <React.Fragment key={index}>
-                                <DropdownMenuItem onClick={() => { item.onClick(contextMenu.row); setContextMenu(null); }}>
-                                    {item.label}
-                                </DropdownMenuItem>
-                                {item.separator && <DropdownMenuSeparator />}
-                            </React.Fragment>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenuPortal>
-            </DropdownMenu>
+        {isContextMenuOpen && contextMenuItems && contextMenuRow && (
+            <div
+                ref={contextMenuRef}
+                className="cygnet-dt-dropdown-content"
+                style={{
+                    display: 'block',
+                    position: "fixed",
+                    left: contextMenuPosition.x,
+                    top: contextMenuPosition.y,
+                }}
+            >
+                {contextMenuItems.map((item, index) => (
+                    <React.Fragment key={index}>
+                        <button className="cygnet-dt-dropdown-item" onClick={() => { item.onClick(contextMenuRow); setIsContextMenuOpen(false); }}>
+                            {item.label}
+                        </button>
+                        {item.separator && <div className="cygnet-dt-dropdown-separator" />}
+                    </React.Fragment>
+                ))}
+            </div>
         )}
       </div>
   );
