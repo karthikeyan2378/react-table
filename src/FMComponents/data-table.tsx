@@ -114,33 +114,31 @@ function DataTableFacetedFilter<TData>({
                     {title}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuPortal>
-                <DropdownMenuContent>
-                    {options.map((option) => {
-                        const isSelected = selectedValues.has(option.value);
-                        return (
-                        <DropdownMenuCheckboxItem
-                            key={option.value}
-                            checked={isSelected}
-                            onCheckedChange={() => handleFilterChange(option.value, isSelected)}
-                        >
-                            {highlightText(option.label, globalFilter)}
-                        </DropdownMenuCheckboxItem>
-                        );
-                    })}
-                    {selectedValues.size > 0 && (
-                        <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                            onClick={() => column?.setFilterValue(undefined)}
-                            className="justify-center"
-                        >
-                            Clear filters
-                        </DropdownMenuItem>
-                        </>
-                    )}
-                </DropdownMenuContent>
-            </DropdownMenuPortal>
+            <DropdownMenuContent>
+                {options.map((option) => {
+                    const isSelected = selectedValues.has(option.value);
+                    return (
+                    <DropdownMenuCheckboxItem
+                        key={option.value}
+                        checked={isSelected}
+                        onCheckedChange={() => handleFilterChange(option.value, isSelected)}
+                    >
+                        {highlightText(option.label, globalFilter)}
+                    </DropdownMenuCheckboxItem>
+                    );
+                })}
+                {selectedValues.size > 0 && (
+                    <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        onClick={() => column?.setFilterValue(undefined)}
+                        className="justify-center"
+                    >
+                        Clear filters
+                    </DropdownMenuItem>
+                    </>
+                )}
+            </DropdownMenuContent>
         </DropdownMenu>
 
         {Array.from(selectedValues).map(value => (
