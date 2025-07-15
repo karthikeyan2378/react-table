@@ -426,91 +426,91 @@ export default function Home() {
     <div className="cygnet-page-container">
       <main className="cygnet-main-content">
         <div className="cygnet-content-layout">
-            {/* Charts Column */}
-            {showCharts && (
-              <div className="cygnet-charts-column">
-                  <div className="cygnet-charts-header">
-                      <h2>Charts</h2>
-                      <div className={`cygnet-dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
-                        <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setAddChartOpen(!isAddChartOpen)}>
-                          <PieChartIcon style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />
-                          Add Chart
-                        </button>
-                        <div className="cygnet-dt-dropdown-content">
-                            {summarizableColumns.map((key) => (
-                                <div
-                                  key={key}
-                                  className={`cygnet-dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
-                                  onClick={() => { handleAddChart(key); setAddChartOpen(false); }}
-                                >
-                                {(alarmConfig.fields as any)[key].label}
-                                </div>
-                            ))}
-                        </div>
+          {/* Charts Column */}
+          {showCharts && (
+            <div className="cygnet-charts-column">
+                <div className="cygnet-charts-header">
+                    <h2>Charts</h2>
+                    <div className={`cygnet-dt-dropdown ${isAddChartOpen ? 'open' : ''}`} ref={addChartDropdownRef}>
+                      <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setAddChartOpen(!isAddChartOpen)}>
+                        <PieChartIcon style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />
+                        Add Chart
+                      </button>
+                      <div className="cygnet-dt-dropdown-content">
+                          {summarizableColumns.map((key) => (
+                              <div
+                                key={key}
+                                className={`cygnet-dt-dropdown-item ${activeCharts.includes(key) ? 'is-disabled' : ''}`}
+                                onClick={() => { handleAddChart(key); setAddChartOpen(false); }}
+                              >
+                              {(alarmConfig.fields as any)[key].label}
+                              </div>
+                          ))}
                       </div>
-                  </div>
-                  <div className="cygnet-charts-grid">
-                    {activeCharts.map((columnId) => {
-                        const activeFilter = columnFilters.find(f => f.id === columnId);
-                        return (
-                            <ColumnChart
-                                key={columnId}
-                                columnId={columnId}
-                                label={alarmConfig.fields[columnId].label}
-                                data={data} // Pass full dataset to chart
-                                onRemove={handleRemoveChart}
-                                onFilter={handleChartFilter}
-                                activeFilters={(activeFilter?.value as string[]) || []}
-                            />
-                        );
-                    })}
-                   </div>
-              </div>
-            )}
-
-            {/* Data Table Column */}
-            <div className="cygnet-table-column">
-                <div className="cygnet-table-card">
-                    <DataTable
-                        tableContainerRef={tableContainerRef}
-                        data={data}
-                        columns={columns}
-                        onSelectedRowsChange={setSelectedRows}
-                        getRowId={getRowId}
-                        filterableColumns={filterableColumns}
-                        initialColumnVisibility={initialColumnVisibility}
-                        initialSorting={initialSorting}
-                        onRowDoubleClick={setDialogRow}
-                        contextMenuItems={contextMenuItems}
-                        globalFilter={globalFilter}
-                        onGlobalFilterChange={setGlobalFilter}
-                        columnFilters={columnFilters}
-                        onColumnFiltersChange={setColumnFilters}
-                        onTableReady={setTable}
-                        onAddRow={addRow}
-                        onUpdateRow={handleUpdateRow}
-                        isStreaming={isStreaming}
-                        onToggleStreaming={() => setIsStreaming((prev) => !prev)}
-                        onDeleteSelectedRows={deleteSelectedRows}
-                        onExportCsv={handleExportCsv}
-                        onExportXlsx={handleExportXlsx}
-                        onExportPdf={handleExportPdf}
-                        showCharts={showCharts}
-                        initialShowCharts={false}
-                        onToggleCharts={setShowCharts}
-                        tableTitle="Live Alarm Feed"
-                        tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
-                        maxHeightWithPagination="60vh"
-                        maxHeightWithoutPagination="80vh"
-                        initialRowsPerPage={50}
-                        rowsPerPageOptions={[20, 50, 100, 200, 500]}
-                        toolbarVisibility={{ 
-                          toggleCharts: true,
-                          updateRow: true,
-                         }}
-                    />
+                    </div>
                 </div>
+                <div className="cygnet-charts-grid">
+                  {activeCharts.map((columnId) => {
+                      const activeFilter = columnFilters.find(f => f.id === columnId);
+                      return (
+                          <ColumnChart
+                              key={columnId}
+                              columnId={columnId}
+                              label={alarmConfig.fields[columnId].label}
+                              data={data} // Pass full dataset to chart
+                              onRemove={handleRemoveChart}
+                              onFilter={handleChartFilter}
+                              activeFilters={(activeFilter?.value as string[]) || []}
+                          />
+                      );
+                  })}
+                 </div>
             </div>
+          )}
+
+          {/* Data Table Column */}
+          <div className="cygnet-table-column">
+              <div className="cygnet-table-card">
+                  <DataTable
+                      tableContainerRef={tableContainerRef}
+                      data={data}
+                      columns={columns}
+                      onSelectedRowsChange={setSelectedRows}
+                      getRowId={getRowId}
+                      filterableColumns={filterableColumns}
+                      initialColumnVisibility={initialColumnVisibility}
+                      initialSorting={initialSorting}
+                      onRowDoubleClick={setDialogRow}
+                      contextMenuItems={contextMenuItems}
+                      globalFilter={globalFilter}
+                      onGlobalFilterChange={setGlobalFilter}
+                      columnFilters={columnFilters}
+                      onColumnFiltersChange={setColumnFilters}
+                      onTableReady={setTable}
+                      onAddRow={addRow}
+                      onUpdateRow={handleUpdateRow}
+                      isStreaming={isStreaming}
+                      onToggleStreaming={() => setIsStreaming((prev) => !prev)}
+                      onDeleteSelectedRows={deleteSelectedRows}
+                      onExportCsv={handleExportCsv}
+                      onExportXlsx={handleExportXlsx}
+                      onExportPdf={handleExportPdf}
+                      showCharts={showCharts}
+                      initialShowCharts={false}
+                      onToggleCharts={setShowCharts}
+                      tableTitle="Live Alarm Feed"
+                      tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
+                      maxHeightWithPagination="60vh"
+                      maxHeightWithoutPagination="80vh"
+                      initialRowsPerPage={50}
+                      rowsPerPageOptions={[20, 50, 100, 200, 500]}
+                      toolbarVisibility={{ 
+                        toggleCharts: true,
+                        updateRow: true,
+                       }}
+                  />
+              </div>
+          </div>
         </div>
 
         {/* View Details Dialog */}
