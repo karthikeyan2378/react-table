@@ -1,3 +1,4 @@
+
 /*
  * Main container for the entire DataTable component, including toolbar and pagination.
  * Uses flexbox to stack elements vertically.
@@ -459,7 +460,7 @@
     cursor: col-resize;
     user-select: none;
     touch-action: none;
-    z-index: 10;
+    z-index: 5;
 }
 .cygnet-dt-resizer .lucide {
     height: 0.875rem;
@@ -470,6 +471,9 @@
 .cygnet-dt-resizer:hover,
 .cygnet-dt-resizer.is-resizing {
     background: #eef2ff; /* A subtle highlight */
+}
+.cygnet-dt-resizer.is-resizing {
+    z-index: 15;
 }
 .cygnet-dt-resizer.is-resizing .lucide,
 .cygnet-dt-resizer:hover .lucide {
@@ -516,7 +520,6 @@
 .cygnet-dt-header-cell--sticky,
 .cygnet-dt-table-cell--sticky {
     position: sticky;
-    z-index: 1;
 }
 
 /*
@@ -532,6 +535,7 @@
  * Sticky body cells also need a solid background to hide content scrolling underneath.
  */
 .cygnet-dt-table-cell--sticky {
+    z-index: 10;
     background-color: #fff;
     border-bottom: 1px solid #e5e7eb;
 }
