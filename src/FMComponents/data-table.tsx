@@ -104,7 +104,7 @@ function DataTableFacetedFilter<TData>({
                 {title}
             </button>
             {isOpen && (
-                <div className="cygnet-dt-dropdown-content">
+                <div className="cygnet-dt-dropdown-content" style={{right: 'auto', left: 0}}>
                     {options.map((option) => {
                         const isSelected = selectedValues.has(option.value);
                         return (
@@ -268,7 +268,7 @@ function DataTableToolbar<TData>({
                 Add Filter
             </button>
             {isAddFilterOpen && (
-                <div className="cygnet-dt-dropdown-content">
+                <div className="cygnet-dt-dropdown-content" style={{right: 'auto', left: 0}}>
                     <div className="cygnet-dt-dropdown-label">Filter by column</div>
                     <div className="cygnet-dt-dropdown-separator" />
                     {filterableColumns.map((col) => (
@@ -1011,7 +1011,7 @@ export function DataTable<TData>({
         {isContextMenuOpen && contextMenuItems && contextMenuRow && (
             <div
                 ref={contextMenuRef}
-                className="cygnet-dt-dropdown-content"
+                className="cygnet-dt-dropdown-content cygnet-dt-context-menu"
                 style={{
                     display: 'block',
                     position: "fixed",

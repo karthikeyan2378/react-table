@@ -417,6 +417,15 @@
     right: 0; /* Align to the right of the trigger button */
 }
 
+/*
+ * A more specific style for the context menu to make it narrower.
+ */
+.cygnet-dt-context-menu {
+    min-width: auto;
+    width: max-content;
+    right: auto; /* Allow position to be controlled by JS */
+}
+
 .cygnet-dt-dropdown-item {
     display: flex;
     align-items: center;
