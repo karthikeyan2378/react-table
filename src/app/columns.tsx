@@ -3,7 +3,7 @@
 
 import { type ColumnDef } from '@tanstack/react-table';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { ArrowDown, ArrowUp, ChevronsUpDown, MoreVertical } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { highlightText } from '../lib/utils.tsx';
 import React from 'react';
@@ -81,32 +81,34 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         cell: ({ row, table, column }) => {
           const value = row.getValue(key) as any;
           const { globalFilter, columnFilters } = (table.options.meta || {}) as { globalFilter?: string; columnFilters?: any };
-
           const columnFilterValue = columnFilters?.find(f => f.id === column.id)?.value as string | string[] | undefined;
           
-          let highlightedContent: React.ReactNode = String(value ?? '');
-          
-          if (globalFilter) {
-            highlightedContent = highlightText(highlightedContent, globalFilter);
+          let displayValue: string = String(value ?? '');
+          let highlightedContent: React.ReactNode = displayValue;
+
+          if (config.columnType === 'dateTime' && value instanceof Date) {
+            try {
+                const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
+                displayValue = format(value, formatString);
+            } catch (e) {
+                displayValue = "Invalid Date";
+            }
           }
 
+          if (globalFilter) {
+            highlightedContent = highlightText(displayValue, globalFilter);
+          }
           if (columnFilterValue) {
             highlightedContent = highlightText(highlightedContent, columnFilterValue);
           }
           
-          if (config.columnType === 'dateTime' && value instanceof Date) {
-            try {
-                const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
-                const formattedDate = format(value, formatString);
-                return (
-                    <div className="cygnet-dt-tooltip-wrapper">
-                        <span className="truncate">{formattedDate}</span>
-                        <div className="cygnet-dt-tooltip-content">{formattedDate}</div>
-                    </div>
-                );
-            } catch (e) {
-                return <span className="truncate text-red-500">Invalid Date</span>
-            }
+          if (config.columnType === 'dateTime') {
+            return (
+                <div className="cygnet-dt-tooltip-wrapper">
+                    <span className="truncate">{highlightedContent}</span>
+                    <div className="cygnet-dt-tooltip-content">{displayValue}</div>
+                </div>
+            );
           }
           
           if (key === 'Severity') {
@@ -128,7 +130,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                  <span className="truncate">
                      {highlightedContent}
                  </span>
-                 <div className="cygnet-dt-tooltip-content">{String(value ?? '')}</div>
+                 <div className="cygnet-dt-tooltip-content">{displayValue}</div>
             </div>
           );
         },
