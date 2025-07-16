@@ -40,6 +40,7 @@
     /* The table takes up the remaining flexible space. */
     .cygnet-table-card {
       flex: 1 1 0; /* Flex-grow: 1, Flex-shrink: 1, Flex-basis: 0 */
+      min-width: 0; /* Prevents the card from overflowing its flex container */
     }
 }
 
