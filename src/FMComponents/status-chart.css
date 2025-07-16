@@ -1,3 +1,58 @@
+/* ==========================================================================
+   Charts Layout Styles
+   ========================================================================== */
+
+/*
+ * The column containing the charts.
+ */
+.cygnet-charts-column {
+    width: 100%;
+}
+
+/*
+ * Header for the charts column.
+ */
+.cygnet-charts-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.cygnet-charts-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/*
+ * A grid layout for the individual chart cards.
+ * On smaller screens, it's a responsive grid.
+ */
+.cygnet-charts-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+
+@media (min-width: 1024px) {
+    /* The charts column takes up a fixed space and becomes scrollable if needed. */
+    .cygnet-charts-column {
+      flex: 0 0 350px; /* Flex-grow: 0, Flex-shrink: 0, Flex-basis: 350px */
+      max-height: 80vh; /* Match table height */
+      overflow-y: auto;  /* Add scrollbar if charts overflow */
+      padding-right: 0.5rem; /* Space for scrollbar */
+    }
+  
+    /* On large screens, the chart grid becomes a single column to stack them vertically. */
+    .cygnet-charts-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
 
 /*
  * The main container for a single chart component.

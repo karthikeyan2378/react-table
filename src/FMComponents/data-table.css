@@ -1,5 +1,48 @@
 
 
+/* ==========================================================================
+   Main Layout Styles
+   ========================================================================== */
+
+/*
+ * This is the main layout container for the charts and table.
+ * By default (mobile-first), it stacks items vertically.
+ */
+.cygnet-content-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/*
+ * A card-like container for the data table, providing padding, border, and shadow.
+ */
+.cygnet-table-card {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  width: 100%;
+}
+
+/*
+ * Media query for larger screens (tablets and desktops).
+ * This is where the layout switches to a side-by-side Flexbox layout.
+ */
+@media (min-width: 1024px) {
+    .cygnet-content-layout {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+
+    /* The table takes up the remaining flexible space. */
+    .cygnet-table-card {
+      flex: 1 1 0; /* Flex-grow: 1, Flex-shrink: 1, Flex-basis: 0 */
+    }
+}
+
 /*
  * Main container for the entire DataTable component, including toolbar and pagination.
  * Uses flexbox to stack elements vertically.
