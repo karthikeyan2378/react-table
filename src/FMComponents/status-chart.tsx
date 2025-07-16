@@ -6,7 +6,7 @@ import { Bar, BarChart, Pie, PieChart as RechartsPieChart, Cell, ResponsiveConta
 import { X as XIcon, PieChart as PieChartIcon, BarChart2, Donut } from 'lucide-react';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import './status-chart.css';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { useDropdown } from '@/hooks/use-dropdown';
 
 /**
  * Defines the types of charts that can be rendered.
@@ -59,6 +59,7 @@ const ColumnChartComponent = ({
   
   // State to manage the current chart type being displayed.
   const [chartType, setChartType] = React.useState<ChartType>(initialChartType);
+  const { dropdownRef: chartTypeRef, isOpen: isChartTypeOpen, setIsOpen: setIsChartTypeOpen } = useDropdown();
 
   /**
    * Memoized calculation of chart data.
@@ -123,29 +124,27 @@ const ColumnChartComponent = ({
         <div className="cygnet-chart-card-actions">
           {/* Dropdown to switch between chart types, hidden for numerical charts */}
           {!isNumerical && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon">
-                    <ChartIcon className="lucide" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuPortal>
-                <DropdownMenuContent>
-                    <DropdownMenuItem onSelect={() => setChartType('pie')}>
+            <div ref={chartTypeRef} className="cygnet-dt-dropdown-container">
+              <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setIsChartTypeOpen(!isChartTypeOpen)}>
+                  <ChartIcon className="lucide" />
+              </button>
+              {isChartTypeOpen && (
+                <div className="cygnet-dt-dropdown-content">
+                    <button className="cygnet-dt-dropdown-item" onClick={() => { setChartType('pie'); setIsChartTypeOpen(false); }}>
                         <PieChartIcon className="lucide lucide-dropdown" />
                         Pie Chart
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setChartType('doughnut')}>
+                    </button>
+                    <button className="cygnet-dt-dropdown-item" onClick={() => { setChartType('doughnut'); setIsChartTypeOpen(false); }}>
                         <Donut className="lucide lucide-dropdown" />
                         Doughnut Chart
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setChartType('bar')}>
+                    </button>
+                    <button className="cygnet-dt-dropdown-item" onClick={() => { setChartType('bar'); setIsChartTypeOpen(false); }}>
                         <BarChart2 className="lucide lucide-dropdown" />
                         Bar Chart
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenuPortal>
-            </DropdownMenu>
+                    </button>
+                </div>
+              )}
+            </div>
           )}
           {/* Button to remove the chart */}
           <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => onRemove(columnId)}>
