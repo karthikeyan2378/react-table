@@ -1,0 +1,85 @@
+
+/* ==========================================================================
+   Modal Styles
+   ========================================================================== */
+
+.cygnet-modal-portal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+}
+
+.cygnet-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+
+.cygnet-modal-content {
+  position: relative;
+  margin: auto;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  width: 90vw;
+  max-width: 520px;
+  pointer-events: auto;
+}
+
+/* Positioning */
+.cygnet-modal--center { align-items: center; justify-content: center; }
+.cygnet-modal--top { align-items: flex-start; justify-content: center; margin-top: 2rem; }
+.cygnet-modal--bottom { align-items: flex-end; justify-content: center; margin-bottom: 2rem; }
+.cygnet-modal--left { align-items: center; justify-content: flex-start; margin-left: 2rem; }
+.cygnet-modal--right { align-items: center; justify-content: flex-end; margin-right: 2rem; }
+
+
+.cygnet-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.cygnet-modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.cygnet-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  color: #6b7280;
+  transition: background-color 0.2s, color 0.2s;
+}
+.cygnet-modal-close:hover {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.cygnet-modal-body {
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.cygnet-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}

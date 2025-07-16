@@ -8,30 +8,14 @@ import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMCom
 import { ColumnChart } from '../FMComponents/status-chart';
 import { useToast } from '../hooks/use-toast';
 import { type Table as ReactTable, type ColumnFiltersState } from '@tanstack/react-table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '../FMComponents/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from '../FMComponents/ui/dialog';
 import { Label } from '../FMComponents/ui/label';
 import { Input } from '../FMComponents/ui/input';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 import { PieChart as PieChartIcon} from 'lucide-react';
 import { useDropdown } from '@/hooks/use-dropdown';
+import { Modal } from '@/FMComponents/ui/modal';
+import { Button } from '@/FMComponents/ui/button';
 
 
 /**
@@ -76,6 +60,8 @@ export default function Home() {
   // State to hold the data of the row being updated.
   const [rowToUpdate, setRowToUpdate] = React.useState<Alarm | null>(null);
   const { dropdownRef: addChartRef, isOpen: isAddChartOpen, setIsOpen: setIsAddChartOpen } = useDropdown();
+  // State to manage delete confirmation modal
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
 
   /**
    * Memoized callback to get a unique ID for each row.
@@ -151,7 +137,7 @@ export default function Home() {
   };
 
   /**
-   * Deletes the currently selected rows from the table.
+   * Opens the delete confirmation modal if rows are selected.
    */
   const deleteSelectedRows = () => {
     if (selectedRows.length === 0) {
@@ -162,11 +148,19 @@ export default function Home() {
       })
       return;
     }
+    setIsDeleteConfirmOpen(true);
+  };
+
+  /**
+   * Deletes the currently selected rows from the table after confirmation.
+   */
+  const handleConfirmDelete = () => {
     const selectedRowIds = selectedRows.map(r => getRowId(r));
     setData((oldData) =>
       oldData.filter((row) => !selectedRowIds.includes(getRowId(row)))
     );
     setSelectedRows([]);
+    setIsDeleteConfirmOpen(false);
     toast({
         title: "Rows Deleted",
         description: `${selectedRowIds.length} row(s) have been deleted.`
@@ -406,6 +400,14 @@ export default function Home() {
   return (
     <div className="cygnet-page-container">
       <main className="cygnet-main-content">
+        <div className="cygnet-page-header">
+            <h1>Live Streaming Alarm Dashboard</h1>
+            <p>
+              A high-performance, real-time dashboard for network alarms, built with Next.js and React. 
+              Features a virtualized data table capable of handling thousands of streaming updates per second, 
+              advanced client-side filtering, sorting, and dynamic charting.
+            </p>
+        </div>
         <div className="cygnet-content-layout">
           {/* Charts Column */}
           {showCharts && (
@@ -495,51 +497,78 @@ export default function Home() {
           </div>
         </div>
 
-        {/* View Details Dialog */}
-        <AlertDialog open={!!dialogRow} onOpenChange={(isOpen) => !isOpen && setDialogRow(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Item Details</AlertDialogTitle>
-              <AlertDialogDescription>Viewing full data for the selected item.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="max-h-96 overflow-y-auto rounded-md border bg-gray-100 p-4">
-              <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
-            </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setDialogRow(null)}>Close</AlertDialogCancel>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {/* View Details Modal */}
+        <Modal
+          isOpen={!!dialogRow}
+          onClose={() => setDialogRow(null)}
+          title="Item Details"
+          position="center"
+          footer={
+            <Button variant="outline" onClick={() => setDialogRow(null)}>
+              Close
+            </Button>
+          }
+        >
+          <div className="max-h-96 overflow-y-auto rounded-md border bg-gray-100 p-4">
+            <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
+          </div>
+        </Modal>
 
-        {/* Update Row Dialog */}
-        <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Update Alarm</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="additionalText" style={{textAlign: 'right'}}>
-                  Additional Text
-                </Label>
-                <Input
-                  id="additionalText"
-                  defaultValue={rowToUpdate?.AdditionalText}
-                  onChange={(e) => setRowToUpdate(prev => prev ? { ...prev, AdditionalText: e.target.value } : null)}
-                  className="col-span-3"
-                />
-              </div>
+        {/* Update Row Modal */}
+        <Modal
+          isOpen={isUpdateDialogOpen}
+          onClose={() => setIsUpdateDialogOpen(false)}
+          title="Update Alarm"
+          position="center"
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => rowToUpdate && onRowUpdate(rowToUpdate)}>
+                Save Changes
+              </Button>
+            </>
+          }
+        >
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="additionalText" style={{textAlign: 'right'}}>
+                Additional Text
+              </Label>
+              <Input
+                id="additionalText"
+                defaultValue={rowToUpdate?.AdditionalText}
+                onChange={(e) => setRowToUpdate(prev => prev ? { ...prev, AdditionalText: e.target.value } : null)}
+                className="col-span-3"
+              />
             </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <button className="cygnet-dt-button cygnet-dt-button--outline">Cancel</button>
-              </DialogClose>
-              <button className="cygnet-dt-button" onClick={() => rowToUpdate && onRowUpdate(rowToUpdate)}>Save changes</button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </Modal>
+
+        {/* Delete Confirmation Modal */}
+        <Modal
+          isOpen={isDeleteConfirmOpen}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          title="Confirm Deletion"
+          position="center"
+          footer={
+            <>
+              <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleConfirmDelete}>
+                Delete
+              </Button>
+            </>
+          }
+        >
+          <p>Are you sure you want to delete {selectedRows.length} selected row(s)? This action cannot be undone.</p>
+        </Modal>
 
       </main>
     </div>
   );
 }
+
+    
