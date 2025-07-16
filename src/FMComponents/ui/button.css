@@ -1,0 +1,108 @@
+
+.cygnet-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 0.375rem; /* rounded-md */
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.25rem;
+    font-weight: 500; /* font-medium */
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.cygnet-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6; /* ring-2 ring-blue-500 ring-offset-2 ring-offset-white */
+}
+
+.cygnet-btn:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Variants */
+.cygnet-btn--variant-default {
+    background-color: #2563eb; /* bg-blue-600 */
+    color: #ffffff; /* text-white */
+    border-color: #2563eb;
+}
+.cygnet-btn--variant-default:hover {
+    background-color: #1d4ed8; /* hover:bg-blue-700 */
+}
+
+.cygnet-btn--variant-destructive {
+    background-color: #dc2626; /* bg-red-600 */
+    color: #ffffff; /* text-white */
+    border-color: #dc2626;
+}
+.cygnet-btn--variant-destructive:hover {
+    background-color: #b91c1c; /* hover:bg-red-700 */
+}
+
+.cygnet-btn--variant-outline {
+    border-color: #d1d5db; /* border-gray-300 */
+    background-color: transparent;
+    color: #374151; /* text-gray-700 */
+}
+.cygnet-btn--variant-outline:hover {
+    background-color: #f3f4f6; /* hover:bg-gray-100 */
+    color: #1f2937; /* hover:text-gray-800 */
+}
+
+.cygnet-btn--variant-secondary {
+    background-color: #e5e7eb; /* bg-gray-200 */
+    color: #1f2937; /* text-gray-800 */
+    border-color: #e5e7eb;
+}
+.cygnet-btn--variant-secondary:hover {
+    background-color: #d1d5db; /* hover:bg-gray-300 */
+}
+
+.cygnet-btn--variant-ghost {
+    background-color: transparent;
+    border-color: transparent;
+    color: #374151;
+}
+.cygnet-btn--variant-ghost:hover {
+    background-color: #f3f4f6; /* hover:bg-gray-100 */
+    color: #1f2937; /* hover:text-gray-800 */
+}
+
+.cygnet-btn--variant-link {
+    color: #2563eb; /* text-blue-600 */
+    text-underline-offset: 4px;
+    background-color: transparent;
+    border-color: transparent;
+}
+.cygnet-btn--variant-link:hover {
+    text-decoration: underline;
+}
+
+/* Sizes */
+.cygnet-btn--size-default {
+    height: 2.5rem; /* h-10 */
+    padding-left: 1rem; /* px-4 */
+    padding-right: 1rem;
+    padding-top: 0.5rem; /* py-2 */
+    padding-bottom: 0.5rem;
+}
+
+.cygnet-btn--size-sm {
+    height: 2.25rem; /* h-9 */
+    padding-left: 0.75rem; /* px-3 */
+    padding-right: 0.75rem;
+}
+
+.cygnet-btn--size-lg {
+    height: 2.75rem; /* h-11 */
+    padding-left: 2rem; /* px-8 */
+    padding-right: 2rem;
+}
+
+.cygnet-btn--size-icon {
+    height: 2.5rem; /* h-10 */
+    width: 2.5rem; /* w-10 */
+}

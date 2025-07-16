@@ -4,6 +4,7 @@ import { LayoutComponent } from './layout-component';
 import './globals.css';
 import './custom-styles.css';
 import '../FMComponents/ui/modal.css';
+import '../FMComponents/ui/button.css';
 
 
 export const metadata: Metadata = {
