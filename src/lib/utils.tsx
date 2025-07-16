@@ -12,6 +12,10 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
   if (!highlight || (typeof highlight === 'string' && !highlight.trim()) || (Array.isArray(highlight) && highlight.length === 0)) {
     return text;
   }
+  
+  if (typeof text === 'number') {
+    text = String(text);
+  }
 
   // Sanitize each part of the highlight term to escape special regex characters.
   const escapeRegExp = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -33,7 +37,7 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
       const parts = node.split(highlightRegex);
       return parts.map((part, i) =>
         highlightRegex.test(part) ? (
-          <span key={i} className="bg-[#f3e22f7a] rounded-sm px-0.5">
+          <span key={i} style={{ backgroundColor: '#f3e22f7a', borderRadius: '2px', padding: '0 2px' }}>
             {part}
           </span>
         ) : (

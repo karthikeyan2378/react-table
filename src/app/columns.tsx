@@ -80,41 +80,28 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         },
         cell: ({ row, table, column }) => {
           const value = row.getValue(key) as any;
-          const { globalFilter, columnFilters } = (table.options.meta || {}) as { globalFilter?: string; columnFilters?: any };
+          const globalFilter = table.getState().globalFilter;
+          const columnFilters = table.getState().columnFilters;
           const columnFilterValue = columnFilters?.find(f => f.id === column.id)?.value as string | string[] | undefined;
           
-          let displayValue: string = String(value ?? '');
+          const filters = [globalFilter, columnFilterValue].flat().filter(Boolean) as string[];
           
-          // First, apply highlighting to the raw string value
-          let highlightedContent: React.ReactNode = displayValue;
-          if (globalFilter) {
-            highlightedContent = highlightText(highlightedContent, globalFilter);
-          }
-          if (columnFilterValue) {
-            highlightedContent = highlightText(highlightedContent, columnFilterValue);
-          }
+          let displayValue: string = String(value ?? '');
+          let content: React.ReactNode = displayValue;
 
-          // Then, perform formatting or wrapping
           if (config.columnType === 'dateTime' && value instanceof Date) {
             try {
                 const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
                 displayValue = format(value, formatString);
-                // Re-apply highlighting to the formatted date string if needed
-                if(globalFilter || columnFilterValue) {
-                   highlightedContent = highlightText(displayValue, globalFilter || columnFilterValue || '')
-                } else {
-                   highlightedContent = displayValue;
-                }
+                content = displayValue;
             } catch (e) {
                 displayValue = "Invalid Date";
-                highlightedContent = displayValue;
+                content = displayValue;
             }
-            return (
-                <div className="cygnet-dt-tooltip-wrapper">
-                    <span className="truncate">{highlightedContent}</span>
-                    <div className="cygnet-dt-tooltip-content">{displayValue}</div>
-                </div>
-            );
+          }
+
+          if (filters.length > 0) {
+            content = highlightText(displayValue, filters);
           }
           
           if (key === 'Severity') {
@@ -124,7 +111,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                     className="cygnet-dt-badge"
                     style={{ backgroundColor: severityColors[value] || '#6B7280' }}
                   >
-                    {highlightedContent}
+                    {content}
                   </span>
                   <div className="cygnet-dt-tooltip-content">Severity: {value}</div>
                 </div>
@@ -134,7 +121,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           return (
             <div className="cygnet-dt-tooltip-wrapper">
                  <span className="truncate">
-                     {highlightedContent}
+                     {content}
                  </span>
                  <div className="cygnet-dt-tooltip-content">{displayValue}</div>
             </div>
