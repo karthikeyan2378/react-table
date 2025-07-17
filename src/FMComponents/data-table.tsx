@@ -859,24 +859,22 @@ export function DataTable<TData extends { [key: string]: any }>({
                                minWidth: header.minSize,
                                left: isFrozen ? frozenColumnOffsets[header.id] : undefined,
                              }}
-                             onDrop={(e) => {
-                               e.preventDefault();
-                               const draggedColumnId = e.dataTransfer.getData('text/plain');
-                               const targetColumnId = header.id;
-                               if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
-                                   setColumnOrder(old => reorderColumn(draggedColumnId, targetColumnId, old));
-                               }
-                             }}
                              onDragOver={(e) => e.preventDefault()}
+                             onDrop={(e) => {
+                                 e.preventDefault();
+                                 const draggedColumnId = e.dataTransfer.getData('text/plain');
+                                 const targetColumnId = header.id;
+
+                                 if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
+                                     const isDraggedFrozen = frozenColumns.includes(draggedColumnId);
+                                     const isTargetFrozen = frozenColumns.includes(targetColumnId);
+                                     if (isDraggedFrozen === isTargetFrozen) {
+                                         setColumnOrder(old => reorderColumn(draggedColumnId, targetColumnId, old));
+                                     }
+                                 }
+                             }}
                            >
-                              <div 
-                                 className="cygnet-dt-header-content"
-                                 draggable
-                                 onDragStart={(e) => {
-                                   e.dataTransfer.setData('text/plain', header.id);
-                                   e.stopPropagation();
-                                 }}
-                               >
+                              <div className="cygnet-dt-header-content">
                                  {header.header({
                                      column: header, 
                                      onSort: handleSort,

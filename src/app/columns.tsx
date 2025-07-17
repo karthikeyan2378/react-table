@@ -63,12 +63,19 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         header: ({ column, onSort, sortState }) => {
             return (
               <>
-                <div className="cygnet-dt-header-label">
+                <div 
+                  className="cygnet-dt-header-label"
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', column.id);
+                    e.stopPropagation();
+                  }}
+                >
                   <span>{config.label}</span>
                 </div>
                 <div className="cygnet-dt-header-controls">
                     {column.enableSorting !== false && (
-                      <div
+                      <button
                         className="cygnet-dt-sorter-button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -77,7 +84,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                       >
                         {sortState?.columnId !== column.id ? <UpDownIcon /> :
                          sortState?.direction === 'desc' ? <DownIcon /> : <UpIcon />}
-                      </div>
+                      </button>
                     )}
                 </div>
               </>
