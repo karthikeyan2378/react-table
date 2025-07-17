@@ -164,11 +164,13 @@ const ColumnChartComponent = ({
               <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} />
               <YAxis tick={{ fontSize: 10 }} />
               <Tooltip wrapperStyle={{ fontSize: '12px' }} />
-              <Bar dataKey="value" onClick={(payload) => onFilter(columnId, payload.name)}>
+              <Bar dataKey="value" onClick={(payload) => onFilter(columnId, payload.name)} outline="none">
                 {chartData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={getColor(entry.name, index)} 
+                    fill={getColor(entry.name, index)}
+                    stroke={activeFilters.includes(entry.name) ? '#333' : 'none'}
+                    strokeWidth={activeFilters.includes(entry.name) ? 2 : 0}
                   />
                 ))}
               </Bar>
@@ -186,11 +188,14 @@ const ColumnChartComponent = ({
                 fill="#8884d8"
                 dataKey="value"
                 onClick={(payload) => onFilter(columnId, payload.name)}
+                outline="none"
               >
                 {chartData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={getColor(entry.name, index)} 
+                    stroke={activeFilters.includes(entry.name) ? '#333' : 'none'}
+                    strokeWidth={activeFilters.includes(entry.name) ? 2 : 0}
                   />
                 ))}
               </Pie>
