@@ -7,12 +7,11 @@ import { type Alarm, alarmConfig } from '../config/alarm-config';
 import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { useToast } from '../hooks/use-toast';
-import { type Table as ReactTable, type ColumnFiltersState } from '@tanstack/react-table';
+import { type ColumnFiltersState } from './types';
 import { Label } from '../FMComponents/ui/label';
 import { Input } from '../FMComponents/ui/input';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
-import { PieChart as PieChartIcon} from 'lucide-react';
 import { useDropdown } from '@/hooks/use-dropdown';
 import { Modal } from '@/FMComponents/ui/modal';
 import { Button } from '@/FMComponents/ui/button';
@@ -23,6 +22,14 @@ import { Button } from '@/FMComponents/ui/button';
  * This is derived from the keys of the `alarmConfig.fields`.
  */
 type ChartableColumn = keyof typeof alarmConfig.fields;
+
+const PieChartIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+);
+
+const EditIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+);
 
 /**
  * The main page component for the Alarm Dashboard application.
@@ -47,8 +54,6 @@ export default function Home() {
   const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
   // State for the global search filter across all columns.
   const [globalFilter, setGlobalFilter] = React.useState('');
-  // State to hold the TanStack Table instance once it's initialized.
-  const [table, setTable] = React.useState<ReactTable<Alarm> | null>(null);
   // Ref for the scrollable container of the data table, used by the virtualizer.
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   // State for column-specific filters.
@@ -65,7 +70,7 @@ export default function Home() {
 
   /**
    * Memoized callback to get a unique ID for each row.
-   * Required by TanStack Table for row identification.
+   * Required for row identification.
    * It dynamically finds the column marked with `isRecId: true` in the config.
    */
   const getRowId = React.useCallback((row: Alarm) => {
@@ -73,7 +78,7 @@ export default function Home() {
       (key) => alarmConfig.fields[key as keyof typeof alarmConfig.fields].isRecId
     );
     // Fallback to a default key if no recId is found, though one should always be configured.
-    return recIdKey ? row[recIdKey as keyof Alarm] : row.AlarmID;
+    return recIdKey ? String(row[recIdKey as keyof Alarm]) : String(row.AlarmID);
   }, []);
   
   /**
@@ -155,15 +160,15 @@ export default function Home() {
    * Deletes the currently selected rows from the table after confirmation.
    */
   const handleConfirmDelete = () => {
-    const selectedRowIds = selectedRows.map(r => getRowId(r));
+    const selectedRowIds = new Set(selectedRows.map(r => getRowId(r)));
     setData((oldData) =>
-      oldData.filter((row) => !selectedRowIds.includes(getRowId(row)))
+      oldData.filter((row) => !selectedRowIds.has(getRowId(row)))
     );
     setSelectedRows([]);
     setIsDeleteConfirmOpen(false);
     toast({
         title: "Rows Deleted",
-        description: `${selectedRowIds.length} row(s) have been deleted.`
+        description: `${selectedRowIds.size} row(s) have been deleted.`
     })
   };
 
@@ -264,7 +269,7 @@ export default function Home() {
       .reduce((acc, [key]) => {
         acc[key] = false;
         return acc;
-      }, {} as any);
+      }, {} as { [key: string]: boolean });
   }, []);
   
   /**
@@ -273,7 +278,7 @@ export default function Home() {
    */
   const initialSorting = React.useMemo(() => {
     const descendingCol = Object.entries(alarmConfig.fields).find(([,config]) => config.sortOrder === 'DESCENDING');
-    return descendingCol ? [{ id: descendingCol[0], desc: true }] : [];
+    return descendingCol ? [{ columnId: descendingCol[0], direction: 'desc' as const }] : [];
   }, []);
 
   /**
@@ -295,7 +300,7 @@ export default function Home() {
      {
       label: (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+          <EditIcon />
           Update Alarm
         </div>
       ),
@@ -311,15 +316,14 @@ export default function Home() {
    * Exports the visible table data to a CSV file.
    */
   const handleExportCsv = () => {
-      if (!table) return;
-      const exportData = getExportableData(table, alarmConfig);
+      const exportData = getExportableData(data, columns, columnFilters, globalFilter);
       if (!exportData) return;
       const { headers, body } = exportData;
 
       let csvContent = "data:text/csv;charset=utf-8,";
       csvContent += headers.join(",") + "\r\n";
       body.forEach(rowArray => {
-          const row = rowArray.map(item => `"${item.replace(/"/g, '""')}"`).join(",");
+          const row = rowArray.map(item => `"${String(item).replace(/"/g, '""')}"`).join(",");
           csvContent += row + "\r\n";
       });
 
@@ -330,66 +334,6 @@ export default function Home() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-  };
-
-  /**
-   * Exports the visible table data to an Excel (XLSX) file.
-   */
-  const handleExportXlsx = async () => {
-      if (!table) return;
-      const exportData = getExportableData(table, alarmConfig);
-      if (!exportData) return;
-      const { headers, body } = exportData;
-
-      const ExcelJS = (await import('exceljs')).default;
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Alarms");
-
-      worksheet.columns = headers.map(header => ({ header: header, key: header, width: 25 }));
-      
-      const dataToExport = body.map(row => {
-          const rowObject: { [key: string]: string } = {};
-          headers.forEach((header, index) => {
-              rowObject[header] = row[index];
-          });
-          return rowObject;
-      });
-
-      worksheet.addRows(dataToExport);
-
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "alarms.xlsx";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-  };
-  
-  /**
-   * Exports the visible table data to a PDF file.
-   */
-  const handleExportPdf = async () => {
-    if (!table) return;
-    const exportData = getExportableData(table, alarmConfig);
-    if (!exportData) {
-      toast({ title: "Error", description: "Could not get data for PDF export.", variant: "destructive" });
-      return;
-    }
-    const { headers, body } = exportData;
-    
-    const { default: jsPDF } = await import('jspdf');
-    const { default: autoTable } = await import('jspdf-autotable');
-
-    const doc = new jsPDF({ orientation: 'landscape' });
-    autoTable(doc, {
-        head: [headers],
-        body: body,
-        styles: { fontSize: 8 },
-        headStyles: { fill: [38, 109, 168] },
-    });
-    doc.save('alarms.pdf');
   };
 
   // Prevent rendering on the server.
@@ -416,7 +360,7 @@ export default function Home() {
                     <h2>Charts</h2>
                     <div ref={addChartRef} className="cygnet-dt-dropdown-container">
                       <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setIsAddChartOpen(!isAddChartOpen)}>
-                        <PieChartIcon style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />
+                        <PieChartIcon />
                         Add Chart
                       </button>
                       {isAddChartOpen && (
@@ -471,17 +415,13 @@ export default function Home() {
                   onGlobalFilterChange={setGlobalFilter}
                   columnFilters={columnFilters}
                   onColumnFiltersChange={setColumnFilters}
-                  onTableReady={setTable}
                   onAddRow={addRow}
                   onUpdateRow={handleUpdateRow}
                   isStreaming={isStreaming}
                   onToggleStreaming={() => setIsStreaming((prev) => !prev)}
                   onDeleteSelectedRows={deleteSelectedRows}
                   onExportCsv={handleExportCsv}
-                  onExportXlsx={handleExportXlsx}
-                  onExportPdf={handleExportPdf}
                   showCharts={showCharts}
-                  initialShowCharts={false}
                   onToggleCharts={setShowCharts}
                   tableTitle="Live Alarm Feed"
                   tableDescription="This table is driven by a central configuration and supports client-side filtering, sorting, and pagination."
@@ -570,5 +510,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

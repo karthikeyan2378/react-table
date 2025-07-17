@@ -1,10 +1,8 @@
 
 'use client';
 
-import { type ColumnDef } from '@tanstack/react-table';
+import { type ColumnDef } from './types';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
-import { format } from 'date-fns';
 import { highlightText } from '../lib/utils.tsx';
 import React from 'react';
 
@@ -17,30 +15,41 @@ const severityColors: Record<string, string> = {
   Cleared: "#22C55E",
 };
 
+const UpDownIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>
+);
+const UpIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+);
+const DownIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+);
+
+
 export const getColumns = (): ColumnDef<Alarm>[] => {
     const staticColumns: ColumnDef<Alarm>[] = [
       {
         id: "select",
-        header: ({ table }) => (
+        header: ({ onToggleAllRowsSelected, isAllRowsSelected }) => (
             <input
                 type="checkbox"
                 className="cygnet-dt-checkbox"
-                checked={table.getIsAllPageRowsSelected()}
-                onChange={(value) => table.toggleAllPageRowsSelected(!!value.target.checked)}
+                checked={isAllRowsSelected}
+                onChange={(e) => onToggleAllRowsSelected(e.target.checked)}
                 aria-label="Select all rows"
             />
         ),
-        cell: ({ row }) => (
+        cell: ({ row, onToggleRowSelected, isSelected }) => (
           <input
             type="checkbox"
             className="cygnet-dt-checkbox"
-            checked={row.getIsSelected()}
-            onChange={(value) => row.toggleSelected(!!value.target.checked)}
+            checked={isSelected}
+            onChange={(e) => onToggleRowSelected(row, e.target.checked)}
+            onClick={(e) => e.stopPropagation()}
             aria-label="Select row"
           />
         ),
         enableSorting: false,
-        enableResizing: false,
         size: 60,
         minSize: 60,
       },
@@ -50,39 +59,32 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
       const columnDef: ColumnDef<Alarm> = {
         accessorKey: key,
         id: key,
-        header: ({ column }) => {
+        header: ({ column, onSort, sortState }) => {
             return (
               <>
                 <div className="cygnet-dt-header-label">
                   <span>{config.label}</span>
                 </div>
                 <div className="cygnet-dt-header-controls">
-                    {column.getCanSort() && (
+                    {column.enableSorting !== false && (
                       <div
                         className="cygnet-dt-sorter-button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          column.toggleSorting(column.getIsSorted() === 'asc');
+                          onSort(column.id);
                         }}
                       >
-                        {column.getIsSorted() === 'desc' ? (
-                          <ArrowDown className="lucide" />
-                        ) : column.getIsSorted() === 'asc' ? (
-                          <ArrowUp className="lucide" />
-                        ) : (
-                          <ChevronsUpDown className="lucide" />
-                        )}
+                        {sortState?.columnId !== column.id ? <UpDownIcon /> :
+                         sortState?.direction === 'desc' ? <DownIcon /> : <UpIcon />}
                       </div>
                     )}
                 </div>
               </>
             )
         },
-        cell: ({ row, table, column }) => {
-          const value = row.getValue(key) as any;
-          const globalFilter = table.getState().globalFilter;
-          const columnFilters = table.getState().columnFilters;
-          const columnFilterValue = columnFilters?.find(f => f.id === column.id)?.value as string | string[] | undefined;
+        cell: ({ row, globalFilter, columnFilters }) => {
+          const value = row[key as keyof Alarm] as any;
+          const columnFilterValue = columnFilters?.find(f => f.id === key)?.value;
           
           const filters = [globalFilter, columnFilterValue].flat().filter(Boolean) as string[];
           
@@ -91,8 +93,8 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
 
           if (config.columnType === 'dateTime' && value instanceof Date) {
             try {
-                const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
-                displayValue = format(value, formatString);
+                // Simplified date formatting without date-fns
+                displayValue = value.toLocaleString();
                 content = displayValue;
             } catch (e) {
                 displayValue = "Invalid Date";
@@ -129,12 +131,6 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         },
         size: config.columnSize || 150,
         minSize: 120,
-        filterFn: (row, id, filterValue) => {
-          if (Array.isArray(filterValue) && filterValue.length > 0) {
-            return filterValue.includes(row.getValue(id));
-          }
-          return String(row.getValue(id)).toLowerCase().includes(String(filterValue).toLowerCase());
-        }
       };
       return columnDef;
     });

@@ -2,8 +2,6 @@
 'use client';
 
 import * as React from "react"
-import { Check } from "lucide-react"
-
 
 const Checkbox = React.forwardRef<
   HTMLInputElement,
@@ -17,7 +15,7 @@ const Checkbox = React.forwardRef<
         {...props}
       />
       {props.checked && (
-          <Check style={{ position: 'absolute', top: '2px', left: '2px', height: '12px', width: '12px', color: 'white', pointerEvents: 'none' }} />
+           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', top: '2px', left: '2px', pointerEvents: 'none' }}><polyline points="20 6 9 17 4 12"/></svg>
       )}
   </div>
 ))

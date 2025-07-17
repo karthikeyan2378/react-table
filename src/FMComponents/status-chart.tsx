@@ -2,11 +2,15 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, Pie, PieChart as RechartsPieChart, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { X as XIcon, PieChart as PieChartIcon, BarChart2, Donut } from 'lucide-react';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import './status-chart.css';
 import { useDropdown } from '@/hooks/use-dropdown';
+
+/** Reusable Icons as Components **/
+const PieChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>;
+const BarChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>;
+const DonutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>;
+const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>;
 
 /**
  * Defines the types of charts that can be rendered.
@@ -40,6 +44,35 @@ interface ColumnChartProps {
 * An array of default colors used for the segments in charts if no specific colors are configured.
 */
 const DEFAULT_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1943'];
+
+const PieSlice = ({ cx, cy, radius, startAngle, endAngle, fill, stroke, strokeWidth, onClick }: any) => {
+    const start = {
+      x: cx + radius * Math.cos(startAngle * Math.PI / 180),
+      y: cy + radius * Math.sin(startAngle * Math.PI / 180)
+    };
+    const end = {
+      x: cx + radius * Math.cos(endAngle * Math.PI / 180),
+      y: cy + radius * Math.sin(endAngle * Math.PI / 180)
+    };
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    const d = `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y} L ${cx} ${cy} Z`;
+    return <path d={d} fill={fill} stroke={stroke} strokeWidth={strokeWidth} onClick={onClick} cursor="pointer" />;
+};
+  
+const DonutSlice = ({ cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, stroke, strokeWidth, onClick }: any) => {
+    const startOuter = { x: cx + outerRadius * Math.cos(startAngle * Math.PI / 180), y: cy + outerRadius * Math.sin(startAngle * Math.PI / 180) };
+    const endOuter = { x: cx + outerRadius * Math.cos(endAngle * Math.PI / 180), y: cy + outerRadius * Math.sin(endAngle * Math.PI / 180) };
+    const startInner = { x: cx + innerRadius * Math.cos(startAngle * Math.PI / 180), y: cy + innerRadius * Math.sin(startAngle * Math.PI / 180) };
+    const endInner = { x: cx + innerRadius * Math.cos(endAngle * Math.PI / 180), y: cy + innerRadius * Math.sin(endAngle * Math.PI / 180) };
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  
+    const d = `M ${startOuter.x} ${startOuter.y}
+             A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 1 ${endOuter.x} ${endOuter.y}
+             L ${endInner.x} ${endInner.y}
+             A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${startInner.x} ${startInner.y}
+             Z`;
+    return <path d={d} fill={fill} stroke={stroke} strokeWidth={strokeWidth} onClick={onClick} cursor="pointer" />;
+};
 
 /**
  * A reusable chart component that can display data distribution for a specific column
@@ -107,15 +140,17 @@ const ColumnChartComponent = ({
   /**
    * Icon component for the currently selected chart type.
    */
-  const ChartIcon = {
+  const CurrentChartIcon = {
     pie: PieChartIcon,
-    bar: BarChart2,
-    doughnut: Donut,
+    bar: BarChartIcon,
+    doughnut: DonutIcon,
   }[chartType];
   
   const isNumerical = columnConfig.columnType === 'numerical';
   // Numerical charts are always bars, otherwise use the state-managed chart type.
   const finalChartType = isNumerical ? 'bar' : chartType;
+  
+  const totalValue = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="cygnet-chart-card">
@@ -126,20 +161,20 @@ const ColumnChartComponent = ({
           {!isNumerical && (
             <div ref={chartTypeRef} className="cygnet-dt-dropdown-container">
               <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setIsChartTypeOpen(!isChartTypeOpen)}>
-                  <ChartIcon className="lucide" />
+                  <CurrentChartIcon />
               </button>
               {isChartTypeOpen && (
                 <div className="cygnet-dt-dropdown-content">
                     <button className="cygnet-dt-dropdown-item" onClick={() => { setChartType('pie'); setIsChartTypeOpen(false); }}>
-                        <PieChartIcon className="lucide lucide-dropdown" />
+                        <PieChartIcon />
                         Pie Chart
                     </button>
                     <button className="cygnet-dt-dropdown-item" onClick={() => { setChartType('doughnut'); setIsChartTypeOpen(false); }}>
-                        <Donut className="lucide lucide-dropdown" />
+                        <DonutIcon />
                         Doughnut Chart
                     </button>
                     <button className="cygnet-dt-dropdown-item" onClick={() => { setChartType('bar'); setIsChartTypeOpen(false); }}>
-                        <BarChart2 className="lucide lucide-dropdown" />
+                        <BarChartIcon />
                         Bar Chart
                     </button>
                 </div>
@@ -148,67 +183,66 @@ const ColumnChartComponent = ({
           )}
           {/* Button to remove the chart */}
           <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => onRemove(columnId)}>
-            <XIcon className="lucide" />
+            <XIcon />
           </button>
         </div>
       </div>
       <div className="cygnet-chart-card-content">
-        <ResponsiveContainer width="100%" height="100%">
+        <svg width="100%" height="100%" viewBox="0 0 300 180">
           {finalChartType === 'bar' ? (
-            <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 50 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} height={1} tick={{ fontSize: 12 }} />
-              <YAxis />
-              <RechartsTooltip />
-              <Bar dataKey="value" onClick={(payload) => onFilter(columnId, payload.name)}>
-                 {chartData.map((entry, index) => {
-                    const isSelected = activeFilters.includes(entry.name);
-                    return (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={getColor(entry.name, index)} 
-                        cursor="pointer" 
-                        stroke={isSelected ? '#333' : 'none'}
-                        strokeWidth={3}
-                        style={{ outline: 'none' }}
-                      />
-                    )
-                })}
-              </Bar>
-            </BarChart>
+            <g>
+              {chartData.map((entry, index) => {
+                const maxVal = Math.max(...chartData.map(d => d.value));
+                const barWidth = 250 / chartData.length;
+                const barHeight = (entry.value / maxVal) * 120;
+                const isSelected = activeFilters.includes(entry.name);
+                return (
+                    <g key={index} transform={`translate(${20 + index * barWidth}, 0)`}>
+                        <rect
+                            x={barWidth * 0.1}
+                            y={140 - barHeight}
+                            width={barWidth * 0.8}
+                            height={barHeight}
+                            fill={getColor(entry.name, index)}
+                            stroke={isSelected ? '#333' : 'none'}
+                            strokeWidth={3}
+                            onClick={() => onFilter(columnId, entry.name)}
+                            cursor="pointer"
+                        />
+                        <text x={barWidth / 2} y={155} textAnchor="middle" fontSize="10">{entry.name}</text>
+                    </g>
+                );
+              })}
+            </g>
           ) : (
-            <RechartsPieChart>
-              <RechartsTooltip />
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                innerRadius={finalChartType === 'doughnut' ? 40 : 0}
-                fill="#8884d8"
-                labelLine={false}
-                label={false}
-                onClick={(payload) => onFilter(columnId, payload.name)}
-              >
-                {chartData.map((entry, index) => {
-                  const isSelected = activeFilters.includes(entry.name);
-                  return (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={getColor(entry.name, index)} 
-                      cursor="pointer" 
-                      stroke={isSelected ? '#333' : 'none'}
-                      strokeWidth={3}
-                      style={{ outline: 'none' }}
-                    />
-                  )
-                })}
-              </Pie>
-            </RechartsPieChart>
+            <g transform="translate(150, 90)">
+              {(() => {
+                let currentAngle = 0;
+                return chartData.map((entry, index) => {
+                    const angle = (entry.value / totalValue) * 360;
+                    const isSelected = activeFilters.includes(entry.name);
+                    const sliceProps = {
+                        cx: 0,
+                        cy: 0,
+                        startAngle: currentAngle,
+                        endAngle: currentAngle + angle,
+                        fill: getColor(entry.name, index),
+                        stroke: isSelected ? '#333' : 'none',
+                        strokeWidth: 3,
+                        onClick: () => onFilter(columnId, entry.name),
+                    };
+                    currentAngle += angle;
+
+                    if (finalChartType === 'pie') {
+                        return <PieSlice key={index} {...sliceProps} radius={80} />;
+                    } else { // doughnut
+                        return <DonutSlice key={index} {...sliceProps} innerRadius={40} outerRadius={80} />;
+                    }
+                });
+              })()}
+            </g>
           )}
-        </ResponsiveContainer>
+        </svg>
       </div>
     </div>
   );

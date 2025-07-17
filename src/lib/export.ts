@@ -1,40 +1,45 @@
-import { type Table } from '@tanstack/react-table';
-import { format } from 'date-fns';
 
-type ColumnConfig = {
-    fields: {
-        [key: string]: {
-            label: string;
-            columnType?: string;
-            formatType?: string;
-        }
+import type { ColumnDef, ColumnFiltersState } from "@/app/types";
+
+type Alarm = { [key: string]: any };
+
+export function getExportableData(
+    data: Alarm[],
+    columns: ColumnDef<Alarm>[],
+    columnFilters: ColumnFiltersState,
+    globalFilter: string
+) {
+    if (!data || !columns) return null;
+
+    // Apply filtering
+    let filteredData = [...data];
+    if (globalFilter) {
+      const lowerGlobalFilter = globalFilter.toLowerCase();
+      filteredData = filteredData.filter(row => 
+        Object.values(row).some(val => String(val).toLowerCase().includes(lowerGlobalFilter))
+      );
     }
-}
-
-export function getExportableData<TData>(table: Table<TData> | null, columnConfig: ColumnConfig) {
-    if (!table) return null;
-
-    const visibleColumns = table.getVisibleFlatColumns().filter(
-        (col) => col.id !== 'select'
-    );
-
-    const headers = visibleColumns.map((col) => {
-        const config = columnConfig.fields[col.id];
-        return config?.label || col.id;
-    });
-
-    const body = table.getFilteredRowModel().rows.map((row) =>
-        visibleColumns.map((col) => {
-            const value = row.getValue(col.id);
-            const config = columnConfig.fields[col.id];
-
-            if (config?.columnType === 'dateTime' && value instanceof Date) {
-                try {
-                    const formatString = config.formatType?.replace(/mi/g, 'mm') || 'PPpp';
-                    return format(value, formatString);
-                } catch {
-                    return 'Invalid Date';
+    if (columnFilters.length > 0) {
+        columnFilters.forEach(filter => {
+            filteredData = filteredData.filter(row => {
+                const rowValue = row[filter.id];
+                if (Array.isArray(filter.value)) {
+                    return filter.value.includes(rowValue);
                 }
+                return String(rowValue).toLowerCase().includes(String(filter.value).toLowerCase());
+            });
+        });
+    }
+
+    const visibleColumns = columns.filter(col => col.accessorKey !== 'select');
+
+    const headers = visibleColumns.map(col => col.id);
+
+    const body = filteredData.map(row =>
+        visibleColumns.map(col => {
+            const value = row[col.accessorKey as keyof Alarm];
+            if (value instanceof Date) {
+                return value.toLocaleString(); // Simplified date formatting
             }
             return String(value ?? '');
         })

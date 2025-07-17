@@ -2,48 +2,31 @@
 'use client';
 
 import * as React from "react";
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  Header,
-  SortingState,
-  Table as ReactTable,
-  useReactTable,
-  VisibilityState,
-} from "@tanstack/react-table";
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Download,
-  File,
-  FileSpreadsheet,
-  FileText,
-  Filter,
-  MoreVertical,
-  PieChart,
-  PlusCircle,
-  Search,
-  SlidersHorizontal,
-  Play,
-  Square,
-  Trash2,
-  X,
-} from "lucide-react";
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { highlightText } from '../lib/utils.tsx';
 import './data-table.css';
-import { alarmConfig, type Alarm } from "@/config/alarm-config";
 import { useDropdown } from "@/hooks/use-dropdown.ts";
+import type { Alarm } from "@/config/alarm-config.ts";
+import type { ColumnDef, ColumnFiltersState, SortingState } from "@/app/types.ts";
+
+/** Reusable Icons as Components **/
+const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
+const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem', color: 'hsl(var(--primary))' }}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>;
+const PlusCircleIcon = ({ color = 'hsl(var(--primary))' }: {color?: string}) => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem', color }}><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>;
+const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>;
+const PlusCircleToolbarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>;
+const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>;
+const PlayIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="green" stroke="green" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+const StopIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="red" stroke="red" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>;
+const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>;
+const PieChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>;
+const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
+const CsvIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1Z"/><path d="M12 18H9.5a.5.5 0 0 1 0-1H12"/><path d="M9.5 12.5a.5.5 0 0 1 0-1H12v6"/><path d="m14 18 2-3-2-3"/></svg>;
+const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
+const MoreVerticalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>;
+const PageFirstIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>;
+const PagePrevIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>;
+const PageNextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
+const PageLastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>;
 
 /**
  * Interface defining the structure for a filterable column.
@@ -56,21 +39,18 @@ export interface FilterableColumn {
 }
 
 /**
- * The type definition for columns that can be used to generate charts.
- */
-type ChartableColumn = keyof typeof alarmConfig.fields;
-
-/**
  * A generic faceted filter component for categorical data.
  */
 function DataTableFacetedFilter<TData>({
-  column,
+  columnId,
   title,
   options,
   onRemove,
   globalFilter,
+  selectedValues,
+  onFilterChange,
 }: {
-  column?: ReactTable<TData>['getColumn'];
+  columnId: string;
   title?: string;
   options: {
     label: string;
@@ -78,29 +58,16 @@ function DataTableFacetedFilter<TData>({
   }[];
   onRemove: () => void;
   globalFilter?: string;
+  selectedValues: Set<string>;
+  onFilterChange: (value: string, isSelected: boolean) => void;
 }) {
-  const selectedValues = new Set((column?.getFilterValue() as string[]) ?? []);
-  const severityConfig = alarmConfig.fields.Severity.chartConfig;
-  const severityColors = severityConfig?.colors || {};
   const { dropdownRef, isOpen, setIsOpen } = useDropdown();
-
-  const handleFilterChange = (value: string, isSelected: boolean) => {
-    const newSelectedValues = new Set(selectedValues);
-    if (isSelected) {
-      newSelectedValues.delete(value);
-    } else {
-      newSelectedValues.add(value);
-    }
-    const filterValues = Array.from(newSelectedValues);
-    column?.setFilterValue(filterValues.length ? filterValues : undefined);
-  };
-
 
   return (
     <div className="cygnet-dt-facet-filter-container">
         <div ref={dropdownRef} className="cygnet-dt-dropdown-container">
             <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setIsOpen(!isOpen)}>
-                <PlusCircle style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
+                <PlusCircleIcon />
                 {title}
             </button>
             {isOpen && (
@@ -112,7 +79,7 @@ function DataTableFacetedFilter<TData>({
                             <input
                                 type="checkbox"
                                 checked={isSelected}
-                                onChange={() => handleFilterChange(option.value, isSelected)}
+                                onChange={() => onFilterChange(option.value, isSelected)}
                             />
                             {highlightText(option.label, globalFilter)}
                         </label>
@@ -123,8 +90,8 @@ function DataTableFacetedFilter<TData>({
                         <div className="cygnet-dt-dropdown-separator" />
                         <button
                             onClick={() => {
-                                column?.setFilterValue(undefined)
-                                setIsOpen(false)
+                                selectedValues.forEach(value => onFilterChange(value, true));
+                                setIsOpen(false);
                             }}
                             className="cygnet-dt-dropdown-item justify-center"
                         >
@@ -140,14 +107,14 @@ function DataTableFacetedFilter<TData>({
             <span
                 key={value}
                 className="cygnet-dt-badge cygnet-dt-badge--filter"
-                style={{ backgroundColor: (severityColors as any)[value] || '#6B7280' }}
+                style={{ backgroundColor: '#6B7280' }}
             >
                 {value}
                 <button
                     className="cygnet-dt-badge-remove"
-                    onClick={() => handleFilterChange(value, true)}
+                    onClick={() => onFilterChange(value, true)}
                 >
-                    <X size={12} />
+                    <XIcon />
                 </button>
             </span>
         ))}
@@ -174,10 +141,8 @@ export interface ToolbarVisibility {
 
 /**
  * Props for the DataTableToolbar component.
- * @template TData The type of data in the table.
  */
 interface DataTableToolbarProps<TData> {
-  table: ReactTable<TData>;
   filterableColumns: FilterableColumn[];
   globalFilter: string;
   onGlobalFilterChange: (value: string) => void;
@@ -187,8 +152,6 @@ interface DataTableToolbarProps<TData> {
   onToggleStreaming?: () => void;
   onDeleteSelectedRows?: () => void;
   onExportCsv?: () => void;
-  onExportXlsx?: () => void;
-  onExportPdf?: () => void;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
@@ -196,13 +159,18 @@ interface DataTableToolbarProps<TData> {
   showCharts: boolean;
   onToggleCharts: (enabled: boolean) => void;
   toolbarVisibility: ToolbarVisibility;
+  columnFilters: ColumnFiltersState;
+  onColumnFiltersChange: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
+  columnVisibility: { [key: string]: boolean };
+  onColumnVisibilityChange: (columnId: string, isVisible: boolean) => void;
+  allColumns: ColumnDef<TData>[];
+  selectedRowCount: number;
 }
 
 /**
  * The toolbar component for the DataTable.
  */
 function DataTableToolbar<TData>({ 
-  table, 
   filterableColumns, 
   globalFilter, 
   onGlobalFilterChange,
@@ -212,8 +180,6 @@ function DataTableToolbar<TData>({
   onToggleStreaming,
   onDeleteSelectedRows,
   onExportCsv,
-  onExportXlsx,
-  onExportPdf,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -221,10 +187,15 @@ function DataTableToolbar<TData>({
   showCharts,
   onToggleCharts,
   toolbarVisibility,
+  columnFilters,
+  onColumnFiltersChange,
+  columnVisibility,
+  onColumnVisibilityChange,
+  allColumns,
+  selectedRowCount,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0 || !!globalFilter;
+  const isFiltered = columnFilters.length > 0 || !!globalFilter;
   const [activeFilters, setActiveFilters] = React.useState<string[]>([]);
-  const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
   
   const { dropdownRef: addFilterRef, isOpen: isAddFilterOpen, setIsOpen: setIsAddFilterOpen } = useDropdown();
   const { dropdownRef: exportRef, isOpen: isExportOpen, setIsOpen: setIsExportOpen } = useDropdown();
@@ -233,14 +204,14 @@ function DataTableToolbar<TData>({
   const handleFilterToggle = (columnId: string, isActive?: boolean) => {
     if (isActive) {
        setActiveFilters((prev) => prev.filter((id) => id !== columnId));
-       table.getColumn(columnId)?.setFilterValue(undefined);
+       onColumnFiltersChange(prev => prev.filter(f => f.id !== columnId));
     } else {
        setActiveFilters((prev) => [...prev, columnId]);
     }
   };
   
   const clearAllFilters = () => {
-    table.resetColumnFilters();
+    onColumnFiltersChange([]);
     onGlobalFilterChange("");
     setActiveFilters([]);
   };
@@ -248,12 +219,32 @@ function DataTableToolbar<TData>({
   const textFilterColumns = filterableColumns.filter(col => col.type === 'text');
   const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
 
+  const handleCategoricalFilterChange = (columnId: string, value: string, isSelected: boolean) => {
+    onColumnFiltersChange(prev => {
+        const otherFilters = prev.filter(f => f.id !== columnId);
+        const existingFilter = prev.find(f => f.id === columnId);
+        const currentValues = new Set((existingFilter?.value as string[]) || []);
+
+        if (isSelected) {
+            currentValues.delete(value);
+        } else {
+            currentValues.add(value);
+        }
+
+        if (currentValues.size === 0) {
+            return otherFilters;
+        }
+
+        return [...otherFilters, { id: columnId, value: Array.from(currentValues) }];
+    });
+  };
+
   return (
     <div className="cygnet-dt-toolbar">
       {/* Left side: Filters */}
       <div className="cygnet-dt-toolbar-left">
           <div className="cygnet-dt-search-container">
-              <Search className="cygnet-dt-search-icon" />
+              <div className="cygnet-dt-search-icon"><SearchIcon /></div>
               <input
                 placeholder="Search all columns..."
                 value={globalFilter ?? ""}
@@ -264,7 +255,7 @@ function DataTableToolbar<TData>({
           
           <div ref={addFilterRef} className="cygnet-dt-dropdown-container">
             <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setIsAddFilterOpen(!isAddFilterOpen)}>
-                <Filter style={{ marginRight: '0.5rem', height: '1rem', width: '1rem', color: 'hsl(var(--primary))' }} />
+                <FilterIcon />
                 Add Filter
             </button>
             {isAddFilterOpen && (
@@ -291,12 +282,13 @@ function DataTableToolbar<TData>({
               <div key={col.id} className="cygnet-dt-filter-container">
                 <input
                   placeholder={`Filter ${col.name.toLowerCase()}...`}
-                  value={
-                    (table.getColumn(col.id)?.getFilterValue() as string) ?? ""
-                  }
+                  value={(columnFilters.find(f => f.id === col.id)?.value as string) ?? ""}
                   onChange={(event) => {
                     const value = event.target.value;
-                    table.getColumn(col.id)?.setFilterValue(value || undefined);
+                    onColumnFiltersChange(prev => {
+                        const other = prev.filter(f => f.id !== col.id);
+                        return value ? [...other, {id: col.id, value}] : other;
+                    })
                   }}
                   className="cygnet-dt-input with-button"
                 />
@@ -304,7 +296,7 @@ function DataTableToolbar<TData>({
                     className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon cygnet-dt-input-button"
                     onClick={() => handleFilterToggle(col.id, true)}
                 >
-                    <X className="h-4 w-4" />
+                    <XIcon />
                 </button>
               </div>
             );
@@ -313,15 +305,18 @@ function DataTableToolbar<TData>({
         })}
 
         {categoricalFilterColumns.map(col => {
-          if (activeFilters.includes(col.id) && table.getColumn(col.id) && col.options) {
+          if (activeFilters.includes(col.id) && col.options) {
+            const selectedValues = new Set((columnFilters.find(f => f.id === col.id)?.value as string[]) || []);
             return (
               <DataTableFacetedFilter
                 key={col.id}
-                column={table.getColumn(col.id)!}
+                columnId={col.id}
                 title={col.name}
                 options={col.options}
                 onRemove={() => handleFilterToggle(col.id, true)}
                 globalFilter={globalFilter}
+                selectedValues={selectedValues}
+                onFilterChange={handleCategoricalFilterChange.bind(null, col.id)}
               />
             )
           }
@@ -334,7 +329,7 @@ function DataTableToolbar<TData>({
                 onClick={clearAllFilters}
                 className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon"
                 >
-                <X className="h-4 w-4" />
+                  <XIcon />
                 </button>
                 <div className="cygnet-dt-tooltip-content">Clear all filters</div>
            </div>
@@ -346,7 +341,7 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.addRow !== false && onAddRow && (
             <div className="cygnet-dt-tooltip-wrapper">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onAddRow}>
-                  <PlusCircle className="h-4 w-4" />
+                  <PlusCircleToolbarIcon />
                 </button>
                 <div className="cygnet-dt-tooltip-content">Add Alarm</div>
             </div>
@@ -355,7 +350,7 @@ function DataTableToolbar<TData>({
            {toolbarVisibility.updateRow !== false && onUpdateRow && (
              <div className="cygnet-dt-tooltip-wrapper">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onUpdateRow} disabled={selectedRowCount !== 1}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                  <EditIcon />
                 </button>
                 <div className="cygnet-dt-tooltip-content">Update Alarm</div>
             </div>
@@ -364,7 +359,7 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.toggleStreaming !== false && onToggleStreaming && (
             <div className="cygnet-dt-tooltip-wrapper">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onToggleStreaming}>
-                  {isStreaming ? <Square className="h-4 w-4 text-red-500" /> : <Play className="h-4 w-4 text-green-500" />}
+                  {isStreaming ? <StopIcon /> : <PlayIcon />}
                 </button>
                 <div className="cygnet-dt-tooltip-content">{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</div>
             </div>
@@ -373,7 +368,7 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.deleteRows !== false && onDeleteSelectedRows && (
             <div className="cygnet-dt-tooltip-wrapper">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onDeleteSelectedRows} disabled={selectedRowCount === 0}>
-                  <Trash2 className="h-4 w-4" />
+                  <TrashIcon />
                 </button>
                 <div className="cygnet-dt-tooltip-content">Delete Selected</div>
             </div>
@@ -382,22 +377,20 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.toggleCharts !== false && (
              <div className="cygnet-dt-tooltip-wrapper">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => onToggleCharts(!showCharts)}>
-                  <PieChart className="h-4 w-4" style={{color: showCharts ? 'hsl(var(--primary))' : 'inherit'}} />
+                  <PieChartIcon />
                 </button>
                 <div className="cygnet-dt-tooltip-content">{showCharts ? 'Hide Charts' : 'Show Charts'}</div>
             </div>
           )}
           
-          {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
+          {toolbarVisibility.exportData !== false && (onExportCsv) && (
              <div ref={exportRef} className="cygnet-dt-dropdown-container">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setIsExportOpen(!isExportOpen)}>
-                  <Download className="h-4 w-4" />
+                  <DownloadIcon />
                 </button>
                 {isExportOpen && (
                     <div className="cygnet-dt-dropdown-content">
-                        {onExportCsv && <button onClick={() => { onExportCsv(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><FileText style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as CSV</button>}
-                        {onExportXlsx && <button onClick={() => { onExportXlsx(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><FileSpreadsheet style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as Excel</button>}
-                        {onExportPdf && <button onClick={() => { onExportPdf(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><File style={{ marginRight: '0.5rem', height: '1rem', width: '1rem' }} />Export as PDF</button>}
+                        {onExportCsv && <button onClick={() => { onExportCsv(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><CsvIcon />Export as CSV</button>}
                     </div>
                 )}
             </div>
@@ -406,7 +399,7 @@ function DataTableToolbar<TData>({
           {toolbarVisibility.viewOptions !== false && (
              <div ref={viewOptionsRef} className="cygnet-dt-dropdown-container">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setIsViewOptionsOpen(!isViewOptionsOpen)}>
-                    <SlidersHorizontal className="h-4 w-4" />
+                    <SettingsIcon />
                 </button>
                 {isViewOptionsOpen && (
                     <div className="cygnet-dt-dropdown-content">
@@ -429,19 +422,17 @@ function DataTableToolbar<TData>({
                             <div className="cygnet-dt-dropdown-separator" />
                             <div className="cygnet-dt-dropdown-label">Toggle Columns</div>
                             <div className="cygnet-dt-dropdown-separator" />
-                            {table
-                                .getAllColumns()
-                                .filter((column) => column.getCanHide())
+                            {allColumns
+                                .filter((column) => column.accessorKey !== 'select')
                                 .map((column) => {
-                                    const label = column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                                     return (
                                         <label key={column.id} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
                                             <input
                                                 type="checkbox"
-                                                checked={column.getIsVisible()}
-                                                onChange={(e) => column.toggleVisibility(!!e.target.checked)}
+                                                checked={columnVisibility[column.id] !== false}
+                                                onChange={(e) => onColumnVisibilityChange(column.id, !!e.target.checked)}
                                             />
-                                            {label}
+                                            {column.id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                                         </label>
                                     );
                             })}
@@ -497,11 +488,10 @@ interface DataTableProps<TData> {
   contextMenuItems?: ContextMenuItem<TData>[];
   onRowDoubleClick?: (row: TData) => void;
   filterableColumns?: FilterableColumn[];
-  initialColumnVisibility?: VisibilityState;
-  initialSorting?: SortingState;
+  initialColumnVisibility?: { [key: string]: boolean };
+  initialSorting?: SortingState[];
   globalFilter: string;
   onGlobalFilterChange: (value: string) => void;
-  onTableReady?: (table: ReactTable<TData>) => void;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   onAddRow?: () => void;
   onUpdateRow?: () => void;
@@ -509,8 +499,6 @@ interface DataTableProps<TData> {
   onToggleStreaming?: () => void;
   onDeleteSelectedRows?: () => void;
   onExportCsv?: () => void;
-  onExportXlsx?: () => void;
-  onExportPdf?: () => void;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -521,16 +509,15 @@ interface DataTableProps<TData> {
   columnFilters: ColumnFiltersState;
   onColumnFiltersChange: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   showCharts: boolean;
-  initialShowCharts?: boolean;
   onToggleCharts: (enabled: boolean) => void;
 }
 
 /**
- * The generic and highly configurable DataTable component.
+ * The generic and highly configurable DataTable component, built from scratch.
  */
-export function DataTable<TData>({
+export function DataTable<TData extends { [key: string]: any }>({
   data,
-  columns,
+  columns: initialColumns,
   getRowId,
   onSelectedRowsChange,
   contextMenuItems,
@@ -540,7 +527,6 @@ export function DataTable<TData>({
   initialSorting = [],
   globalFilter,
   onGlobalFilterChange,
-  onTableReady,
   tableContainerRef,
   onAddRow,
   onUpdateRow,
@@ -548,8 +534,6 @@ export function DataTable<TData>({
   onToggleStreaming,
   onDeleteSelectedRows,
   onExportCsv,
-  onExportXlsx,
-  onExportPdf,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -562,152 +546,151 @@ export function DataTable<TData>({
   showCharts,
   onToggleCharts,
 }: DataTableProps<TData>) {
-  // State for sorting, column visibility, row selection, and context menu.
-  const [sorting, setSorting] = React.useState<SortingState>(initialSorting);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialColumnVisibility);
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [sorting, setSorting] = React.useState<SortingState | undefined>(initialSorting[0]);
+  const [columnVisibility, setColumnVisibility] = React.useState<{ [key: string]: boolean }>(() => {
+    const initial = { ...initialColumnVisibility };
+    initialColumns.forEach(c => {
+        if (initial[c.id] === undefined) {
+            initial[c.id] = true;
+        }
+    });
+    return initial;
+  });
+  const [selectedRowIds, setSelectedRowIds] = React.useState<Set<string>>(new Set());
   const { dropdownRef: contextMenuRef, isOpen: isContextMenuOpen, setIsOpen: setIsContextMenuOpen, position: contextMenuPosition, setPosition: setContextMenuPosition } = useDropdown();
 
-  // State for toggling table features like pagination and sorting.
   const [paginationEnabled, setPaginationEnabled] = React.useState(true);
   const [sortingEnabled, setSortingEnabled] = React.useState(true);
   
-  // State for column order, enabling drag-and-drop reordering.
-  const [columnOrder, setColumnOrder] = React.useState<string[]>(() =>
-    columns.map(c => (c.id ?? (c as any).accessorKey)!).filter(Boolean)
-  );
-  
-  // State for handling drag-to-select functionality.
+  const [columnOrder, setColumnOrder] = React.useState<string[]>(() => initialColumns.map(c => c.id));
+  const [columnSizes, setColumnSizes] = React.useState<Record<string, number>>(() => {
+    const sizes: Record<string, number> = {};
+    initialColumns.forEach(c => {
+        sizes[c.id] = c.size || 150;
+    });
+    return sizes;
+  });
+
   const [isDragging, setIsDragging] = React.useState(false);
   const [dragStartRowIndex, setDragStartRowIndex] = React.useState<number | null>(null);
   const lastClickedRowIndex = React.useRef<number | null>(null);
-  const [dragSelectionStart, setDragSelectionStart] = React.useState({});
+  const [dragSelectionStart, setDragSelectionStart] = React.useState<Set<string>>(new Set());
   const [contextMenuRow, setContextMenuRow] = React.useState<TData | null>(null);
 
-  // Effect to clean up drag-to-select state.
-  React.useEffect(() => {
-    const handleMouseUp = () => {
-        setIsDragging(false);
-        setDragStartRowIndex(null);
-    };
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-        window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
+  const [currentPage, setCurrentPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(initialRowsPerPage);
 
-  // Memoize the table state to avoid unnecessary re-renders.
-  const tableState = React.useMemo(() => ({
-    sorting,
-    columnVisibility,
-    rowSelection,
-    columnFilters,
-    columnOrder,
-    globalFilter,
-  }), [sorting, columnVisibility, rowSelection, columnFilters, columnOrder, globalFilter]);
+  const columns = React.useMemo(() => {
+    return columnOrder.map(colId => initialColumns.find(c => c.id === colId)!).filter(Boolean);
+  }, [columnOrder, initialColumns]);
 
-  // Memoize the initial table state, specifically for pagination.
-  const tableInitialState = React.useMemo(() => ({
-    pagination: {
-        pageSize: initialRowsPerPage,
-    },
-  }), [initialRowsPerPage]);
-  
-  // The core TanStack Table instance.
-  const table = useReactTable({
-    data,
-    columns,
-    state: tableState,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: onColumnFiltersChange,
-    onGlobalFilterChange: onGlobalFilterChange,
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    onColumnOrderChange: setColumnOrder,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: paginationEnabled ? getPaginationRowModel() : undefined,
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    columnResizeMode: "onChange",
-    enableSorting: sortingEnabled,
-    enableMultiRowSelection: true,
-    getRowId,
-    initialState: tableInitialState,
-    meta: {
-      globalFilter,
-      columnFilters,
+  const visibleColumns = React.useMemo(() => {
+      return columns.filter(c => columnVisibility[c.id] !== false);
+  }, [columns, columnVisibility]);
+
+  const filteredData = React.useMemo(() => {
+    let filtered = [...data];
+
+    // Global filter
+    if (globalFilter) {
+      const lowerGlobalFilter = globalFilter.toLowerCase();
+      filtered = filtered.filter(row => 
+        Object.values(row).some(val => String(val).toLowerCase().includes(lowerGlobalFilter))
+      );
     }
-  });
+
+    // Column filters
+    if (columnFilters.length > 0) {
+        columnFilters.forEach(filter => {
+            filtered = filtered.filter(row => {
+                const rowValue = row[filter.id];
+                if (Array.isArray(filter.value)) {
+                    return filter.value.includes(rowValue);
+                }
+                return String(rowValue).toLowerCase().includes(String(filter.value).toLowerCase());
+            });
+        });
+    }
+
+    return filtered;
+  }, [data, globalFilter, columnFilters]);
+
+  const sortedData = React.useMemo(() => {
+    if (!sorting || !sortingEnabled) return filteredData;
+    const { columnId, direction } = sorting;
+    return [...filteredData].sort((a, b) => {
+      const aVal = a[columnId];
+      const bVal = b[columnId];
+      if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredData, sorting, sortingEnabled]);
+
+  const paginatedData = React.useMemo(() => {
+    if (!paginationEnabled) return sortedData;
+    const start = currentPage * rowsPerPage;
+    const end = start + rowsPerPage;
+    return sortedData.slice(start, end);
+  }, [sortedData, currentPage, rowsPerPage, paginationEnabled]);
   
-  // Logic for frozen columns
-  const columnDefs = columns as ColumnDef<TData, any>[];
-  const frozenColumnIds = React.useMemo(() => {
-    const frozen = columnDefs.filter(c => {
-        const key = c.id || c.accessorKey;
-        if (key === 'select') return true;
-        const config = alarmConfig.fields[key as keyof typeof alarmConfig.fields];
-        return config?.isColumnToFreeze;
-    }).map(c => c.id || c.accessorKey);
-    // Ensure the order matches the current column order state
-    return table.getState().columnOrder.filter(id => frozen.includes(id as string));
-  }, [columnDefs, table.getState().columnOrder]);
+  const pageCount = paginationEnabled ? Math.ceil(sortedData.length / rowsPerPage) : 1;
+  
+  React.useEffect(() => {
+    if (currentPage >= pageCount) {
+        setCurrentPage(Math.max(0, pageCount - 1));
+    }
+  }, [pageCount, currentPage]);
 
-  const getStickyStyles = (columnId: string): React.CSSProperties => {
-    const isFrozen = frozenColumnIds.includes(columnId);
-    if (!isFrozen) return {};
+  React.useEffect(() => {
+    const selected = Array.from(selectedRowIds).map(id => data.find(row => getRowId(row) === id)).filter(Boolean) as TData[];
+    onSelectedRowsChange(selected);
+  }, [selectedRowIds, data, getRowId, onSelectedRowsChange]);
 
-    const colIndex = frozenColumnIds.indexOf(columnId);
-    const offset = frozenColumnIds.slice(0, colIndex).reduce((acc, id) => {
-        const col = table.getColumn(id);
-        return acc + (col?.getSize() || 0);
-    }, 0);
-
-    return {
-        left: `${offset}px`,
-    };
+  const handleSort = (columnId: string) => {
+    if (!sortingEnabled) return;
+    setSorting(prev => {
+        if (prev?.columnId === columnId) {
+            if (prev.direction === 'asc') return { columnId, direction: 'desc' };
+            return undefined;
+        }
+        return { columnId, direction: 'asc' };
+    });
   };
 
-  const frozenColumnsWidth = React.useMemo(() => {
-    return frozenColumnIds.reduce((acc, id) => {
-      const col = table.getColumn(id);
-      return acc + (col?.getSize() || 0);
-    }, 0);
-  }, [frozenColumnIds, table.getAllColumns()]);
+  const handleToggleRowSelected = (row: TData, isSelected: boolean) => {
+    setSelectedRowIds(prev => {
+        const newSet = new Set(prev);
+        const rowId = getRowId(row);
+        if (isSelected) newSet.add(rowId);
+        else newSet.delete(rowId);
+        return newSet;
+    });
+  };
 
+  const handleToggleAllRowsSelected = (isSelected: boolean) => {
+    setSelectedRowIds(isSelected ? new Set(paginatedData.map(getRowId)) : new Set());
+  };
 
-  // Effect to adjust page size when pagination is disabled.
-  React.useEffect(() => {
-    if (!paginationEnabled) {
-      table.setPageSize(data.length);
-    } else {
-      table.setPageSize(initialRowsPerPage);
-    }
-  }, [paginationEnabled, data.length, table, initialRowsPerPage]);
+  const handleResize = (columnId: string, handler: React.MouseEventHandler) => {
+    // This is a placeholder for a more complex resize implementation
+    return handler;
+  };
+
+  const handleColumnVisibilityChange = (columnId: string, isVisible: boolean) => {
+    setColumnVisibility(prev => ({...prev, [columnId]: isVisible}));
+  };
   
-  // Effect to notify the parent component when the table instance is ready.
-  React.useEffect(() => {
-    if (onTableReady) {
-        onTableReady(table);
-    }
-  }, [onTableReady, table]);
-
-  // Effect to notify the parent component about changes in row selection.
-  React.useEffect(() => {
-    const selectedRows = table.getFilteredSelectedRowModel().rows;
-    onSelectedRowsChange(selectedRows.map(row => row.original));
-  }, [rowSelection, onSelectedRowsChange, table]);
-
-  const { rows } = table.getRowModel();
-
-  // The TanStack Virtualizer instance for handling large datasets efficiently.
-  const rowVirtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => 41, // Estimate row height for performance.
-    overscan: 10, // Render a few extra items above and below the viewport.
-  });
+  const totalWidth = React.useMemo(() => visibleColumns.reduce((sum, col) => sum + (columnSizes[col.id] || 150), 0), [visibleColumns, columnSizes]);
+  
+  const rowVirtualizer = {
+      getTotalSize: () => paginatedData.length * 41,
+      getVirtualItems: () => paginatedData.map((_, index) => ({
+          index,
+          start: index * 41,
+          size: 41
+      }))
+  };
 
   return (
       <div className="cygnet-dt-container">
@@ -719,7 +702,6 @@ export function DataTable<TData>({
         )}
         
         <DataTableToolbar 
-          table={table} 
           filterableColumns={filterableColumns} 
           globalFilter={globalFilter} 
           onGlobalFilterChange={onGlobalFilterChange}
@@ -729,8 +711,6 @@ export function DataTable<TData>({
           onToggleStreaming={onToggleStreaming}
           onDeleteSelectedRows={onDeleteSelectedRows}
           onExportCsv={onExportCsv}
-          onExportXlsx={onExportXlsx}
-          onExportPdf={onExportPdf}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
@@ -738,6 +718,12 @@ export function DataTable<TData>({
           showCharts={showCharts}
           onToggleCharts={onToggleCharts}
           toolbarVisibility={toolbarVisibility}
+          columnFilters={columnFilters}
+          onColumnFiltersChange={onColumnFiltersChange}
+          columnVisibility={columnVisibility}
+          onColumnVisibilityChange={handleColumnVisibilityChange}
+          allColumns={initialColumns}
+          selectedRowCount={selectedRowIds.size}
         />
 
         <div className="cygnet-dt-wrapper">
@@ -748,7 +734,7 @@ export function DataTable<TData>({
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
           >
-            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: table.getCenterTotalSize() }}>
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: totalWidth }}>
               <div 
                 style={{ 
                   position: 'sticky', 
@@ -758,44 +744,25 @@ export function DataTable<TData>({
                   width: '100%'
                 }}
               >
-                  {table.getHeaderGroups().map((headerGroup) => (
                       <div
-                        key={headerGroup.id}
                         className="cygnet-dt-header-row"
-                        style={{ width: `${table.getCenterTotalSize()}px` }}
+                        style={{ width: totalWidth }}
                       >
-                        {headerGroup.headers.map((header) => {
-                          const isFrozen = frozenColumnIds.includes(header.id);
-                          const isLastFrozen = isFrozen && frozenColumnIds.indexOf(header.id) === frozenColumnIds.length - 1;
-                          const headerClasses = [
-                            'cygnet-dt-cell-common',
-                            isFrozen ? 'cygnet-dt-header-cell--sticky' : '',
-                            isLastFrozen ? 'cygnet-dt-header-cell--sticky-last' : ''
-                          ].join(' ').trim();
-                          
+                        {visibleColumns.map((header) => {
                           return (
                           <div 
                             key={header.id} 
-                            className={headerClasses}
+                            className="cygnet-dt-cell-common"
                             style={{ 
-                              width: header.getSize(), 
-                              minWidth: header.column.columnDef.minSize,
-                              ...getStickyStyles(header.id) 
+                              width: columnSizes[header.id] || 150, 
+                              minWidth: header.minSize,
                             }}
                             onDrop={(e) => {
                               e.preventDefault();
                               const draggedColumnId = e.dataTransfer.getData('text/plain');
                               const targetColumnId = header.id;
-                              
-                              const isDraggedFrozen = frozenColumnIds.includes(draggedColumnId);
-                              const isTargetFrozen = frozenColumnIds.includes(targetColumnId);
-
                               if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
-                                  if (isDraggedFrozen === isTargetFrozen) {
-                                      table.setColumnOrder(
-                                          (old) => reorderColumn(draggedColumnId, targetColumnId, old)
-                                      );
-                                  }
+                                  setColumnOrder(old => reorderColumn(draggedColumnId, targetColumnId, old));
                               }
                             }}
                             onDragOver={(e) => e.preventDefault()}
@@ -808,26 +775,23 @@ export function DataTable<TData>({
                                   e.stopPropagation();
                                 }}
                               >
-                                {header.isPlaceholder
-                                  ? null
-                                  : flexRender(
-                                      header.column.columnDef.header,
-                                      header.getContext()
-                                    )}
+                                {header.header({
+                                    column: header, 
+                                    onSort: handleSort,
+                                    sortState: sorting,
+                                    isAllRowsSelected: selectedRowIds.size > 0 && selectedRowIds.size === paginatedData.length,
+                                    onToggleAllRowsSelected: handleToggleAllRowsSelected
+                                })}
                               </div>
-                              {header.column.getCanResize() && (
-                                <div
-                                  onMouseDown={header.getResizeHandler()}
-                                  onTouchStart={header.getResizeHandler()}
-                                  className={`cygnet-dt-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
+                              <div
+                                  onMouseDown={() => {}}
+                                  className="cygnet-dt-resizer"
                                 >
-                                  <MoreVertical className="lucide" />
+                                  <MoreVerticalIcon />
                                 </div>
-                              )}
                           </div>
                         )})}
                       </div>
-                  ))}
               </div>
               <div
                 style={{
@@ -835,111 +799,53 @@ export function DataTable<TData>({
                   width: '100%',
                 }}
               >
-              {rows.length > 0 ? (
+              {paginatedData.length > 0 ? (
                 rowVirtualizer.getVirtualItems().map(virtualRow => {
-                  const row = rows[virtualRow.index];
-                  const rowIsSelected = row.getIsSelected();
+                  const row = paginatedData[virtualRow.index];
+                  const rowId = getRowId(row);
+                  const rowIsSelected = selectedRowIds.has(rowId);
                   return (
                       <div
-                          key={row.id}
+                          key={rowId}
                           className="cygnet-dt-table-row"
                           data-index={virtualRow.index}
                           data-state={rowIsSelected ? "selected" : ""}
-                          onDoubleClick={() => onRowDoubleClick?.(row.original)}
+                          onDoubleClick={() => onRowDoubleClick?.(row)}
                           onContextMenu={(e) => { 
                               e.preventDefault(); 
                               setContextMenuPosition({ x: e.clientX, y: e.clientY });
-                              setContextMenuRow(row.original);
+                              setContextMenuRow(row);
                               setIsContextMenuOpen(true);
-                          }}
-                          onMouseDown={(e) => {
-                              const target = e.target as HTMLElement;
-                              if (target.closest('[role="checkbox"]')) {
-                                return;
-                              }
-                              e.preventDefault();
-                              const rowIndex = virtualRow.index;
-                              
-                              setIsDragging(true);
-                              setDragStartRowIndex(rowIndex);
-                              setDragSelectionStart(rowSelection);
-
-                              if (e.shiftKey && lastClickedRowIndex.current !== null) {
-                                  const start = Math.min(lastClickedRowIndex.current, rowIndex);
-                                  const end = Math.max(lastClickedRowIndex.current, rowIndex);
-                                  
-                                  const newSelection: {[key: string]: boolean} = {}; 
-                                  for(let i = start; i <= end; i++) {
-                                      const rowId = rows[i]?.id;
-                                      if (rowId) {
-                                          newSelection[rowId] = true;
-                                      }
-                                  }
-                                  table.setRowSelection(newSelection);
-                              } else if (e.metaKey || e.ctrlKey) {
-                                  const newSelection = { ...rowSelection };
-                                  if ((newSelection as any)[row.id]) {
-                                      delete (newSelection as any)[row.id];
-                                  } else {
-                                      (newSelection as any)[row.id] = true;
-                                  }
-                                  table.setRowSelection(newSelection);
-                                  lastClickedRowIndex.current = rowIndex;
-                              } else {
-                                  table.setRowSelection({ [row.id]: true });
-                                  lastClickedRowIndex.current = rowIndex;
-                              }
-                          }}
-                          onMouseEnter={() => {
-                              if (isDragging && dragStartRowIndex !== null) {
-                                  const rowIndex = virtualRow.index;
-                                  const start = Math.min(dragStartRowIndex, rowIndex);
-                                  const end = Math.max(dragStartRowIndex, rowIndex);
-
-                                  const newSelection: {[key: string]: boolean} = {...dragSelectionStart}; 
-                                  for(let i = start; i <= end; i++) {
-                                      const rowId = rows[i]?.id;
-                                      if (rowId) {
-                                          newSelection[rowId] = true;
-                                      }
-                                  }
-                                  table.setRowSelection(newSelection);
-                              }
                           }}
                           style={{
                             position: 'absolute',
                             transform: `translateY(${virtualRow.start}px)`,
                             top: 0,
                             left: 0,
-                            width: `${table.getCenterTotalSize()}px`,
+                            width: totalWidth,
                             height: `${virtualRow.size}px`,
                             cursor: 'pointer'
                           }}
                         >
-                          {row.getVisibleCells().map((cell) => {
-                              const isFrozen = frozenColumnIds.includes(cell.column.id);
-                              const isLastFrozen = isFrozen && frozenColumnIds.indexOf(cell.column.id) === frozenColumnIds.length - 1;
-                              const cellClasses = [
-                                'cygnet-dt-cell-common',
-                                'cygnet-dt-table-cell',
-                                isFrozen ? 'cygnet-dt-table-cell--sticky' : '',
-                                isLastFrozen ? 'cygnet-dt-table-cell--sticky-last' : ''
-                              ].join(' ').trim();
-
-                              return (
+                          {visibleColumns.map((cell) => (
                                 <div 
                                   key={cell.id} 
-                                  className={cellClasses}
+                                  className="cygnet-dt-cell-common cygnet-dt-table-cell"
                                   style={{ 
-                                    width: cell.column.getSize(), 
-                                    minWidth: cell.column.columnDef.minSize,
-                                    ...getStickyStyles(cell.column.id)
+                                    width: columnSizes[cell.id] || 150,
+                                    minWidth: cell.minSize,
                                   }}
                                 >
-                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  {cell.cell({
+                                      row, 
+                                      rowId,
+                                      isSelected: rowIsSelected,
+                                      onToggleRowSelected: handleToggleRowSelected,
+                                      globalFilter, 
+                                      columnFilters,
+                                  })}
                                 </div>
-                              );
-                          })}
+                              ))}
                       </div>
                   )
                 })
@@ -956,17 +862,17 @@ export function DataTable<TData>({
         {paginationEnabled && (
           <div className="cygnet-dt-pagination-container">
             <div className="cygnet-dt-footer-info">
-              {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {table.getFilteredRowModel().rows.length} row(s) selected.
+              {selectedRowIds.size} of{" "}
+              {sortedData.length} row(s) selected.
             </div>
             <div style={{display: 'flex', alignItems: 'center', gap: '2rem'}}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
                     <p style={{fontSize: '0.875rem', fontWeight: 500}}>Rows per page</p>
                     <select
                     className="cygnet-dt-select"
-                    value={table.getState().pagination.pageSize}
+                    value={rowsPerPage}
                     onChange={e => {
-                        table.setPageSize(Number(e.target.value))
+                        setRowsPerPage(Number(e.target.value))
                     }}
                     >
                     {rowsPerPageOptions.map(pageSize => (
@@ -977,17 +883,17 @@ export function DataTable<TData>({
                     </select>
                 </div>
                 <div style={{display: 'flex', width: '100px', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: 500}}>
-                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                    Page {currentPage + 1} of {pageCount}
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}><ChevronsLeft className="h-4 w-4" /></button>
-                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}><ChevronLeft className="h-4 w-4" /></button>
-                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}><ChevronRight className="h-4 w-4" /></button>
-                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}><ChevronsRight className="h-4 w-4" /></button>
+                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => setCurrentPage(0)} disabled={currentPage === 0}><PageFirstIcon /></button>
+                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 0}><PagePrevIcon /></button>
+                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage >= pageCount - 1}><PageNextIcon /></button>
+                    <button className="cygnet-dt-button cygnet-dt-button--outline cygnet-dt-button--icon" onClick={() => setCurrentPage(pageCount - 1)} disabled={currentPage >= pageCount - 1}><PageLastIcon /></button>
                 </div>
                  <div style={{fontSize: '0.875rem', color: '#6b7280', textAlign: 'right', flexShrink: 0, paddingTop: '0.25rem'}}>
                     <span style={{fontWeight: 700, color: '#111827'}}>
-                        {table.getFilteredRowModel().rows.length.toLocaleString()}
+                        {sortedData.length.toLocaleString()}
                     </span>
                     {" "}of{" "}
                     <span style={{fontWeight: 700, color: '#111827'}}>
@@ -1002,8 +908,8 @@ export function DataTable<TData>({
         {!paginationEnabled && (
           <div className="cygnet-dt-pagination-container">
             <div className="cygnet-dt-footer-info">
-              {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {table.getFilteredRowModel().rows.length} row(s) selected.
+              {selectedRowIds.size} of{" "}
+              {sortedData.length} row(s) selected.
             </div>
           </div>
         )}
