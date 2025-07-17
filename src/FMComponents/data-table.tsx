@@ -7,6 +7,7 @@ import './data-table.css';
 import { useDropdown } from "@/hooks/use-dropdown.ts";
 import type { Alarm } from "@/config/alarm-config.ts";
 import type { ColumnDef, ColumnFiltersState, SortingState } from "@/app/types.ts";
+import { useVirtualizer } from "@/hooks/use-virtualizer.ts";
 
 /** Reusable Icons as Components **/
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
@@ -648,17 +649,20 @@ export function DataTable<TData extends { [key: string]: any }>({
   }, [sortedData, currentPage, rowsPerPage, paginationEnabled]);
   
   const pageCount = paginationEnabled ? Math.ceil(sortedData.length / rowsPerPage) : 1;
+
+  const dataToRender = paginationEnabled ? paginatedData : sortedData;
+
+  const rowVirtualizer = useVirtualizer({
+      count: dataToRender.length,
+      getScrollElement: () => tableContainerRef.current,
+      estimateSize: () => 41, // Estimate row height
+  });
   
   React.useEffect(() => {
     if (currentPage >= pageCount) {
         setCurrentPage(Math.max(0, pageCount - 1));
     }
   }, [pageCount, currentPage]);
-
-  React.useEffect(() => {
-    const selected = Array.from(selectedRowIds).map(id => data.find(row => getRowId(row) === id)).filter(Boolean) as TData[];
-    onSelectedRowsChange(selected);
-  }, [selectedRowIds, data, getRowId, onSelectedRowsChange]);
 
   const handleSort = (columnId: string) => {
     if (!sortingEnabled) return;
@@ -671,41 +675,44 @@ export function DataTable<TData extends { [key: string]: any }>({
     });
   };
 
+  const updateSelectedRows = (newSelectedIds: Set<string>) => {
+    setSelectedRowIds(newSelectedIds);
+    const selected = Array.from(newSelectedIds).map(id => data.find(row => getRowId(row) === id)).filter(Boolean) as TData[];
+    onSelectedRowsChange(selected);
+  };
+  
   const handleToggleRowSelected = (row: TData, isSelected: boolean) => {
-    setSelectedRowIds(prev => {
-        const newSet = new Set(prev);
-        const rowId = getRowId(row);
-        if (isSelected) newSet.add(rowId);
-        else newSet.delete(rowId);
-        return newSet;
-    });
+    const newSet = new Set(selectedRowIds);
+    const rowId = getRowId(row);
+    if (isSelected) newSet.add(rowId);
+    else newSet.delete(rowId);
+    updateSelectedRows(newSet);
   };
   
   const handleRowClick = (rowIndex: number, e: React.MouseEvent) => {
-    const rowId = getRowId(paginatedData[rowIndex]);
+    const rowId = getRowId(dataToRender[rowIndex]);
+    let newSelectedIds: Set<string>;
 
     if (e.metaKey || e.ctrlKey) {
-        setSelectedRowIds(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(rowId)) newSet.delete(rowId);
-            else newSet.add(rowId);
-            return newSet;
-        });
+        newSelectedIds = new Set(selectedRowIds);
+        if (newSelectedIds.has(rowId)) newSelectedIds.delete(rowId);
+        else newSelectedIds.add(rowId);
     } else if (e.shiftKey && lastClickedRowIndex.current !== null) {
         const start = Math.min(lastClickedRowIndex.current, rowIndex);
         const end = Math.max(lastClickedRowIndex.current, rowIndex);
-        const rangeIds = paginatedData.slice(start, end + 1).map(getRowId);
-        setSelectedRowIds(prev => new Set([...prev, ...rangeIds]));
+        const rangeIds = dataToRender.slice(start, end + 1).map(getRowId);
+        newSelectedIds = new Set([...selectedRowIds, ...rangeIds]);
     } else {
-        setSelectedRowIds(new Set([rowId]));
+        newSelectedIds = new Set([rowId]);
     }
+    updateSelectedRows(newSelectedIds);
     lastClickedRowIndex.current = rowIndex;
   };
 
   const handleMouseDownOnRow = (rowIndex: number) => {
     setIsDragging(true);
     setDragStartRowIndex(rowIndex);
-    const startRowId = getRowId(paginatedData[rowIndex]);
+    const startRowId = getRowId(dataToRender[rowIndex]);
     setDragSelectionStart(new Set([startRowId]));
   };
 
@@ -717,9 +724,9 @@ export function DataTable<TData extends { [key: string]: any }>({
       const end = Math.max(dragStartRowIndex, rowIndex);
 
       for (let i = start; i <= end; i++) {
-          newSelectedIds.add(getRowId(paginatedData[i]));
+          newSelectedIds.add(getRowId(dataToRender[i]));
       }
-      setSelectedRowIds(newSelectedIds);
+      updateSelectedRows(newSelectedIds);
   };
   
   React.useEffect(() => {
@@ -739,7 +746,8 @@ export function DataTable<TData extends { [key: string]: any }>({
 
 
   const handleToggleAllRowsSelected = (isSelected: boolean) => {
-    setSelectedRowIds(isSelected ? new Set(paginatedData.map(getRowId)) : new Set());
+    const allRowIds = isSelected ? new Set(dataToRender.map(getRowId)) : new Set<string>();
+    updateSelectedRows(allRowIds);
   };
 
   const handleResize = (columnId: string, startX: number) => {
@@ -778,14 +786,6 @@ export function DataTable<TData extends { [key: string]: any }>({
     return offsets;
   }, [visibleColumns, frozenColumns, columnSizes]);
   
-  const rowVirtualizer = {
-      getTotalSize: () => paginatedData.length * 41,
-      getVirtualItems: () => paginatedData.map((_, index) => ({
-          index,
-          start: index * 41,
-          size: 41
-      }))
-  };
 
   return (
       <div className="cygnet-dt-container">
@@ -831,7 +831,7 @@ export function DataTable<TData extends { [key: string]: any }>({
                 maxHeight: paginationEnabled ? maxHeightWithPagination : maxHeightWithoutPagination,
             }}
           >
-            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: totalWidth }}>
+            <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: totalWidth, position: 'relative' }}>
               <div 
                 style={{ 
                   position: 'sticky', 
@@ -879,7 +879,7 @@ export function DataTable<TData extends { [key: string]: any }>({
                                      column: header, 
                                      onSort: handleSort,
                                      sortState: sorting,
-                                     isAllRowsSelected: selectedRowIds.size > 0 && selectedRowIds.size === paginatedData.length,
+                                     isAllRowsSelected: selectedRowIds.size > 0 && selectedRowIds.size === dataToRender.length,
                                      onToggleAllRowsSelected: handleToggleAllRowsSelected
                                  })}
                                </div>
@@ -893,15 +893,10 @@ export function DataTable<TData extends { [key: string]: any }>({
                          )})}
                       </div>
               </div>
-              <div
-                style={{
-                  position: 'relative',
-                  width: '100%',
-                }}
-              >
-              {paginatedData.length > 0 ? (
+
+              {rowVirtualizer.getVirtualItems().length > 0 ? (
                 rowVirtualizer.getVirtualItems().map(virtualRow => {
-                  const row = paginatedData[virtualRow.index];
+                  const row = dataToRender[virtualRow.index];
                   const rowId = getRowId(row);
                   const rowIsSelected = selectedRowIds.has(rowId);
                   return (
@@ -964,7 +959,6 @@ export function DataTable<TData extends { [key: string]: any }>({
                   No results.
                 </div>
               )}
-              </div>
             </div>
           </div>
         </div>
