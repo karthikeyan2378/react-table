@@ -15,17 +15,6 @@ const severityColors: Record<string, string> = {
   Cleared: "#22C55E",
 };
 
-const UpDownIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>
-);
-const UpIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
-);
-const DownIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
-);
-
-
 export const getColumns = (): ColumnDef<Alarm>[] => {
     const staticColumns: ColumnDef<Alarm>[] = [
       {
@@ -68,7 +57,6 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                   draggable
                   onDragStart={(e) => {
                     e.dataTransfer.setData('text/plain', column.id);
-                    e.stopPropagation();
                   }}
                 >
                   <span>{config.label}</span>
@@ -82,8 +70,12 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                           onSort(column.id);
                         }}
                       >
-                        {sortState?.columnId !== column.id ? <UpDownIcon /> :
-                         sortState?.direction === 'desc' ? <DownIcon /> : <UpIcon />}
+                        {sortState?.columnId !== column.id ? 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg> :
+                         sortState?.direction === 'desc' ? 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg> : 
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
+                        }
                       </button>
                     )}
                 </div>
