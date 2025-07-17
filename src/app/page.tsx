@@ -114,7 +114,7 @@ export default function Home() {
   /**
    * Opens the update dialog and pre-fills it with the selected row's data.
    */
-  const handleUpdateRow = () => {
+  const handleUpdateRow = React.useCallback(() => {
     if (selectedRows.length !== 1) {
       toast({
         title: "Invalid selection",
@@ -125,13 +125,13 @@ export default function Home() {
     }
     setRowToUpdate(selectedRows[0]);
     setIsUpdateDialogOpen(true);
-  };
+  }, [selectedRows, toast]);
 
   /**
    * Updates the data in the main state array after a row is edited.
    * @param updatedRow The row data that has been modified.
    */
-  const onRowUpdate = (updatedRow: Alarm) => {
+  const onRowUpdate = React.useCallback((updatedRow: Alarm) => {
     const recId = getRowId(updatedRow);
     setData(currentData =>
       currentData.map(row => (getRowId(row) === recId ? updatedRow : row))
@@ -142,12 +142,12 @@ export default function Home() {
       title: "Row Updated",
       description: "The alarm has been successfully updated."
     });
-  };
+  }, [getRowId, toast]);
 
   /**
    * Opens the delete confirmation modal if rows are selected.
    */
-  const deleteSelectedRows = () => {
+  const deleteSelectedRows = React.useCallback(() => {
     if (selectedRows.length === 0) {
       toast({
         title: "No rows selected",
@@ -157,12 +157,12 @@ export default function Home() {
       return;
     }
     setIsDeleteConfirmOpen(true);
-  };
+  }, [selectedRows.length, toast]);
 
   /**
    * Deletes the currently selected rows from the table after confirmation.
    */
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = React.useCallback(() => {
     const selectedRowIds = new Set(selectedRows.map(r => getRowId(r)));
     setData((oldData) =>
       oldData.filter((row) => !selectedRowIds.has(getRowId(row)))
@@ -173,7 +173,7 @@ export default function Home() {
         title: "Rows Deleted",
         description: `${selectedRowIds.size} row(s) have been deleted.`
     })
-  };
+  }, [selectedRows, getRowId, toast]);
 
   /**
    * Effect to handle the data streaming functionality.
@@ -324,7 +324,7 @@ export default function Home() {
   /**
    * Exports the visible table data to a CSV file.
    */
-  const handleExportCsv = () => {
+  const handleExportCsv = React.useCallback(() => {
       const exportData = getExportableData(data, columns, columnFilters, globalFilter);
       if (!exportData) return;
       const { headers, body } = exportData;
@@ -343,9 +343,9 @@ export default function Home() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-  };
+  }, [data, columns, columnFilters, globalFilter]);
 
-  const handleExportXlsx = async () => {
+  const handleExportXlsx = React.useCallback(async () => {
     const exportData = getExportableData(data, columns, columnFilters, globalFilter);
     if (!exportData) return;
     const { headers, body } = exportData;
@@ -363,9 +363,9 @@ export default function Home() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }, [data, columns, columnFilters, globalFilter]);
 
-  const handleExportPdf = () => {
+  const handleExportPdf = React.useCallback(() => {
     const exportData = getExportableData(data, columns, columnFilters, globalFilter);
     if (!exportData) return;
     const { headers, body } = exportData;
@@ -376,7 +376,7 @@ export default function Home() {
         body: body,
     });
     doc.save('alarms.pdf');
-  };
+  }, [data, columns, columnFilters, globalFilter]);
 
   // Prevent rendering on the server.
   if (!isClient) {
