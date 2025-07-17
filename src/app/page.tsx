@@ -15,6 +15,9 @@ import { getColumns } from './columns';
 import { useDropdown } from '@/hooks/use-dropdown';
 import { Modal } from '@/FMComponents/ui/modal';
 import { Button } from '@/FMComponents/ui/button';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import ExcelJS from 'exceljs';
 
 
 /**
@@ -281,6 +284,12 @@ export default function Home() {
     return descendingCol ? [{ columnId: descendingCol[0], direction: 'desc' as const }] : [];
   }, []);
 
+  const frozenColumns = React.useMemo(() => {
+    return Object.entries(alarmConfig.fields)
+      .filter(([, config]) => config.isColumnToFreeze)
+      .map(([key]) => key);
+  }, []);
+
   /**
    * Memoized array of context menu items for table rows.
    */
@@ -334,6 +343,39 @@ export default function Home() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+  };
+
+  const handleExportXlsx = async () => {
+    const exportData = getExportableData(data, columns, columnFilters, globalFilter);
+    if (!exportData) return;
+    const { headers, body } = exportData;
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Alarms');
+    worksheet.addRow(headers);
+    body.forEach(row => worksheet.addRow(row));
+    
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'alarms.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportPdf = () => {
+    const exportData = getExportableData(data, columns, columnFilters, globalFilter);
+    if (!exportData) return;
+    const { headers, body } = exportData;
+
+    const doc = new jsPDF();
+    (doc as any).autoTable({
+        head: [headers],
+        body: body,
+    });
+    doc.save('alarms.pdf');
   };
 
   // Prevent rendering on the server.
@@ -421,6 +463,8 @@ export default function Home() {
                   onToggleStreaming={() => setIsStreaming((prev) => !prev)}
                   onDeleteSelectedRows={deleteSelectedRows}
                   onExportCsv={handleExportCsv}
+                  onExportXlsx={handleExportXlsx}
+                  onExportPdf={handleExportPdf}
                   showCharts={showCharts}
                   onToggleCharts={setShowCharts}
                   tableTitle="Live Alarm Feed"
@@ -433,6 +477,7 @@ export default function Home() {
                     toggleCharts: true,
                     updateRow: true,
                    }}
+                  frozenColumns={frozenColumns}
               />
           </div>
         </div>

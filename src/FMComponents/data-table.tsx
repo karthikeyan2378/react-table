@@ -21,8 +21,9 @@ const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" heigh
 const PieChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>;
 const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
 const CsvIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1Z"/><path d="M12 18H9.5a.5.5 0 0 1 0-1H12"/><path d="M9.5 12.5a.5.5 0 0 1 0-1H12v6"/><path d="m14 18 2-3-2-3"/></svg>;
-const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
-const MoreVerticalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>;
+const ExcelIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m16 13-3 5-3-5"/></svg>;
+const PdfIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15v-2.5a2.5 2.5 0 0 1 5 0V15"/><path d="M12 18h-2.5a2.5 2.5 0 0 1 0-5H12"/></svg>;
+const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
 const PageFirstIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>;
 const PagePrevIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>;
 const PageNextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
@@ -152,6 +153,8 @@ interface DataTableToolbarProps<TData> {
   onToggleStreaming?: () => void;
   onDeleteSelectedRows?: () => void;
   onExportCsv?: () => void;
+  onExportXlsx?: () => void;
+  onExportPdf?: () => void;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
@@ -180,6 +183,8 @@ function DataTableToolbar<TData>({
   onToggleStreaming,
   onDeleteSelectedRows,
   onExportCsv,
+  onExportXlsx,
+  onExportPdf,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -383,7 +388,7 @@ function DataTableToolbar<TData>({
             </div>
           )}
           
-          {toolbarVisibility.exportData !== false && (onExportCsv) && (
+          {toolbarVisibility.exportData !== false && (onExportCsv || onExportXlsx || onExportPdf) && (
              <div ref={exportRef} className="cygnet-dt-dropdown-container">
                 <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={() => setIsExportOpen(!isExportOpen)}>
                   <DownloadIcon />
@@ -391,6 +396,8 @@ function DataTableToolbar<TData>({
                 {isExportOpen && (
                     <div className="cygnet-dt-dropdown-content">
                         {onExportCsv && <button onClick={() => { onExportCsv(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><CsvIcon />Export as CSV</button>}
+                        {onExportXlsx && <button onClick={() => { onExportXlsx(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><ExcelIcon />Export as XLSX</button>}
+                        {onExportPdf && <button onClick={() => { onExportPdf(); setIsExportOpen(false); }} className="cygnet-dt-dropdown-item"><PdfIcon />Export as PDF</button>}
                     </div>
                 )}
             </div>
@@ -499,6 +506,8 @@ interface DataTableProps<TData> {
   onToggleStreaming?: () => void;
   onDeleteSelectedRows?: () => void;
   onExportCsv?: () => void;
+  onExportXlsx?: () => void;
+  onExportPdf?: () => void;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -510,6 +519,7 @@ interface DataTableProps<TData> {
   onColumnFiltersChange: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   showCharts: boolean;
   onToggleCharts: (enabled: boolean) => void;
+  frozenColumns: string[];
 }
 
 /**
@@ -534,6 +544,8 @@ export function DataTable<TData extends { [key: string]: any }>({
   onToggleStreaming,
   onDeleteSelectedRows,
   onExportCsv,
+  onExportXlsx,
+  onExportPdf,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -545,6 +557,7 @@ export function DataTable<TData extends { [key: string]: any }>({
   onColumnFiltersChange,
   showCharts,
   onToggleCharts,
+  frozenColumns,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState | undefined>(initialSorting[0]);
   const [columnVisibility, setColumnVisibility] = React.useState<{ [key: string]: boolean }>(() => {
@@ -667,14 +680,85 @@ export function DataTable<TData extends { [key: string]: any }>({
         return newSet;
     });
   };
+  
+  const handleRowClick = (rowIndex: number, e: React.MouseEvent) => {
+    const rowId = getRowId(paginatedData[rowIndex]);
+
+    if (e.metaKey || e.ctrlKey) {
+        setSelectedRowIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(rowId)) newSet.delete(rowId);
+            else newSet.add(rowId);
+            return newSet;
+        });
+    } else if (e.shiftKey && lastClickedRowIndex.current !== null) {
+        const start = Math.min(lastClickedRowIndex.current, rowIndex);
+        const end = Math.max(lastClickedRowIndex.current, rowIndex);
+        const rangeIds = paginatedData.slice(start, end + 1).map(getRowId);
+        setSelectedRowIds(prev => new Set([...prev, ...rangeIds]));
+    } else {
+        setSelectedRowIds(new Set([rowId]));
+    }
+    lastClickedRowIndex.current = rowIndex;
+  };
+
+  const handleMouseDownOnRow = (rowIndex: number) => {
+    setIsDragging(true);
+    setDragStartRowIndex(rowIndex);
+    const startRowId = getRowId(paginatedData[rowIndex]);
+    setDragSelectionStart(new Set([startRowId]));
+  };
+
+  const handleMouseEnterRow = (rowIndex: number) => {
+      if (!isDragging || dragStartRowIndex === null) return;
+      
+      const newSelectedIds = new Set(dragSelectionStart);
+      const start = Math.min(dragStartRowIndex, rowIndex);
+      const end = Math.max(dragStartRowIndex, rowIndex);
+
+      for (let i = start; i <= end; i++) {
+          newSelectedIds.add(getRowId(paginatedData[i]));
+      }
+      setSelectedRowIds(newSelectedIds);
+  };
+  
+  React.useEffect(() => {
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setDragStartRowIndex(null);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
 
   const handleToggleAllRowsSelected = (isSelected: boolean) => {
     setSelectedRowIds(isSelected ? new Set(paginatedData.map(getRowId)) : new Set());
   };
 
-  const handleResize = (columnId: string, handler: React.MouseEventHandler) => {
-    // This is a placeholder for a more complex resize implementation
-    return handler;
+  const handleResize = (columnId: string, startX: number) => {
+    const startWidth = columnSizes[columnId] || 150;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+        const newWidth = startWidth + (e.clientX - startX);
+        setColumnSizes(prev => ({ ...prev, [columnId]: Math.max(newWidth, 50) }));
+    };
+
+    const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = '';
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleColumnVisibilityChange = (columnId: string, isVisible: boolean) => {
@@ -682,6 +766,17 @@ export function DataTable<TData extends { [key: string]: any }>({
   };
   
   const totalWidth = React.useMemo(() => visibleColumns.reduce((sum, col) => sum + (columnSizes[col.id] || 150), 0), [visibleColumns, columnSizes]);
+  const frozenColumnOffsets = React.useMemo(() => {
+    const offsets: { [key: string]: number } = {};
+    let runningTotal = 0;
+    visibleColumns.forEach(col => {
+      if (frozenColumns.includes(col.id)) {
+        offsets[col.id] = runningTotal;
+        runningTotal += columnSizes[col.id] || col.size || 150;
+      }
+    });
+    return offsets;
+  }, [visibleColumns, frozenColumns, columnSizes]);
   
   const rowVirtualizer = {
       getTotalSize: () => paginatedData.length * 41,
@@ -711,6 +806,8 @@ export function DataTable<TData extends { [key: string]: any }>({
           onToggleStreaming={onToggleStreaming}
           onDeleteSelectedRows={onDeleteSelectedRows}
           onExportCsv={onExportCsv}
+          onExportXlsx={onExportXlsx}
+          onExportPdf={onExportPdf}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
@@ -749,48 +846,52 @@ export function DataTable<TData extends { [key: string]: any }>({
                         style={{ width: totalWidth }}
                       >
                         {visibleColumns.map((header) => {
-                          return (
-                          <div 
-                            key={header.id} 
-                            className="cygnet-dt-cell-common"
-                            style={{ 
-                              width: columnSizes[header.id] || 150, 
-                              minWidth: header.minSize,
-                            }}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              const draggedColumnId = e.dataTransfer.getData('text/plain');
-                              const targetColumnId = header.id;
-                              if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
-                                  setColumnOrder(old => reorderColumn(draggedColumnId, targetColumnId, old));
-                              }
-                            }}
-                            onDragOver={(e) => e.preventDefault()}
-                          >
-                             <div 
-                                className="cygnet-dt-header-content"
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.setData('text/plain', header.id);
-                                  e.stopPropagation();
-                                }}
-                              >
-                                {header.header({
-                                    column: header, 
-                                    onSort: handleSort,
-                                    sortState: sorting,
-                                    isAllRowsSelected: selectedRowIds.size > 0 && selectedRowIds.size === paginatedData.length,
-                                    onToggleAllRowsSelected: handleToggleAllRowsSelected
-                                })}
-                              </div>
-                              <div
-                                  onMouseDown={() => {}}
-                                  className="cygnet-dt-resizer"
-                                >
-                                  <MoreVerticalIcon />
-                                </div>
-                          </div>
-                        )})}
+                           const isFrozen = frozenColumns.includes(header.id);
+                           const isLastFrozen = isFrozen && frozenColumns.indexOf(header.id) === frozenColumns.length - 1;
+                           const stickyClasses = isFrozen ? `cygnet-dt-header-cell--sticky ${isLastFrozen ? 'cygnet-dt-header-cell--sticky-last' : ''}` : '';
+
+                           return (
+                           <div 
+                             key={header.id} 
+                             className={`cygnet-dt-cell-common ${stickyClasses}`}
+                             style={{ 
+                               width: columnSizes[header.id] || 150, 
+                               minWidth: header.minSize,
+                               left: isFrozen ? frozenColumnOffsets[header.id] : undefined,
+                             }}
+                             onDrop={(e) => {
+                               e.preventDefault();
+                               const draggedColumnId = e.dataTransfer.getData('text/plain');
+                               const targetColumnId = header.id;
+                               if (draggedColumnId && targetColumnId && draggedColumnId !== targetColumnId) {
+                                   setColumnOrder(old => reorderColumn(draggedColumnId, targetColumnId, old));
+                               }
+                             }}
+                             onDragOver={(e) => e.preventDefault()}
+                           >
+                              <div 
+                                 className="cygnet-dt-header-content"
+                                 draggable
+                                 onDragStart={(e) => {
+                                   e.dataTransfer.setData('text/plain', header.id);
+                                   e.stopPropagation();
+                                 }}
+                               >
+                                 {header.header({
+                                     column: header, 
+                                     onSort: handleSort,
+                                     sortState: sorting,
+                                     isAllRowsSelected: selectedRowIds.size > 0 && selectedRowIds.size === paginatedData.length,
+                                     onToggleAllRowsSelected: handleToggleAllRowsSelected
+                                 })}
+                               </div>
+                               <div
+                                 onMouseDown={(e) => { e.preventDefault(); handleResize(header.id, e.clientX); }}
+                                 className="cygnet-dt-resizer"
+                               >
+                               </div>
+                           </div>
+                         )})}
                       </div>
               </div>
               <div
@@ -810,6 +911,7 @@ export function DataTable<TData extends { [key: string]: any }>({
                           className="cygnet-dt-table-row"
                           data-index={virtualRow.index}
                           data-state={rowIsSelected ? "selected" : ""}
+                          onClick={(e) => handleRowClick(virtualRow.index, e)}
                           onDoubleClick={() => onRowDoubleClick?.(row)}
                           onContextMenu={(e) => { 
                               e.preventDefault(); 
@@ -817,6 +919,8 @@ export function DataTable<TData extends { [key: string]: any }>({
                               setContextMenuRow(row);
                               setIsContextMenuOpen(true);
                           }}
+                          onMouseDown={() => handleMouseDownOnRow(virtualRow.index)}
+                          onMouseEnter={() => handleMouseEnterRow(virtualRow.index)}
                           style={{
                             position: 'absolute',
                             transform: `translateY(${virtualRow.start}px)`,
@@ -827,13 +931,19 @@ export function DataTable<TData extends { [key: string]: any }>({
                             cursor: 'pointer'
                           }}
                         >
-                          {visibleColumns.map((cell) => (
+                          {visibleColumns.map((cell) => {
+                              const isFrozen = frozenColumns.includes(cell.id);
+                              const isLastFrozen = isFrozen && frozenColumns.indexOf(cell.id) === frozenColumns.length - 1;
+                              const stickyClasses = isFrozen ? `cygnet-dt-table-cell--sticky ${isLastFrozen ? 'cygnet-dt-table-cell--sticky-last' : ''}` : '';
+
+                              return (
                                 <div 
                                   key={cell.id} 
-                                  className="cygnet-dt-cell-common cygnet-dt-table-cell"
+                                  className={`cygnet-dt-cell-common cygnet-dt-table-cell ${stickyClasses}`}
                                   style={{ 
                                     width: columnSizes[cell.id] || 150,
                                     minWidth: cell.minSize,
+                                    left: isFrozen ? frozenColumnOffsets[cell.id] : undefined,
                                   }}
                                 >
                                   {cell.cell({
@@ -845,7 +955,8 @@ export function DataTable<TData extends { [key: string]: any }>({
                                       columnFilters,
                                   })}
                                 </div>
-                              ))}
+                              )
+                            })}
                       </div>
                   )
                 })

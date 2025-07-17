@@ -523,32 +523,21 @@
     right: 0;
     top: 0;
     height: 100%;
-    width: 20px; /* Width of the handle */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 5px;
+    background: transparent;
     cursor: col-resize;
     user-select: none;
     touch-action: none;
-    z-index: 5;
-}
-.cygnet-dt-resizer .lucide {
-    height: 0.875rem;
-    width: 0.875rem;
-    color: #9ca3af;
-    pointer-events: none;
+    z-index: 10;
 }
 .cygnet-dt-resizer:hover,
 .cygnet-dt-resizer.is-resizing {
-    background: #eef2ff; /* A subtle highlight */
+    background: #3b82f6;
 }
-.cygnet-dt-resizer.is-resizing {
-    z-index: 15;
+.is-resizing {
+    cursor: col-resize;
 }
-.cygnet-dt-resizer.is-resizing .lucide,
-.cygnet-dt-resizer:hover .lucide {
-    color: #3b82f6;
-}
+
 
 .truncate {
     overflow: hidden;

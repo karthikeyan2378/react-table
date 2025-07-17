@@ -30,6 +30,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
     const staticColumns: ColumnDef<Alarm>[] = [
       {
         id: "select",
+        accessorKey: "select",
         header: ({ onToggleAllRowsSelected, isAllRowsSelected }) => (
             <input
                 type="checkbox"
@@ -57,7 +58,7 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
 
     const dynamicColumns = Object.entries(alarmConfig.fields).map(([key, config]) => {
       const columnDef: ColumnDef<Alarm> = {
-        accessorKey: key,
+        accessorKey: key as keyof Alarm,
         id: key,
         header: ({ column, onSort, sortState }) => {
             return (
@@ -89,22 +90,16 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           const filters = [globalFilter, columnFilterValue].flat().filter(Boolean) as string[];
           
           let displayValue: string = String(value ?? '');
-          let content: React.ReactNode = displayValue;
-
+          
           if (config.columnType === 'dateTime' && value instanceof Date) {
             try {
-                // Simplified date formatting without date-fns
                 displayValue = value.toLocaleString();
-                content = displayValue;
             } catch (e) {
                 displayValue = "Invalid Date";
-                content = displayValue;
             }
           }
 
-          if (filters.length > 0) {
-            content = highlightText(displayValue, filters);
-          }
+          let content: React.ReactNode = highlightText(displayValue, filters);
           
           if (key === 'Severity') {
             return (
