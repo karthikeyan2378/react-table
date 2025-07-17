@@ -1,102 +1,113 @@
-
 'use client';
 
 import * as React from "react"
-import * as ToastPrimitives from "@radix-ui/react-toast"
-import { X } from "lucide-react"
 
-const ToastProvider = ToastPrimitives.Provider
+const XIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>;
+
+const ToastProvider = ({ children }: { children: React.ReactNode }) => {
+  // This provider is now just a pass-through, as state is managed by the useToast hook.
+  return <>{children}</>;
+};
 
 const ToastViewport = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Viewport>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
+  HTMLOListElement,
+  React.HTMLAttributes<HTMLOListElement>
 >(({ className, ...props }, ref) => (
-  <ToastPrimitives.Viewport
+  <ol
     ref={ref}
     className={`cygnet-toast-viewport ${className || ''}`}
     {...props}
   />
-))
-ToastViewport.displayName = ToastPrimitives.Viewport.displayName
+));
+ToastViewport.displayName = "ToastViewport";
 
 type ToastVariant = 'default' | 'destructive';
 
-interface ToastPropsWithVariant extends React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> {
+interface ToastProps extends React.HTMLAttributes<HTMLLIElement> {
     variant?: ToastVariant;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
 const Toast = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Root>,
-  ToastPropsWithVariant
->(({ className, variant, ...props }, ref) => {
+  HTMLLIElement,
+  ToastProps
+>(({ className, variant, open, onOpenChange, ...props }, ref) => {
   const variantClass = variant === 'destructive' ? 'cygnet-toast--destructive' : '';
+  
+  React.useEffect(() => {
+    if (!open && onOpenChange) {
+      const timer = setTimeout(() => onOpenChange(false), 500); // Allow for exit animation
+      return () => clearTimeout(timer);
+    }
+  }, [open, onOpenChange]);
+
   return (
-    <ToastPrimitives.Root
+    <li
       ref={ref}
       className={`cygnet-toast ${variantClass} ${className || ''}`}
+      data-state={open ? 'open' : 'closed'}
       {...props}
     />
-  )
-})
-Toast.displayName = ToastPrimitives.Root.displayName
+  );
+});
+Toast.displayName = "Toast";
 
 const ToastAction = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Action>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action>
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, ...props }, ref) => (
-  <ToastPrimitives.Action
+  <button
     ref={ref}
     className={`cygnet-toast-action ${className || ''}`}
     {...props}
   />
-))
-ToastAction.displayName = ToastPrimitives.Action.displayName
+));
+ToastAction.displayName = "ToastAction";
 
 const ToastClose = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Close>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Close>
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, ...props }, ref) => (
-  <ToastPrimitives.Close
+  <button
     ref={ref}
     className={`cygnet-toast-close ${className || ''}`}
-    toast-close=""
     {...props}
   >
-    <X className="h-4 w-4" />
-  </ToastPrimitives.Close>
-))
-ToastClose.displayName = ToastPrimitives.Close.displayName
+    <XIcon />
+  </button>
+));
+ToastClose.displayName = "ToastClose";
 
 const ToastTitle = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Title>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <ToastPrimitives.Title
+  <div
     ref={ref}
     className={`cygnet-toast-title ${className || ''}`}
     {...props}
   />
-))
-ToastTitle.displayName = ToastPrimitives.Title.displayName
+));
+ToastTitle.displayName = "ToastTitle";
 
 const ToastDescription = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Description>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Description>
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <ToastPrimitives.Description
+  <div
     ref={ref}
     className={`cygnet-toast-description ${className || ''}`}
     {...props}
   />
-))
-ToastDescription.displayName = ToastPrimitives.Description.displayName
+));
+ToastDescription.displayName = "ToastDescription";
 
-type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
-
+type ToastPropsWithSchema = React.ComponentPropsWithoutRef<typeof Toast>
 type ToastActionElement = React.ReactElement<typeof ToastAction>
 
 export {
-  type ToastProps,
+  type ToastPropsWithSchema as ToastProps,
   type ToastActionElement,
   ToastProvider,
   ToastViewport,

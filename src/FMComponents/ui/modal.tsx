@@ -1,8 +1,6 @@
-
 'use client';
 
 import * as React from 'react';
-import { X } from 'lucide-react';
 import './modal.css';
 
 type ModalPosition = 'center' | 'top' | 'bottom' | 'left' | 'right';
@@ -53,7 +51,7 @@ export function Modal({
         <div className="cygnet-modal-header">
           <h2 className="cygnet-modal-title">{title}</h2>
           <button className="cygnet-modal-close" onClick={onClose}>
-            <X size={20} />
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>
           </button>
         </div>
         <div className="cygnet-modal-body">{children}</div>
