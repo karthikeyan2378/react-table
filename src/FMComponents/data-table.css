@@ -363,11 +363,15 @@
     height: 2rem;
     width: 2rem;
     cursor: pointer;
+    border-radius: 0.25rem;
 }
 .cygnet-dt-sorter-button .lucide {
     height: 0.875rem; /* 14px */
     width: 0.875rem;  /* 14px */
     color: #6b7280;
+}
+.cygnet-dt-sorter-button:hover {
+    background-color: #f3f4f6;
 }
 .cygnet-dt-sorter-button:hover .lucide {
     color: #1f2937;

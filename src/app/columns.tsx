@@ -50,6 +50,16 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
         accessorKey: key as keyof Alarm,
         id: key,
         header: ({ column, onSort, sortState }) => {
+            const SorterIcon = () => {
+                if (sortState?.columnId !== column.id) {
+                    return <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg>;
+                }
+                if (sortState.direction === 'desc') {
+                    return <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>;
+                }
+                return <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>;
+            };
+
             return (
               <>
                 <div 
@@ -63,20 +73,15 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
                 </div>
                 <div className="cygnet-dt-header-controls">
                     {column.enableSorting !== false && (
-                      <button
-                        className="cygnet-dt-sorter-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSort(column.id);
-                        }}
-                      >
-                        {sortState?.columnId !== column.id ? 
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg> :
-                         sortState?.direction === 'desc' ? 
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg> : 
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
-                        }
-                      </button>
+                       <div 
+                         className="cygnet-dt-sorter-button"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           onSort(column.id);
+                         }}
+                       >
+                         <SorterIcon />
+                       </div>
                     )}
                 </div>
               </>
