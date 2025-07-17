@@ -652,10 +652,13 @@ export function DataTable<TData extends { [key: string]: any }>({
 
   const dataToRender = paginationEnabled ? paginatedData : sortedData;
 
+  const getScrollElement = React.useCallback(() => tableContainerRef.current, []);
+  const estimateSize = React.useCallback(() => 41, []);
+
   const rowVirtualizer = useVirtualizer({
       count: dataToRender.length,
-      getScrollElement: () => tableContainerRef.current,
-      estimateSize: () => 41, // Estimate row height
+      getScrollElement: getScrollElement,
+      estimateSize: estimateSize,
   });
   
   React.useEffect(() => {
@@ -675,11 +678,11 @@ export function DataTable<TData extends { [key: string]: any }>({
     });
   };
 
-  const updateSelectedRows = (newSelectedIds: Set<string>) => {
+  const updateSelectedRows = React.useCallback((newSelectedIds: Set<string>) => {
     setSelectedRowIds(newSelectedIds);
     const selected = Array.from(newSelectedIds).map(id => data.find(row => getRowId(row) === id)).filter(Boolean) as TData[];
     onSelectedRowsChange(selected);
-  };
+  }, [data, getRowId, onSelectedRowsChange]);
   
   const handleToggleRowSelected = (row: TData, isSelected: boolean) => {
     const newSet = new Set(selectedRowIds);
