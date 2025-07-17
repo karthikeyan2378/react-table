@@ -109,7 +109,7 @@ export default function Home() {
       alarm.NetworkLastModifiedTimeLong = new Date();
       setData((oldData) => [alarm, ...oldData]);
     });
-  }, []);
+  }, [startTransition]);
 
   /**
    * Opens the update dialog and pre-fills it with the selected row's data.
