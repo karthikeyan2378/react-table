@@ -1,23 +1,23 @@
-# Real-Time Alarm Dashboard Components
+# Real-Time Data Table Components
 
-This project contains a set of reusable components for displaying real-time data in a highly configurable table, complete with filtering, sorting, and charting capabilities. The main component, `DataTable`, has been architected to be generic and reusable.
+This project contains a highly configurable, high-performance data table built from scratch using React. It is designed to be a lightweight, dependency-free solution for displaying and interacting with large, real-time datasets.
 
-The components are built with React and ShadCN UI and use custom CSS for styling.
+All core functionalities, including virtualization, sorting, filtering, column resizing, and row selection, have been custom-built to provide a fast and seamless user experience without relying on heavy external table libraries.
 
 ---
 
 ## Features
 
--   **Generic `DataTable` Component**: Render any data structure with a simple configuration.
--   **Virtualization**: Handles thousands of rows smoothly using TanStack Virtual.
+-   **From-Scratch Generic `DataTable`**: Render any data structure with a simple configuration. No external table libraries needed.
+-   **Custom Row Virtualization**: Handles thousands of rows smoothly by rendering only the visible items.
 -   **Client-Side Operations**: Fast filtering, sorting, and pagination.
--   **Column Customization**: Resizing, reordering, and hiding/showing columns.
+-   **Full Column Customization**: Resize, reorder, and hide/show columns with native drag-and-drop.
 -   **Advanced Selection**: Multi-row selection with Shift and Ctrl/Cmd keys, plus drag-to-select.
+-   **Frozen Columns**: "Freeze" columns to the left side of the table for better context while scrolling horizontally.
 -   **Data Export**: Export the current view to CSV, Excel, or PDF.
 -   **Config-Driven UI**: Table columns, filters, and charts are all driven by a central configuration file.
 -   **Context Menu**: Right-click on rows for custom actions.
--   **Configurable Pagination**: Customize the initial page size and the "rows per page" options.
--   **Configurable Toolbar**: Show or hide individual toolbar controls like "Add Row" or "Export" via props.
+-   **Customizable Toolbar & Pagination**: Configure every aspect of the toolbar and pagination controls via props.
 
 ---
 
@@ -27,19 +27,18 @@ The `DataTable` component is generic and can be used to render any kind of data.
 
 ### Step 1: Import the Component
 
-First, import the `DataTable` component into your React component file.
+First, import the `DataTable` component and its related types into your React component file.
 
 ```tsx
 import { DataTable } from './FMComponents/data-table'; // Adjust path if needed
+import { type ColumnDef } from './types'; // Import custom ColumnDef type
 ```
 
 ### Step 2: Define Your Columns
 
-The table's structure is defined by a `columns` array, which you create using the `ColumnDef` type from `@tanstack/react-table`. This is where you specify what each column displays.
+The table's structure is defined by a `columns` array. This is where you specify the `id`, `accessorKey`, and how to render the `header` and `cell` for each column.
 
 ```tsx
-import { type ColumnDef } from '@tanstack/react-table';
-
 // Define the shape of your data
 export type Payment = {
   id: string;
@@ -51,85 +50,45 @@ export type Payment = {
 // Create the columns array
 export const columns: ColumnDef<Payment>[] = [
   {
+    id: "status",
     accessorKey: "status",
-    header: "Status",
-    // Use the `cell` property to customize rendering
+    header: ({ onSort, sortState }) => <button onClick={() => onSort('status')}>Status</button>,
     cell: ({ row }) => {
-      const status = row.getValue("status");
+      const status = row.status;
       // Example of custom rendering (e.g., a colored badge)
       return <div className={`capitalize text-white p-1 rounded ${status === 'success' ? 'bg-green-500' : 'bg-yellow-500'}`}>{status}</div>;
     },
+    size: 150, // Default width
   },
   {
+    id: "email",
     accessorKey: "email",
-    header: "Email",
+    header: ({ onSort, sortState }) => <button onClick={() => onSort('email')}>Email</button>,
+    cell: ({ row }) => <div>{row.email}</div>,
+    size: 250,
   },
-  {
-    accessorKey: "amount",
-    header: "Amount",
-    // Format numbers as currency
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-      return <div className="font-medium">{formatted}</div>;
-    },
-  },
+  // ... other columns
 ];
 ```
 
 ### Step 3: Render the DataTable
 
-Pass your data and columns to the `DataTable` component. You must also provide a `getRowId` function that returns a unique identifier for each row, along with any other required state and handlers.
+Pass your data and columns to the `DataTable` component. You must also provide a `getRowId` function that returns a unique identifier for each row, along with the required state and handlers.
 
 ```tsx
 import React from 'react';
-import { DataTable, type ContextMenuItem, type ToolbarVisibility } from './FMComponents/data-table';
+import { DataTable } from './FMComponents/data-table';
 import { columns, type Payment } from './your-column-definitions';
 
 // Sample data
-const myData: Payment[] = [
-  // ... your data array
-];
+const myData: Payment[] = [ /* ... your data array ... */ ];
 
 function MyPageComponent() {
-  const [selectedRowIds, setSelectedRowIds] = React.useState<string[]>([]);
+  const [selectedRows, setSelectedRows] = React.useState<Payment[]>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
+  const [columnFilters, setColumnFilters] = React.useState([]);
   const [isStreaming, setIsStreaming] = React.useState(false);
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
-
-  // Define filterable columns for the toolbar
-  const filterableColumns = [
-    { id: 'status', name: 'Status', type: 'categorical', options: [] },
-    { id: 'email', name: 'Email', type: 'text' },
-  ];
-  
-  const handleAddRow = () => { /* ... logic to add a new row ... */ };
-  const handleDeleteRows = () => { /* ... logic to delete selected rows ... */ };
-  const handleExportCsv = () => { /* ... logic to export CSV ... */ };
-
-  // Define context menu items
-  const contextMenuItems: ContextMenuItem<Payment>[] = [
-    {
-      label: 'View Details',
-      onClick: (rowData) => console.log('Viewing:', rowData),
-    },
-    {
-      label: 'Copy ID',
-      onClick: (rowData) => navigator.clipboard.writeText(rowData.id),
-    }
-  ];
-
-  // Optionally, configure toolbar visibility
-  const toolbarVisibility: ToolbarVisibility = {
-    addRow: true,
-    deleteRows: true,
-    toggleStreaming: false, // Hide the streaming button
-    exportData: true,
-    viewOptions: true,
-  };
 
   return (
     <DataTable
@@ -137,23 +96,13 @@ function MyPageComponent() {
       columns={columns}
       getRowId={(row) => row.id}
       tableContainerRef={tableContainerRef}
-      onSelectedRowsChange={setSelectedRowIds}
+      onSelectedRowsChange={setSelectedRows}
       globalFilter={globalFilter}
       onGlobalFilterChange={setGlobalFilter}
-      filterableColumns={filterableColumns}
-      isStreaming={isStreaming}
-      onToggleStreaming={() => setIsStreaming(prev => !prev)}
-      onAddRow={handleAddRow}
-      onDeleteSelectedRows={handleDeleteRows}
-      onExportCsv={handleExportCsv}
-      // ... other export handlers
-      contextMenuItems={contextMenuItems}
-      toolbarVisibility={toolbarVisibility}
-      tableTitle="My Custom Table"
-      tableDescription="This is an example of the DataTable component."
-      maxHeightWithPagination="70vh"
-      initialRowsPerPage={50}
-      rowsPerPageOptions={[25, 50, 100]}
+      columnFilters={columnFilters}
+      onColumnFiltersChange={setColumnFilters}
+      frozenColumns={['select', 'status']} // Example of frozen columns
+      // ... other props
     />
   );
 }
@@ -164,52 +113,37 @@ function MyPageComponent() {
 | Prop | Type | Description |
 | --- | --- | --- |
 | `data` | `TData[]` | **Required.** The array of data to display. |
-| `columns` | `ColumnDef<TData>[]` | **Required.** The TanStack Table column definitions. |
+| `columns` | `ColumnDef<TData>[]` | **Required.** The custom column definitions. |
 | `getRowId` | `(row: TData) => string` | **Required.** A function that returns a unique ID for each row. |
 | `tableContainerRef` | `React.RefObject<HTMLDivElement>` | **Required.** A ref to the scrollable table container, for virtualization. |
-| `onSelectedRowsChange` | `(rows: TData[]) => void` | **Required.** Callback for when row selection changes. |
+| `onSelectedRowsChange`| `(rows: TData[]) => void` | **Required.** Callback for when row selection changes. |
 | `globalFilter` | `string` | **Required.** The current value of the global search filter. |
 | `onGlobalFilterChange` | `(value: string) => void` | **Required.** Callback for when the global filter value changes. |
 | `columnFilters` | `ColumnFiltersState` | **Required.** State for column-specific filters. |
-| `onColumnFiltersChange` | `React.Dispatch<React.SetStateAction<ColumnFiltersState>>` | **Required.** Callback to update column-specific filters. |
+| `onColumnFiltersChange`| `React.Dispatch<...>` | **Required.** Callback to update column-specific filters. |
+| `frozenColumns` | `string[]` | An array of column IDs to freeze to the left. |
 | `filterableColumns` | `FilterableColumn[]` | Defines columns that can be filtered via the toolbar. |
+| `contextMenuItems` | `ContextMenuItem<TData>[]`| An array of objects defining items for the row's context menu. |
+| `onRowDoubleClick` | `(row: TData) => void` | Callback for when a row is double-clicked. |
+| `toolbarVisibility` | `ToolbarVisibility` | An object to control the visibility of individual toolbar elements. |
 | `isStreaming` | `boolean` | Indicates if data is currently streaming. |
 | `onToggleStreaming` | `() => void` | Callback to toggle the data stream on or off. |
 | `onAddRow` | `() => void` | Callback for adding a new row. |
-| `onDeleteSelectedRows` | `() => void` | Callback for deleting selected rows. |
+| `onUpdateRow` | `() => void` | Callback for updating the selected row. |
+| `onDeleteSelectedRows`| `() => void` | Callback for deleting selected rows. |
 | `onExportCsv` | `() => void` | Callback for exporting data to CSV. |
 | `onExportXlsx` | `() => void` | Callback for exporting data to XLSX. |
 | `onExportPdf` | `() => void` | Callback for exporting data to PDF. |
-| `contextMenuItems` | `ContextMenuItem<TData>[]` | An array of objects defining items for the row's context menu. |
-| `toolbarVisibility` | `ToolbarVisibility` | An object to control the visibility of individual toolbar elements. Defaults to all visible. |
 | `tableTitle` | `React.ReactNode` | A title to display above the table. |
 | `tableDescription` | `React.ReactNode` | A description to display below the title. |
 | `maxHeightWithPagination`| `string` | CSS `max-height` for the table when pagination is on. Default: `'60vh'`. |
-| `maxHeightWithoutPagination` | `string` | CSS `max-height` for the table when pagination is off. Default: `'80vh'`. |
 | `initialRowsPerPage` | `number` | The number of rows to display per page initially. Default: `20`. |
-| `rowsPerPageOptions` | `number[]` | An array of numbers for the "Rows per page" dropdown. Default: `[10, 20, 50, 100, 500, 1000]` |
-| `onTableReady` | `(table: ReactTable<TData>) => void` | Callback that provides the table instance once it's initialized. |
-
-
-### ToolbarVisibility Object
-
-The `toolbarVisibility` prop is an object with the following optional boolean properties. If a property is omitted, it defaults to `true`.
-
--   `addRow`: Show the "Add Row" button.
--   `deleteRows`: Show the "Delete Selected" button.
--   `toggleStreaming`: Show the "Start/Stop Streaming" button.
--   `exportData`: Show the "Export" dropdown menu.
--   `viewOptions`: Show the "View Options" dropdown menu.
--   `toggleSorting`: Show the "Enable Sorting" option within the View Options menu.
--   `togglePagination`: Show the "Enable Pagination" option within the View Options menu.
--   `toggleColumns`: Show the "Toggle Columns" list within the View Options menu.
-
 
 ---
 
 ## How to Integrate into Another React Project
 
-If you want to use these components in a separate React application, you need to copy the files and set up the dependencies and styling.
+To use these components in a separate React application, you need to copy the files and set up the dependencies and styling.
 
 ### Step 1: Copy Component Files
 
@@ -219,22 +153,19 @@ Copy the following files and directories from this project into the `src` direct
 -   `src/hooks`
 -   `src/lib`
 -   `src/config`
+-   `src/app/types.ts` (or wherever you want to keep your type definitions)
 
 ### Step 2: Install Dependencies
 
-Install the necessary packages by running the `npm install` command with the dependencies listed in this project's `package.json` file. The key dependencies are:
+For data export functionality, you need to install a few packages. Other features are dependency-free.
 
-- `@tanstack/react-table`
-- `@tanstack/react-virtual`
-- `lucide-react`
-- `recharts`
-- `date-fns`
-- Various `@radix-ui/*` components
-- `exceljs`, `jspdf`, `jspdf-autotable` for export functionality
+```bash
+npm install exceljs jspdf jspdf-autotable
+```
 
 ### Step 3: Import CSS Files
 
-This project uses custom CSS files for styling, not a CSS framework like Tailwind directly. You must import these stylesheets into your application's main entry point or root layout component.
+This project uses custom CSS files for all styling. You must import these stylesheets into your application's main entry point or root layout component.
 
 In your `src/app/layout.tsx` (or equivalent), add the following imports:
 ```tsx
@@ -242,6 +173,8 @@ import './globals.css';
 import './custom-styles.css';
 import '../FMComponents/data-table.css';
 import '../FMComponents/status-chart.css';
+import '../FMComponents/ui/modal.css';
+import '../FMComponents/ui/button.css';
 ```
 
 Make sure the paths are correct based on where you copied the files.
