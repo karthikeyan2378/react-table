@@ -677,7 +677,7 @@ export function DataTable<TData extends { [key: string]: any }>({
         return { columnId, direction: 'asc' };
     });
   };
-
+  
   const updateSelectedRows = React.useCallback((newSelectedIds: Set<string>, allRows: TData[]) => {
     setSelectedRowIds(newSelectedIds);
     const selected = Array.from(newSelectedIds)
@@ -685,17 +685,19 @@ export function DataTable<TData extends { [key: string]: any }>({
         .filter(Boolean) as TData[];
     onSelectedRowsChange(selected);
   }, [getRowId, onSelectedRowsChange]);
-  
+
   const handleToggleRowSelected = (row: TData, isSelected: boolean) => {
     const newSet = new Set(selectedRowIds);
     const rowId = getRowId(row);
     if (isSelected) newSet.add(rowId);
     else newSet.delete(rowId);
-    updateSelectedRows(newSet, dataToRender);
+    updateSelectedRows(newSet, data);
   };
   
   const handleRowClick = (rowIndex: number, e: React.MouseEvent) => {
-    const rowId = getRowId(dataToRender[rowIndex]);
+    if (rowIndex >= dataToRender.length) return;
+    const row = dataToRender[rowIndex];
+    const rowId = getRowId(row);
     let newSelectedIds: Set<string>;
 
     if (e.metaKey || e.ctrlKey) {
@@ -710,11 +712,12 @@ export function DataTable<TData extends { [key: string]: any }>({
     } else {
         newSelectedIds = new Set([rowId]);
     }
-    updateSelectedRows(newSelectedIds, dataToRender);
+    updateSelectedRows(newSelectedIds, data);
     lastClickedRowIndex.current = rowIndex;
   };
 
   const handleMouseDownOnRow = (rowIndex: number) => {
+    if (rowIndex >= dataToRender.length) return;
     setIsDragging(true);
     setDragStartRowIndex(rowIndex);
     const startRowId = getRowId(dataToRender[rowIndex]);
@@ -722,7 +725,7 @@ export function DataTable<TData extends { [key: string]: any }>({
   };
 
   const handleMouseEnterRow = (rowIndex: number) => {
-      if (!isDragging || dragStartRowIndex === null) return;
+      if (!isDragging || dragStartRowIndex === null || rowIndex >= dataToRender.length) return;
       
       const newSelectedIds = new Set(dragSelectionStart);
       const start = Math.min(dragStartRowIndex, rowIndex);
@@ -731,7 +734,7 @@ export function DataTable<TData extends { [key: string]: any }>({
       for (let i = start; i <= end; i++) {
           newSelectedIds.add(getRowId(dataToRender[i]));
       }
-      updateSelectedRows(newSelectedIds, dataToRender);
+      updateSelectedRows(newSelectedIds, data);
   };
   
   React.useEffect(() => {
@@ -752,7 +755,7 @@ export function DataTable<TData extends { [key: string]: any }>({
 
   const handleToggleAllRowsSelected = (isSelected: boolean) => {
     const allRowIds = isSelected ? new Set(dataToRender.map(getRowId)) : new Set<string>();
-    updateSelectedRows(allRowIds, dataToRender);
+    updateSelectedRows(allRowIds, data);
   };
 
   const handleResize = (columnId: string, startX: number) => {
@@ -1047,5 +1050,3 @@ export function DataTable<TData extends { [key: string]: any }>({
       </div>
   );
 }
-
-    
