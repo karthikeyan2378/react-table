@@ -163,7 +163,7 @@ const ColumnChartComponent = ({
             <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
               <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} />
               <YAxis tick={{ fontSize: 10 }} />
-              <Tooltip wrapperStyle={{ fontSize: '12px' }} />
+              <Tooltip wrapperStyle={{ fontSize: '12px', outline: 'none', border: 'none' }} />
               <Bar dataKey="value" onClick={(payload) => onFilter(columnId, payload.name)} outline="none">
                 {chartData.map((entry, index) => (
                   <Cell 
@@ -177,7 +177,7 @@ const ColumnChartComponent = ({
             </BarChart>
           ) : (
             <PieChart>
-              <Tooltip wrapperStyle={{ fontSize: '12px' }} />
+              <Tooltip wrapperStyle={{ fontSize: '12px', outline: 'none', border: 'none' }} />
               <Pie
                 data={chartData}
                 cx="50%"
