@@ -6,7 +6,6 @@ import { makeData, newAlarm } from '../lib/data';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
 import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMComponents/data-table';
 import { ColumnChart } from '../FMComponents/status-chart';
-import { useToast } from '../hooks/use-toast';
 import { type ColumnFiltersState } from './types';
 import { Label } from '../FMComponents/Label';
 import { Input } from '../FMComponents/Input';
@@ -49,8 +48,6 @@ export default function Home() {
   const [isClient, setIsClient] = React.useState(false);
   // State to manage which charts are currently visible. Defaults to 'Severity'.
   const [activeCharts, setActiveCharts] = React.useState<ChartableColumn[]>(['Severity']);
-  // Toast hook for displaying notifications.
-  const { toast } = useToast();
   // React transition for non-blocking UI updates when adding new rows.
   const [isPending, startTransition] = React.useTransition();
   // State to hold the row data for the details dialog.
@@ -116,16 +113,12 @@ export default function Home() {
    */
   const handleUpdateRow = React.useCallback(() => {
     if (selectedRows.length !== 1) {
-      toast({
-        title: "Invalid selection",
-        description: "Please select exactly one row to update.",
-        variant: "destructive"
-      });
+      console.error("Please select exactly one row to update.");
       return;
     }
     setRowToUpdate(selectedRows[0]);
     setIsUpdateDialogOpen(true);
-  }, [selectedRows, toast]);
+  }, [selectedRows]);
 
   /**
    * Updates the data in the main state array after a row is edited.
@@ -138,26 +131,18 @@ export default function Home() {
     );
     setIsUpdateDialogOpen(false);
     setRowToUpdate(null);
-    toast({
-      title: "Row Updated",
-      description: "The alarm has been successfully updated."
-    });
-  }, [getRowId, toast]);
+  }, [getRowId]);
 
   /**
    * Opens the delete confirmation modal if rows are selected.
    */
   const deleteSelectedRows = React.useCallback(() => {
     if (selectedRows.length === 0) {
-      toast({
-        title: "No rows selected",
-        description: "Please select rows to delete.",
-        variant: "destructive"
-      })
+      console.error("No rows selected to delete.");
       return;
     }
     setIsDeleteConfirmOpen(true);
-  }, [selectedRows.length, toast]);
+  }, [selectedRows.length]);
 
   /**
    * Deletes the currently selected rows from the table after confirmation.
@@ -169,11 +154,7 @@ export default function Home() {
     );
     setSelectedRows([]);
     setIsDeleteConfirmOpen(false);
-    toast({
-        title: "Rows Deleted",
-        description: `${selectedRowIds.size} row(s) have been deleted.`
-    })
-  }, [selectedRows, getRowId, toast]);
+  }, [selectedRows, getRowId]);
 
   /**
    * Effect to handle the data streaming functionality.
@@ -303,7 +284,7 @@ export default function Home() {
       onClick: (row) => {
         const recId = getRowId(row);
         navigator.clipboard.writeText(recId);
-        toast({ title: 'Copied!', description: `Row ID ${recId} copied to clipboard.` });
+        console.log(`Row ID ${recId} copied to clipboard.`);
       }
     },
      {
@@ -319,7 +300,7 @@ export default function Home() {
       },
       separator: true,
     },
-  ], [getRowId, toast]);
+  ], [getRowId]);
 
   /**
    * Exports the visible table data to a CSV file.

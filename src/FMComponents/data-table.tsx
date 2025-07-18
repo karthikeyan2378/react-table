@@ -4,7 +4,6 @@
 import * as React from "react";
 import { highlightText } from '../lib/utils.tsx';
 import { useDropdown } from "@/hooks/use-dropdown.ts";
-import type { Alarm } from "@/config/alarm-config.ts";
 import type { ColumnDef, ColumnFiltersState, SortingState } from "@/app/types.ts";
 import { useVirtualizer } from "@/hooks/use-virtualizer.ts";
 
@@ -680,10 +679,10 @@ export function DataTable<TData extends { [key: string]: any }>({
   const updateSelectedRows = React.useCallback((newSelectedIds: Set<string>) => {
     setSelectedRowIds(newSelectedIds);
     const selected = Array.from(newSelectedIds)
-      .map(id => data.find(row => getRowId(row) === id))
-      .filter(Boolean) as TData[];
+      .map(id => dataToRender.find(row => getRowId(row) === id))
+      .filter((row): row is TData => !!row);
     onSelectedRowsChange(selected);
-  }, [data, getRowId, onSelectedRowsChange]);
+  }, [dataToRender, getRowId, onSelectedRowsChange]);
 
   const handleToggleRowSelected = (row: TData, isSelected: boolean) => {
     const newSet = new Set(selectedRowIds);
@@ -911,7 +910,7 @@ export function DataTable<TData extends { [key: string]: any }>({
                   const rowIsSelected = selectedRowIds.has(rowId);
                   return (
                       <div
-                          key={rowId}
+                          key={virtualRow.index}
                           className="cygnet-dt-table-row"
                           data-index={virtualRow.index}
                           data-state={rowIsSelected ? "selected" : ""}

@@ -53,20 +53,3 @@ import '../FMComponents/css/button.css';
 ```
 
 Make sure the paths are correct based on where you copied the files.
-
-### Step 4: Add the Toaster Provider
-
-For notifications to work, add the `<Toaster />` component to the root of your application (e.g., inside `App.jsx` or your main layout component).
-
-```tsx
-import { Toaster } from './FMComponents/Toaster'; // Adjust path if needed
-
-function App() {
-  return (
-    <>
-      {/* The rest of your application */}
-      <Toaster />
-    </>
-  );
-}
-```
