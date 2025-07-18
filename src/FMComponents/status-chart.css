@@ -110,7 +110,7 @@
  * Fixed height ensures consistency across all charts.
  */
 .cygnet-chart-card-content {
-    height: 180px;
+    height: 220px;
     width: 100%;
     padding: 0.5rem;
     box-sizing: border-box;
