@@ -164,7 +164,7 @@ const ColumnChartComponent = ({
               <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} />
               <YAxis tick={{ fontSize: 10 }} />
               <Tooltip wrapperStyle={{ fontSize: '12px', outline: 'none', border: 'none' }} />
-              <Bar dataKey="value" onClick={(payload) => onFilter(columnId, payload.name)} outline="none">
+              <Bar dataKey="value" onClick={(payload) => onFilter(columnId, payload.name)}>
                 {chartData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
@@ -188,7 +188,6 @@ const ColumnChartComponent = ({
                 fill="#8884d8"
                 dataKey="value"
                 onClick={(payload) => onFilter(columnId, payload.name)}
-                outline="none"
               >
                 {chartData.map((entry, index) => (
                   <Cell 
