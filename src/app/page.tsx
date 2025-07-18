@@ -8,13 +8,13 @@ import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMCom
 import { ColumnChart } from '../FMComponents/status-chart';
 import { useToast } from '../hooks/use-toast';
 import { type ColumnFiltersState } from './types';
-import { Label } from '../FMComponents/ui/label';
-import { Input } from '../FMComponents/ui/input';
+import { Label } from '../FMComponents/Label';
+import { Input } from '../FMComponents/Input';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 import { useDropdown } from '@/hooks/use-dropdown';
-import { Modal } from '@/FMComponents/ui/modal';
-import { Button } from '@/FMComponents/ui/button';
+import { Modal } from '@/FMComponents/Modal';
+import { Button } from '@/FMComponents/Button';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import ExcelJS from 'exceljs';

@@ -3,7 +3,6 @@
 
 import * as React from "react";
 import { highlightText } from '../lib/utils.tsx';
-import './data-table.css';
 import { useDropdown } from "@/hooks/use-dropdown.ts";
 import type { Alarm } from "@/config/alarm-config.ts";
 import type { ColumnDef, ColumnFiltersState, SortingState } from "@/app/types.ts";

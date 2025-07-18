@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import './modal.css';
+import './css/modal.css';
 
 type ModalPosition = 'center' | 'top' | 'bottom' | 'left' | 'right';
 

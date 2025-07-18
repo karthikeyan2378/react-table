@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from "react"
-import './button.css';
+import './css/button.css';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';

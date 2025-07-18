@@ -3,7 +3,6 @@
 
 import * as React from 'react';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import './status-chart.css';
 import { useDropdown } from '@/hooks/use-dropdown';
 import { ResponsiveContainer, PieChart, Pie, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 
