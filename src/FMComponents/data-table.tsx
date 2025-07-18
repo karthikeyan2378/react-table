@@ -678,20 +678,20 @@ export function DataTable<TData extends { [key: string]: any }>({
     });
   };
   
-  const updateSelectedRows = React.useCallback((newSelectedIds: Set<string>, allRows: TData[]) => {
+  const updateSelectedRows = React.useCallback((newSelectedIds: Set<string>) => {
     setSelectedRowIds(newSelectedIds);
     const selected = Array.from(newSelectedIds)
-        .map(id => allRows.find(row => getRowId(row) === id))
-        .filter(Boolean) as TData[];
+      .map(id => data.find(row => getRowId(row) === id))
+      .filter(Boolean) as TData[];
     onSelectedRowsChange(selected);
-  }, [getRowId, onSelectedRowsChange]);
+  }, [data, getRowId, onSelectedRowsChange]);
 
   const handleToggleRowSelected = (row: TData, isSelected: boolean) => {
     const newSet = new Set(selectedRowIds);
     const rowId = getRowId(row);
     if (isSelected) newSet.add(rowId);
     else newSet.delete(rowId);
-    updateSelectedRows(newSet, data);
+    updateSelectedRows(newSet);
   };
   
   const handleRowClick = (rowIndex: number, e: React.MouseEvent) => {
@@ -712,7 +712,7 @@ export function DataTable<TData extends { [key: string]: any }>({
     } else {
         newSelectedIds = new Set([rowId]);
     }
-    updateSelectedRows(newSelectedIds, data);
+    updateSelectedRows(newSelectedIds);
     lastClickedRowIndex.current = rowIndex;
   };
 
@@ -734,7 +734,7 @@ export function DataTable<TData extends { [key: string]: any }>({
       for (let i = start; i <= end; i++) {
           newSelectedIds.add(getRowId(dataToRender[i]));
       }
-      updateSelectedRows(newSelectedIds, data);
+      updateSelectedRows(newSelectedIds);
   };
   
   React.useEffect(() => {
@@ -755,7 +755,7 @@ export function DataTable<TData extends { [key: string]: any }>({
 
   const handleToggleAllRowsSelected = (isSelected: boolean) => {
     const allRowIds = isSelected ? new Set(dataToRender.map(getRowId)) : new Set<string>();
-    updateSelectedRows(allRowIds, data);
+    updateSelectedRows(allRowIds);
   };
 
   const handleResize = (columnId: string, startX: number) => {
@@ -905,6 +905,9 @@ export function DataTable<TData extends { [key: string]: any }>({
               {rowVirtualizer.getVirtualItems().length > 0 ? (
                 rowVirtualizer.getVirtualItems().map(virtualRow => {
                   const row = dataToRender[virtualRow.index];
+                  if (!row) {
+                    return null;
+                  }
                   const rowId = getRowId(row);
                   const rowIsSelected = selectedRowIds.has(rowId);
                   return (
