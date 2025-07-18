@@ -14,10 +14,11 @@ All core functionalities, including virtualization, sorting, filtering, column r
 -   **Full Column Customization**: Resize, reorder, and hide/show columns with native drag-and-drop.
 -   **Advanced Selection**: Multi-row selection with Shift and Ctrl/Cmd keys, plus drag-to-select.
 -   **Frozen Columns**: "Freeze" columns to the left side of the table for better context while scrolling horizontally.
--   **Data Export**: Export the current view to CSV, Excel, or PDF.
+-   **Data Export**: Export the current view to CSV, Excel, or PDF (requires `exceljs`, `jspdf`, `jspdf-autotable`).
 -   **Config-Driven UI**: Table columns, filters, and charts are all driven by a central configuration file.
 -   **Context Menu**: Right-click on rows for custom actions.
 -   **Customizable Toolbar & Pagination**: Configure every aspect of the toolbar and pagination controls via props.
+-   **Integrated Charting**: Visualize data distributions with integrated charts powered by `recharts`.
 
 ---
 
@@ -157,10 +158,10 @@ Copy the following files and directories from this project into the `src` direct
 
 ### Step 2: Install Dependencies
 
-For data export functionality, you need to install a few packages. Other features are dependency-free.
+This project uses `recharts` for charting and other packages for data export.
 
 ```bash
-npm install exceljs jspdf jspdf-autotable
+npm install recharts exceljs jspdf jspdf-autotable
 ```
 
 ### Step 3: Import CSS Files

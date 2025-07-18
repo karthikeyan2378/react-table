@@ -115,3 +115,12 @@
     padding: 0.5rem;
     box-sizing: border-box;
 }
+
+/*
+ * Removes the default browser focus outline from Recharts elements
+ * without affecting the custom selection stroke.
+ */
+.recharts-pie-sector:focus-visible, 
+.recharts-bar-rectangle:focus-visible {
+    outline: none;
+}
