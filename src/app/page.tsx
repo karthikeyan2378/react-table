@@ -39,7 +39,7 @@ const EditIcon = () => (
  */
 export default function Home() {
   // State for the main data array for the table. Initialize with data.
-  const [data, setData] = React.useState<Alarm[]>(() => makeData(100));
+  const [data, setData] = React.useState<Alarm[]>([]);
   // State to control the real-time data streaming.
   const [isStreaming, setIsStreaming] = React.useState(false);
   // State to hold the currently selected rows from the data table.
@@ -69,6 +69,8 @@ export default function Home() {
   const [isMounted, setIsMounted] = React.useState(false);
   
   React.useEffect(() => {
+    // Generate data on the client side to avoid hydration mismatches
+    setData(makeData(100));
     setIsMounted(true);
   }, []);
 
