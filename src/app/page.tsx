@@ -38,8 +38,8 @@ const EditIcon = () => (
  * It manages the state for the data table, charts, and user interactions.
  */
 export default function Home() {
-  // State for the main data array for the table. Initialize with empty array.
-  const [data, setData] = React.useState<Alarm[]>([]);
+  // State for the main data array for the table. Initialize with data.
+  const [data, setData] = React.useState<Alarm[]>(() => makeData(100));
   // State to control the real-time data streaming.
   const [isStreaming, setIsStreaming] = React.useState(false);
   // State to hold the currently selected rows from the data table.
@@ -65,10 +65,11 @@ export default function Home() {
   const { dropdownRef: addChartRef, isOpen: isAddChartOpen, setIsOpen: setIsAddChartOpen } = useDropdown();
   // State to manage delete confirmation modal
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
+  // State to prevent charts from rendering on the server.
+  const [isMounted, setIsMounted] = React.useState(false);
   
-  // Generate initial data on the client-side only to prevent hydration mismatch.
   React.useEffect(() => {
-    setData(makeData(100));
+    setIsMounted(true);
   }, []);
 
   /**
@@ -367,7 +368,7 @@ export default function Home() {
         </div>
         <div className="cygnet-content-layout">
           {/* Charts Column */}
-          {showCharts && (
+          {showCharts && isMounted && (
             <div className="cygnet-charts-column">
                 <div className="cygnet-charts-header">
                     <h2>Charts</h2>
