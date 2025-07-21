@@ -17,8 +17,9 @@ interface VirtualItem {
 }
 
 /**
- * A custom hook for row virtualization.
- * It calculates which items should be rendered based on the scroll position.
+ * A custom hook for row virtualization that uses ResizeObserver for accuracy.
+ * It calculates which items should be rendered based on the scroll container's
+ * actual height and scroll position.
  */
 export function useVirtualizer({
   count,
@@ -28,15 +29,17 @@ export function useVirtualizer({
 }: UseVirtualizerOptions) {
   const [virtualItems, setVirtualItems] = useState<VirtualItem[]>([]);
   const [totalSize, setTotalSize] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
 
-  const measuredSizes = useRef<Record<number, number>>({}).current;
-  
-  const calculateVirtualItems = useCallback(() => {
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const calculate = useCallback(() => {
+    if (!isMounted) return;
+
     const scrollElement = getScrollElement();
-    if (!scrollElement) {
-        setVirtualItems([]);
-        return;
-    };
+    if (!scrollElement) return;
 
     const { scrollTop, clientHeight } = scrollElement;
     
@@ -44,61 +47,62 @@ export function useVirtualizer({
     let startIndex = -1;
     let endIndex = -1;
 
-    // First, calculate the total size and find the start/end indices
     for (let i = 0; i < count; i++) {
-        const itemSize = measuredSizes[i] ?? estimateSize(i);
+        const itemSize = estimateSize(i);
         
-        if (startIndex === -1 && runningHeight + itemSize >= scrollTop) {
+        const itemStart = runningHeight;
+        const itemEnd = itemStart + itemSize;
+
+        if (startIndex === -1 && itemEnd >= scrollTop) {
             startIndex = Math.max(0, i - overscan);
         }
         
-        if (endIndex === -1 && runningHeight >= scrollTop + clientHeight) {
+        if (endIndex === -1 && itemStart > scrollTop + clientHeight) {
             endIndex = Math.min(count - 1, i + overscan);
         }
 
         runningHeight += itemSize;
     }
     
-    // Fallback if scroll is at the end or container is empty
-    if (startIndex === -1) startIndex = 0;
-    if (endIndex === -1) endIndex = count - 1;
-
     setTotalSize(runningHeight);
-    
+
+    if (startIndex === -1) startIndex = 0;
+    if (endIndex === -1) endIndex = Math.max(0, count - 1);
+
     const newVirtualItems: VirtualItem[] = [];
     let currentPosition = 0;
     
-    // Calculate positions for items before the visible range
     for(let i = 0; i < startIndex; i++) {
-        currentPosition += measuredSizes[i] ?? estimateSize(i);
+        currentPosition += estimateSize(i);
     }
 
-    // Calculate positions for the visible items
     for (let i = startIndex; i <= endIndex; i++) {
-        const size = measuredSizes[i] ?? estimateSize(i);
+        const size = estimateSize(i);
         newVirtualItems.push({ index: i, start: currentPosition, size });
         currentPosition += size;
     }
 
     setVirtualItems(newVirtualItems);
-  }, [count, estimateSize, getScrollElement, overscan, measuredSizes]);
+
+  }, [count, estimateSize, getScrollElement, overscan, isMounted]);
 
 
   useEffect(() => {
     const scrollElement = getScrollElement();
-    if (!scrollElement) return;
+    if (!scrollElement || !isMounted) return;
 
-    // Run calculation on mount and when dependencies change
-    calculateVirtualItems(); 
+    const resizeObserver = new ResizeObserver(calculate);
+    resizeObserver.observe(scrollElement);
 
-    scrollElement.addEventListener('scroll', calculateVirtualItems, { passive: true });
-    window.addEventListener('resize', calculateVirtualItems);
+    scrollElement.addEventListener('scroll', calculate, { passive: true });
     
+    calculate(); 
+
     return () => {
-      scrollElement.removeEventListener('scroll', calculateVirtualItems);
-      window.removeEventListener('resize', calculateVirtualItems);
+      resizeObserver.unobserve(scrollElement);
+      scrollElement.removeEventListener('scroll', calculate);
     };
-  }, [calculateVirtualItems, getScrollElement]);
+  }, [calculate, getScrollElement, isMounted]);
 
   return {
     getVirtualItems: () => virtualItems,

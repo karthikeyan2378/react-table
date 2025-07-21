@@ -592,11 +592,6 @@ export function DataTable<TData extends { [key: string]: any }>({
   const [currentPage, setCurrentPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(initialRowsPerPage);
   
-  const [isMounted, setIsMounted] = React.useState(false);
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const columns = React.useMemo(() => {
     return columnOrder.map(colId => initialColumns.find(c => c.id === colId)!).filter(Boolean);
   }, [columnOrder, initialColumns]);
@@ -905,7 +900,7 @@ export function DataTable<TData extends { [key: string]: any }>({
                       </div>
               </div>
 
-              {isMounted && rowVirtualizer.getVirtualItems().length > 0 ? (
+              {rowVirtualizer.getVirtualItems().length > 0 ? (
                 rowVirtualizer.getVirtualItems().map(virtualRow => {
                   const row = dataToRender[virtualRow.index];
                   if (!row) {
@@ -970,7 +965,7 @@ export function DataTable<TData extends { [key: string]: any }>({
                 })
               ) : (
                 <div className="cygnet-dt-no-results">
-                  {isMounted ? 'No results.' : 'Loading...'}
+                  {dataToRender.length === 0 ? 'No results.' : 'Loading...'}
                 </div>
               )}
             </div>
