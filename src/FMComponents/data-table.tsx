@@ -591,6 +591,11 @@ export function DataTable<TData extends { [key: string]: any }>({
 
   const [currentPage, setCurrentPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(initialRowsPerPage);
+  
+  const [isMounted, setIsMounted] = React.useState(false);
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const columns = React.useMemo(() => {
     return columnOrder.map(colId => initialColumns.find(c => c.id === colId)!).filter(Boolean);
@@ -679,10 +684,10 @@ export function DataTable<TData extends { [key: string]: any }>({
   const updateSelectedRows = React.useCallback((newSelectedIds: Set<string>) => {
     setSelectedRowIds(newSelectedIds);
     const selected = Array.from(newSelectedIds)
-      .map(id => dataToRender.find(row => getRowId(row) === id))
+      .map(id => data.find(row => getRowId(row) === id))
       .filter((row): row is TData => !!row);
     onSelectedRowsChange(selected);
-  }, [dataToRender, getRowId, onSelectedRowsChange]);
+  }, [data, getRowId, onSelectedRowsChange]);
 
   const handleToggleRowSelected = (row: TData, isSelected: boolean) => {
     const newSet = new Set(selectedRowIds);
@@ -900,7 +905,7 @@ export function DataTable<TData extends { [key: string]: any }>({
                       </div>
               </div>
 
-              {rowVirtualizer.getVirtualItems().length > 0 ? (
+              {isMounted && rowVirtualizer.getVirtualItems().length > 0 ? (
                 rowVirtualizer.getVirtualItems().map(virtualRow => {
                   const row = dataToRender[virtualRow.index];
                   if (!row) {
@@ -965,7 +970,7 @@ export function DataTable<TData extends { [key: string]: any }>({
                 })
               ) : (
                 <div className="cygnet-dt-no-results">
-                  No results.
+                  {isMounted ? 'No results.' : 'Loading...'}
                 </div>
               )}
             </div>
