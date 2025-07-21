@@ -166,6 +166,13 @@ export default function Home() {
   }, [isStreaming, addRow]);
 
   /**
+   * Callback to regenerate the table data.
+   */
+  const handleRefresh = React.useCallback(() => {
+    setData(makeData(100));
+  }, []);
+
+  /**
    * Memoized list of columns that are suitable for summarization in charts.
    * Derived from the `alarmConfig`.
    */
@@ -439,6 +446,7 @@ export default function Home() {
                   onExportCsv={handleExportCsv}
                   onExportXlsx={handleExportXlsx}
                   onExportPdf={handleExportPdf}
+                  onRefresh={handleRefresh}
                   showCharts={showCharts}
                   onToggleCharts={setShowCharts}
                   tableTitle="Live Alarm Feed"
@@ -450,6 +458,7 @@ export default function Home() {
                   toolbarVisibility={{ 
                     toggleCharts: true,
                     updateRow: true,
+                    refreshData: true,
                    }}
                   frozenColumns={frozenColumns}
               />

@@ -27,6 +27,7 @@ const PageFirstIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" h
 const PagePrevIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>;
 const PageNextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
 const PageLastIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>;
+const RefreshIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>;
 
 /**
  * Interface defining the structure for a filterable column.
@@ -137,6 +138,7 @@ export interface ToolbarVisibility {
   togglePagination?: boolean;
   toggleColumns?: boolean;
   toggleCharts?: boolean;
+  refreshData?: boolean;
 }
 
 /**
@@ -154,6 +156,7 @@ interface DataTableToolbarProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
+  onRefresh?: () => void;
   sortingEnabled: boolean;
   onSortingToggle: (enabled: boolean) => void;
   paginationEnabled: boolean;
@@ -184,6 +187,7 @@ function DataTableToolbar<TData>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
+  onRefresh,
   sortingEnabled,
   onSortingToggle,
   paginationEnabled,
@@ -368,6 +372,15 @@ function DataTableToolbar<TData>({
                 <div className="cygnet-dt-tooltip-content">{isStreaming ? 'Stop Streaming' : 'Start Streaming'}</div>
             </div>
           )}
+          
+          {toolbarVisibility.refreshData !== false && onRefresh && (
+            <div className="cygnet-dt-tooltip-wrapper">
+                <button className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon" onClick={onRefresh}>
+                  <RefreshIcon />
+                </button>
+                <div className="cygnet-dt-tooltip-content">Refresh Data</div>
+            </div>
+          )}
 
           {toolbarVisibility.deleteRows !== false && onDeleteSelectedRows && (
             <div className="cygnet-dt-tooltip-wrapper">
@@ -507,6 +520,7 @@ interface DataTableProps<TData> {
   onExportCsv?: () => void;
   onExportXlsx?: () => void;
   onExportPdf?: () => void;
+  onRefresh?: () => void;
   tableTitle?: React.ReactNode;
   tableDescription?: React.ReactNode;
   maxHeightWithPagination?: string;
@@ -545,6 +559,7 @@ export function DataTable<TData extends { [key: string]: any }>({
   onExportCsv,
   onExportXlsx,
   onExportPdf,
+  onRefresh,
   tableTitle,
   tableDescription,
   maxHeightWithPagination = '60vh',
@@ -814,6 +829,7 @@ export function DataTable<TData extends { [key: string]: any }>({
           onExportCsv={onExportCsv}
           onExportXlsx={onExportXlsx}
           onExportPdf={onExportPdf}
+          onRefresh={onRefresh}
           sortingEnabled={sortingEnabled}
           onSortingToggle={setSortingEnabled}
           paginationEnabled={paginationEnabled}
