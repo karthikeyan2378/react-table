@@ -39,13 +39,11 @@ const EditIcon = () => (
  */
 export default function Home() {
   // State for the main data array for the table.
-  const [data, setData] = React.useState<Alarm[]>([]);
+  const [data, setData] = React.useState<Alarm[]>(() => makeData(100));
   // State to control the real-time data streaming.
   const [isStreaming, setIsStreaming] = React.useState(false);
   // State to hold the currently selected rows from the data table.
   const [selectedRows, setSelectedRows] = React.useState<Alarm[]>([]);
-  // State to ensure the component only renders on the client, avoiding hydration issues.
-  const [isClient, setIsClient] = React.useState(false);
   // State to manage which charts are currently visible. Defaults to 'Severity'.
   const [activeCharts, setActiveCharts] = React.useState<ChartableColumn[]>(['Severity']);
   // React transition for non-blocking UI updates when adding new rows.
@@ -74,6 +72,7 @@ export default function Home() {
    * It dynamically finds the column marked with `isRecId: true` in the config.
    */
   const getRowId = React.useCallback((row: Alarm) => {
+    if (!row) return `-undefined`;
     const recIdKey = Object.keys(alarmConfig.fields).find(
       (key) => alarmConfig.fields[key as keyof typeof alarmConfig.fields].isRecId
     );
@@ -85,16 +84,6 @@ export default function Home() {
    * Memoized columns definition for the data table.
    */
   const columns = React.useMemo(() => getColumns(), []);
-
-  /**
-   * Effect to initialize the component on the client-side.
-   * Generates initial data and sets `isClient` to true.
-   */
-  React.useEffect(() => {
-    const initialData = makeData(100);
-    setData(initialData);
-    setIsClient(true);
-  }, []);
 
   /**
    * Callback to add a new alarm row to the table.
@@ -266,9 +255,10 @@ export default function Home() {
   }, []);
 
   const frozenColumns = React.useMemo(() => {
-    return Object.entries(alarmConfig.fields)
-      .filter(([, config]) => config.isColumnToFreeze)
-      .map(([key]) => key);
+    const frozen = Object.entries(alarmConfig.fields)
+        .filter(([, config]) => config.isColumnToFreeze)
+        .map(([key]) => key);
+    return ['select', ...frozen];
   }, []);
 
   /**
@@ -358,11 +348,6 @@ export default function Home() {
     });
     doc.save('alarms.pdf');
   }, [data, columns, columnFilters, globalFilter]);
-
-  // Prevent rendering on the server.
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <div className="cygnet-page-container">
