@@ -54,7 +54,6 @@ function DataTableFacetedFilter<TData>({
   title,
   options,
   onRemove,
-  globalFilter,
   selectedValues,
   onFilterChange,
 }: {
@@ -65,11 +64,18 @@ function DataTableFacetedFilter<TData>({
     value: string;
   }[];
   onRemove: () => void;
-  globalFilter?: string;
   selectedValues: Set<string>;
   onFilterChange: (value: string, isSelected: boolean) => void;
 }) {
   const { dropdownRef, isOpen, setIsOpen } = useDropdown();
+  const [searchTerm, setSearchTerm] = React.useState('');
+
+  const filteredOptions = React.useMemo(() => {
+    if (!searchTerm) return options;
+    return options.filter(option => 
+      option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [options, searchTerm]);
 
   return (
     <div className="cygnet-dt-facet-filter-container">
@@ -80,7 +86,17 @@ function DataTableFacetedFilter<TData>({
             </button>
             {isOpen && (
                 <div className="cygnet-dt-dropdown-content" style={{right: 'auto', left: 0}}>
-                    {options.map((option) => {
+                    <div style={{ padding: '0.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="cygnet-dt-input"
+                        style={{ height: '2rem' }}
+                      />
+                    </div>
+                    {filteredOptions.map((option) => {
                         const isSelected = selectedValues.has(option.value);
                         return (
                         <label key={option.value} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
@@ -89,7 +105,7 @@ function DataTableFacetedFilter<TData>({
                                 checked={isSelected}
                                 onChange={() => onFilterChange(option.value, isSelected)}
                             />
-                            {highlightText(option.label, globalFilter)}
+                            {highlightText(option.label, searchTerm)}
                         </label>
                         );
                     })}
@@ -329,7 +345,6 @@ function DataTableToolbar<TData>({
                 title={col.name}
                 options={col.options}
                 onRemove={() => handleFilterToggle(col.id, true)}
-                globalFilter={globalFilter}
                 selectedValues={selectedValues}
                 onFilterChange={handleCategoricalFilterChange.bind(null, col.id)}
               />
