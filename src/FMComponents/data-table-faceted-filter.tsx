@@ -112,19 +112,27 @@ export function DataTableFacetedFilter<TData>({
                     {isLoading ? (
                       <div className="cygnet-dt-dropdown-item">Loading...</div>
                     ) : (
-                      filteredOptions.map((option) => {
-                          const isSelected = selectedValues.has(option.value);
-                          return (
-                          <label key={option.value} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
-                              <input
+                      <>
+                        {filteredOptions.length > 0 ? (
+                          filteredOptions.map((option) => {
+                            const isSelected = selectedValues.has(option.value);
+                            return (
+                              <label key={option.value} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
+                                <input
                                   type="checkbox"
                                   checked={isSelected}
                                   onChange={() => onFilterChange(option.value, isSelected)}
-                              />
-                              {highlightText(option.label, searchTerm)}
-                          </label>
-                          );
-                      })
+                                />
+                                {highlightText(option.label, searchTerm)}
+                              </label>
+                            );
+                          })
+                        ) : (
+                          <div className="cygnet-dt-dropdown-item" style={{ color: '#6b7280', cursor: 'default' }}>
+                            No results found.
+                          </div>
+                        )}
+                      </>
                     )}
                     {selectedValues.size > 0 && !isLoading && (
                         <>
