@@ -2,8 +2,9 @@
 'use client';
 
 import * as React from "react";
-import { highlightText } from '../lib/utils.tsx';
-import { useDropdown } from "@/hooks/use-dropdown.ts";
+import { highlightText } from '../lib/utils';
+import { useDropdown } from "@/hooks/use-dropdown";
+import { Badge } from "./Badge";
 
 /** Reusable Icons as Components **/
 const PlusCircleIcon = ({ color = 'hsl(var(--primary))' }: {color?: string}) => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem', color }}><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>;
@@ -200,20 +201,20 @@ export function DataTableFacetedFilter<TData>({
 
         {/* Display badges for each currently selected value. */}
         {Array.from(selectedValues).map(value => (
-            <span
+            <Badge
                 key={value}
-                className="cygnet-dt-badge cygnet-dt-badge--filter"
+                variant="filter"
                 style={{ backgroundColor: '#6B7280' }}
             >
                 {value}
                 {/* Button within the badge to remove that specific filter value. */}
                 <button
-                    className="cygnet-dt-badge-remove"
+                    className="cygnet-badge-remove"
                     onClick={() => onFilterChange(value, true)}
                 >
                     <XIcon />
                 </button>
-            </span>
+            </Badge>
         ))}
     </div>
   );

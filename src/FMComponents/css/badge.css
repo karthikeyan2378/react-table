@@ -1,0 +1,35 @@
+
+.cygnet-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #ffffff;
+    text-transform: capitalize;
+    border: 1px solid transparent;
+}
+
+.cygnet-badge--filter {
+    padding-right: 0.25rem;
+    cursor: default;
+}
+
+.cygnet-badge-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.25rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 0.25rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.cygnet-badge-remove:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}

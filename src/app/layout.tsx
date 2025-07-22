@@ -7,6 +7,7 @@ import '../FMComponents/css/modal.css';
 import '../FMComponents/css/button.css';
 import '../FMComponents/css/data-table.css';
 import '../FMComponents/css/status-chart.css';
+import '../FMComponents/css/badge.css';
 
 
 export const metadata: Metadata = {

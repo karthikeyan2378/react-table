@@ -3,8 +3,9 @@
 
 import { type ColumnDef } from './types';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { highlightText } from '../lib/utils.tsx';
+import { highlightText } from '../lib/utils';
 import React from 'react';
+import { Badge } from '@/FMComponents/Badge';
 
 const severityColors: Record<string, string> = {
   Critical: "#EF4444",
@@ -108,12 +109,11 @@ export const getColumns = (): ColumnDef<Alarm>[] => {
           if (key === 'Severity') {
             return (
                 <div className="cygnet-dt-tooltip-wrapper">
-                  <span
-                    className="cygnet-dt-badge"
+                  <Badge
                     style={{ backgroundColor: severityColors[value] || '#6B7280' }}
                   >
                     {content}
-                  </span>
+                  </Badge>
                   <div className="cygnet-dt-tooltip-content">Severity: {value}</div>
                 </div>
             );

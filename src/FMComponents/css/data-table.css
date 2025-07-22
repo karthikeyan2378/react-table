@@ -378,7 +378,7 @@
 }
 
 /* ==========================================================================
-   Component-Specific Styles (Tooltip, Badge)
+   Component-Specific Styles (Tooltip)
    ========================================================================== */
 
 .cygnet-dt-tooltip-wrapper {
@@ -407,39 +407,6 @@
 .cygnet-dt-tooltip-wrapper:hover .cygnet-dt-tooltip-content {
     visibility: visible;
     opacity: 1;
-}
-
-.cygnet-dt-badge {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 0.25rem;
-    padding: 0.125rem 0.625rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: #ffffff;
-    text-transform: capitalize;
-}
-
-.cygnet-dt-badge.cygnet-dt-badge--filter {
-    padding-right: 0.25rem;
-    cursor: default;
-}
-
-.cygnet-dt-badge-remove {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 0.25rem;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 0.25rem;
-    background-color: rgba(0, 0, 0, 0.1);
-    border: none;
-    color: white;
-    cursor: pointer;
-}
-.cygnet-dt-badge-remove:hover {
-    background-color: rgba(0, 0, 0, 0.2);
 }
 
 /* ==========================================================================
