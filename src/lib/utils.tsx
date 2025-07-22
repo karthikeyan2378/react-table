@@ -33,7 +33,7 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
     if (typeof node === 'string') {
       if (!node.match(highlightRegex)) return node;
       
-      const parts = node.split(highlightRegex).filter(Boolean); // Filter out empty strings
+      const parts = node.split(highlightRegex);
       return (
         <>
           {parts.map((part, i) =>
