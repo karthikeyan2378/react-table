@@ -17,7 +17,6 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
     text = String(text);
   }
 
-  // Sanitize each part of the highlight term to escape special regex characters.
   const escapeRegExp = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   const highlightPattern = Array.isArray(highlight)
@@ -34,7 +33,7 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
     if (typeof node === 'string') {
       if (!node.match(highlightRegex)) return node;
       
-      const parts = node.split(highlightRegex);
+      const parts = node.split(highlightRegex).filter(Boolean); // Filter out empty strings
       return (
         <>
           {parts.map((part, i) =>
