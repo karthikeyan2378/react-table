@@ -44,6 +44,7 @@ export interface FilterableColumn {
   name: string;
   type: 'text' | 'categorical';
   options?: { value: string; label: string }[];
+  onSearch?: (query: string) => Promise<{ value: string; label: string }[]>;
 }
 
 /**
@@ -52,30 +53,69 @@ export interface FilterableColumn {
 function DataTableFacetedFilter<TData>({
   columnId,
   title,
-  options,
+  options: staticOptions = [],
+  onSearch,
   onRemove,
   selectedValues,
   onFilterChange,
 }: {
   columnId: string;
   title?: string;
-  options: {
-    label: string;
-    value: string;
-  }[];
+  options?: { label: string; value: string }[];
+  onSearch?: (query: string) => Promise<{ label: string; value: string }[]>;
   onRemove: () => void;
   selectedValues: Set<string>;
   onFilterChange: (value: string, isSelected: boolean) => void;
 }) {
   const { dropdownRef, isOpen, setIsOpen } = useDropdown();
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [fetchedOptions, setFetchedOptions] = React.useState<{ label: string; value: string }[]>(staticOptions);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const debounceTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchTerm(query);
+
+    if (onSearch) {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      setIsLoading(true);
+      debounceTimeoutRef.current = setTimeout(() => {
+        onSearch(query)
+          .then(results => {
+            setFetchedOptions(results);
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
+      }, 300); // 300ms debounce
+    }
+  };
 
   const filteredOptions = React.useMemo(() => {
-    if (!searchTerm) return options;
-    return options.filter(option => 
+    if (onSearch) {
+      return fetchedOptions;
+    }
+    if (!searchTerm) return staticOptions;
+    return staticOptions.filter(option => 
       option.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [options, searchTerm]);
+  }, [staticOptions, fetchedOptions, searchTerm, onSearch]);
+  
+  // When dropdown opens, if it's an onSearch filter, fetch initial results
+  React.useEffect(() => {
+    if (isOpen && onSearch) {
+      setIsLoading(true);
+      onSearch('').then(results => {
+        setFetchedOptions(results);
+      }).finally(() => {
+        setIsLoading(false);
+      });
+    }
+  }, [isOpen, onSearch]);
+
 
   return (
     <div className="cygnet-dt-facet-filter-container">
@@ -91,25 +131,29 @@ function DataTableFacetedFilter<TData>({
                         type="text"
                         placeholder="Search..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleSearchChange}
                         className="cygnet-dt-input"
                         style={{ height: '2rem' }}
                       />
                     </div>
-                    {filteredOptions.map((option) => {
-                        const isSelected = selectedValues.has(option.value);
-                        return (
-                        <label key={option.value} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
-                            <input
-                                type="checkbox"
-                                checked={isSelected}
-                                onChange={() => onFilterChange(option.value, isSelected)}
-                            />
-                            {highlightText(option.label, searchTerm)}
-                        </label>
-                        );
-                    })}
-                    {selectedValues.size > 0 && (
+                    {isLoading ? (
+                      <div className="cygnet-dt-dropdown-item">Loading...</div>
+                    ) : (
+                      filteredOptions.map((option) => {
+                          const isSelected = selectedValues.has(option.value);
+                          return (
+                          <label key={option.value} className="cygnet-dt-dropdown-item cygnet-dt-dropdown-item--checkbox">
+                              <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => onFilterChange(option.value, isSelected)}
+                              />
+                              {highlightText(option.label, searchTerm)}
+                          </label>
+                          );
+                      })
+                    )}
+                    {selectedValues.size > 0 && !isLoading && (
                         <>
                         <div className="cygnet-dt-dropdown-separator" />
                         <button
@@ -336,7 +380,7 @@ function DataTableToolbar<TData>({
         })}
 
         {categoricalFilterColumns.map(col => {
-          if (activeFilters.includes(col.id) && col.options) {
+          if (activeFilters.includes(col.id)) {
             const selectedValues = new Set((columnFilters.find(f => f.id === col.id)?.value as string[]) || []);
             return (
               <DataTableFacetedFilter
@@ -344,6 +388,7 @@ function DataTableToolbar<TData>({
                 columnId={col.id}
                 title={col.name}
                 options={col.options}
+                onSearch={col.onSearch}
                 onRemove={() => handleFilterToggle(col.id, true)}
                 selectedValues={selectedValues}
                 onFilterChange={handleCategoricalFilterChange.bind(null, col.id)}

@@ -237,14 +237,46 @@ export default function Home() {
    * Derived from the `alarmConfig`.
    */
   const filterableColumns: FilterableColumn[] = React.useMemo(() => {
+    const alarmNameOptions = alarmConfig.fields.AlarmName.options || [];
+    
+    // Simulate a backend search for the "Alarm Name" filter
+    const searchAlarmNames = async (query: string): Promise<{ value: string; label: string }[]> => {
+        console.log(`Searching for: "${query}"`);
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500)); 
+        
+        if (!query) {
+            return alarmNameOptions.slice(0, 10); // Return top 10 if query is empty
+        }
+        
+        const lowerCaseQuery = query.toLowerCase();
+        const filtered = alarmNameOptions.filter(opt => 
+            opt.label.toLowerCase().includes(lowerCaseQuery)
+        );
+        
+        console.log(`Found ${filtered.length} results.`);
+        return filtered;
+    };
+
     return Object.entries(alarmConfig.fields)
       .filter(([, config]) => config.isFilterable)
-      .map(([id, { label, columnType, options }]) => ({
-        id,
-        name: label,
-        type: columnType === 'categorical' ? 'categorical' : 'text',
-        options: options || []
-      }));
+      .map(([id, { label, columnType, options }]) => {
+        const filter: FilterableColumn = {
+            id,
+            name: label,
+            type: columnType === 'categorical' ? 'categorical' : 'text',
+        };
+
+        if (id === 'AlarmName') {
+            // Use the async search function for this specific filter
+            filter.onSearch = searchAlarmNames;
+        } else {
+            // Use the static options for all other filters
+            filter.options = options || [];
+        }
+
+        return filter;
+      });
   }, []);
 
   /**
