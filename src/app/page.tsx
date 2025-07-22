@@ -4,7 +4,8 @@
 import * as React from 'react';
 import { makeData, newAlarm } from '../lib/data';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { DataTable, type ContextMenuItem, type FilterableColumn } from '../FMComponents/data-table';
+import { DataTable, type ContextMenuItem, type ToolbarVisibility } from '../FMComponents/data-table';
+import { type FilterableColumn } from '../FMComponents/data-table-faceted-filter';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { type ColumnFiltersState } from './types';
 import { Label } from '../FMComponents/Label';
@@ -65,13 +66,10 @@ export default function Home() {
   const { dropdownRef: addChartRef, isOpen: isAddChartOpen, setIsOpen: setIsAddChartOpen } = useDropdown();
   // State to manage delete confirmation modal
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
-  // State to prevent charts from rendering on the server.
-  const [isMounted, setIsMounted] = React.useState(false);
   
   React.useEffect(() => {
     // Generate data on the client side to avoid hydration mismatches
     setData(makeData(100));
-    setIsMounted(true);
   }, []);
 
   /**
@@ -409,7 +407,7 @@ export default function Home() {
         </div>
         <div className="cygnet-content-layout">
           {/* Charts Column */}
-          {showCharts && isMounted && (
+          {showCharts && (
             <div className="cygnet-charts-column">
                 <div className="cygnet-charts-header">
                     <h2>Charts</h2>
