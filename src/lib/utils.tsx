@@ -38,7 +38,7 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
         <>
           {parts.map((part, i) =>
             part.match(highlightRegex) ? (
-              <span key={i} style={{ backgroundColor: '#f3e22f7a', borderRadius: '2px', padding: '0 2px' }}>
+              <span key={i} style={{ backgroundColor: '#f3e22f7a', borderRadius: '2px' }}>
                 {part}
               </span>
             ) : (
