@@ -35,14 +35,18 @@ export function highlightText(text: React.ReactNode, highlight: string | string[
       if (!node.match(highlightRegex)) return node;
       
       const parts = node.split(highlightRegex);
-      return parts.map((part, i) =>
-        highlightRegex.test(part) ? (
-          <span key={i} style={{ backgroundColor: '#f3e22f7a', borderRadius: '2px', padding: '0 2px' }}>
-            {part}
-          </span>
-        ) : (
-          part
-        )
+      return (
+        <>
+          {parts.map((part, i) =>
+            part.match(highlightRegex) ? (
+              <span key={i} style={{ backgroundColor: '#f3e22f7a', borderRadius: '2px', padding: '0 2px' }}>
+                {part}
+              </span>
+            ) : (
+              part
+            )
+          )}
+        </>
       );
     }
 
