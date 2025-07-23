@@ -7,7 +7,7 @@ import { useDropdown } from "@/hooks/use-dropdown.ts";
 import type { ColumnDef, ColumnFiltersState, SortingState } from "@/app/types.ts";
 import { useVirtualizer } from "@/hooks/use-virtualizer.ts";
 import { DataTableFacetedFilter, type FilterableColumn } from './data-table-faceted-filter';
-import { DataTableDateFilter } from './data-table-date-filter';
+
 
 /** Reusable Icons as Components **/
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
@@ -23,7 +23,7 @@ const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" he
 const CsvIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 12.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1Z"/><path d="M12 18H9.5a.5.5 0 0 1 0-1H12"/><path d="M9.5 12.5a.5.5 0 0 1 0-1H12v6"/><path d="m14 18 2-3-2-3"/></svg>;
 const ExcelIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m16 13-3 5-3-5"/></svg>;
 const PdfIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '0.5rem' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15v-2.5a2.5 2.5 0 0 1 5 0V15"/><path d="M12 18h-2.5a2.5 2.5 0 0 1 0-5H12"/></svg>;
-const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
+const SettingsIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0 2l.15.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
 const PageFirstIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg>;
 const PagePrevIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>;
 const PageNextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>;
@@ -137,7 +137,7 @@ function DataTableToolbar<TData>({
     setActiveFilters([]);
   };
 
-  const handleCategoricalFilterChange = React.useCallback((columnId: string, value: string, isSelected: boolean) => {
+  const handleCategoricalFilterChange = (columnId: string, value: string, isSelected: boolean) => {
     onColumnFiltersChange(prev => {
         const otherFilters = prev.filter(f => f.id !== columnId);
         const existingFilter = prev.find(f => f.id === columnId);
@@ -155,17 +155,7 @@ function DataTableToolbar<TData>({
 
         return [...otherFilters, { id: columnId, value: Array.from(currentValues) }];
     });
-  }, [onColumnFiltersChange]);
-
-  const handleDateFilterChange = React.useCallback((columnId: string, dateRange: { from: Date; to: Date } | undefined) => {
-      onColumnFiltersChange(prev => {
-          const otherFilters = prev.filter(f => f.id !== columnId);
-          if (!dateRange || !dateRange.from) {
-              return otherFilters; // Remove filter if date range is cleared
-          }
-          return [...otherFilters, { id: columnId, value: dateRange }];
-      });
-  }, [onColumnFiltersChange]);
+  };
 
   return (
     <div className="cygnet-dt-toolbar">
@@ -247,19 +237,6 @@ function DataTableToolbar<TData>({
                     onFilterChange={handleCategoricalFilterChange}
                   />
                 )
-            }
-
-            if (column.type === 'date') {
-                const selectedDateRange = columnFilters.find(f => f.id === column.id)?.value as { from: Date, to: Date } | undefined;
-                return (
-                    <DataTableDateFilter
-                        key={column.id}
-                        title={column.name}
-                        selectedDateRange={selectedDateRange}
-                        onFilterChange={(range) => handleDateFilterChange(column.id, range)}
-                        onRemove={() => handleFilterToggle(column.id, true)}
-                    />
-                );
             }
 
             return null;
@@ -569,15 +546,6 @@ export function DataTable<TData extends { [key: string]: any }>({
                 // Handle categorical filters (array of strings)
                 if (Array.isArray(filter.value)) {
                     return filter.value.includes(rowValue);
-                }
-
-                // Handle date range filters (object with from/to)
-                if (typeof filter.value === 'object' && filter.value !== null && 'from' in filter.value && rowValue instanceof Date) {
-                    const { from, to } = filter.value as { from?: Date; to?: Date };
-                    let passes = true;
-                    if (from && rowValue < from) passes = false;
-                    if (to && rowValue > new Date(to.getTime() + 86400000 - 1)) passes = false; // include the whole 'to' day
-                    return passes;
                 }
                 
                 // Handle text filters (string)

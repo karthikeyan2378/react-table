@@ -64,7 +64,6 @@ const config = {
     NetworkRaisedTimeLong: {
       label: 'Network Raised Time',
       isFilterable: true,
-      columnType: 'date',
       formatType: 'dd-MMM-yyyy HH:mm:ss',
       columnSize: 200,
     },
