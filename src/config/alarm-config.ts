@@ -63,7 +63,8 @@ const config = {
     },
     NetworkRaisedTimeLong: {
       label: 'Network Raised Time',
-      columnType: 'dateTime',
+      isFilterable: true,
+      columnType: 'date',
       formatType: 'dd-MMM-yyyy HH:mm:ss',
       columnSize: 200,
     },
@@ -197,7 +198,7 @@ type FieldConfig = {
     isSummarizedColumn?: boolean;
     isFilterable?: boolean;
     columnSize?: number;
-    columnType?: 'categorical' | 'dateTime' | 'numerical' | 'text';
+    columnType?: 'categorical' | 'dateTime' | 'numerical' | 'text' | 'date';
     options?: { value: string; label: string }[];
     sortOrder?: 'ASCENDING' | 'DESCENDING';
     isColumnToHide?: boolean;
@@ -234,6 +235,8 @@ export type Alarm = {
     ? Date
     : (typeof config.fields)[K] extends { columnType: 'numerical' }
     ? number
+    : (typeof config.fields)[K] extends { columnType: 'date' }
+    ? Date
     : string;
 } & { 
     /** This is here to ensure AlarmID is always part of the type, even if not explicitly defined with a specific type. */

@@ -20,8 +20,8 @@ export interface FilterableColumn {
   id: string;
   /** The user-friendly name for the filter, displayed in the UI. */
   name: string;
-  /** The type of filter input to render ('text' for free-form input, 'categorical' for a multi-select dropdown). */
-  type: 'text' | 'categorical';
+  /** The type of filter input to render ('text' for free-form input, 'categorical' for a multi-select dropdown, or 'date' for a date range picker). */
+  type: 'text' | 'categorical' | 'date';
   /** An optional array of predefined options for a 'categorical' filter. */
   options?: { value: string; label: string }[];
   /** 

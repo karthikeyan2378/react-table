@@ -7,6 +7,7 @@ import { useDropdown } from "@/hooks/use-dropdown.ts";
 import type { ColumnDef, ColumnFiltersState, SortingState } from "@/app/types.ts";
 import { useVirtualizer } from "@/hooks/use-virtualizer.ts";
 import { DataTableFacetedFilter, type FilterableColumn } from './data-table-faceted-filter';
+import { DataTableDateFilter } from './data-table-date-filter';
 
 /** Reusable Icons as Components **/
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
@@ -136,9 +137,6 @@ function DataTableToolbar<TData>({
     setActiveFilters([]);
   };
 
-  const textFilterColumns = filterableColumns.filter(col => col.type === 'text');
-  const categoricalFilterColumns = filterableColumns.filter(col => col.type === 'categorical');
-
   const handleCategoricalFilterChange = (columnId: string, value: string, isSelected: boolean) => {
     onColumnFiltersChange(prev => {
         const otherFilters = prev.filter(f => f.id !== columnId);
@@ -157,6 +155,16 @@ function DataTableToolbar<TData>({
 
         return [...otherFilters, { id: columnId, value: Array.from(currentValues) }];
     });
+  };
+
+  const handleDateFilterChange = (columnId: string, dateRange: { from: Date; to: Date } | undefined) => {
+      onColumnFiltersChange(prev => {
+          const otherFilters = prev.filter(f => f.id !== columnId);
+          if (!dateRange || !dateRange.from) {
+              return otherFilters; // Remove filter if date range is cleared
+          }
+          return [...otherFilters, { id: columnId, value: dateRange }];
+      });
   };
 
   return (
@@ -196,51 +204,65 @@ function DataTableToolbar<TData>({
             )}
         </div>
 
-        {textFilterColumns.map((col) => {
-          if (activeFilters.includes(col.id)) {
-            return (
-              <div key={col.id} className="cygnet-dt-filter-container">
-                <input
-                  placeholder={`Filter ${col.name.toLowerCase()}...`}
-                  value={(columnFilters.find(f => f.id === col.id)?.value as string) ?? ""}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    onColumnFiltersChange(prev => {
-                        const other = prev.filter(f => f.id !== col.id);
-                        return value ? [...other, {id: col.id, value}] : other;
-                    })
-                  }}
-                  className="cygnet-dt-input with-button"
-                />
-                <button
-                    className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon cygnet-dt-input-button"
-                    onClick={() => handleFilterToggle(col.id, true)}
-                >
-                    <XIcon />
-                </button>
-              </div>
-            );
-          }
-          return null;
-        })}
+        {activeFilters.map(columnId => {
+            const column = filterableColumns.find(c => c.id === columnId);
+            if (!column) return null;
 
-        {categoricalFilterColumns.map(col => {
-          if (activeFilters.includes(col.id)) {
-            const selectedValues = new Set((columnFilters.find(f => f.id === col.id)?.value as string[]) || []);
-            return (
-              <DataTableFacetedFilter
-                key={col.id}
-                columnId={col.id}
-                title={col.name}
-                options={col.options}
-                onSearch={col.onSearch}
-                onRemove={() => handleFilterToggle(col.id, true)}
-                selectedValues={selectedValues}
-                onFilterChange={handleCategoricalFilterChange.bind(null, col.id)}
-              />
-            )
-          }
-          return null;
+            if (column.type === 'text') {
+                return (
+                  <div key={column.id} className="cygnet-dt-filter-container">
+                    <input
+                      placeholder={`Filter ${column.name.toLowerCase()}...`}
+                      value={(columnFilters.find(f => f.id === column.id)?.value as string) ?? ""}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        onColumnFiltersChange(prev => {
+                            const other = prev.filter(f => f.id !== column.id);
+                            return value ? [...other, {id: column.id, value}] : other;
+                        })
+                      }}
+                      className="cygnet-dt-input with-button"
+                    />
+                    <button
+                        className="cygnet-dt-button cygnet-dt-button--ghost cygnet-dt-button--icon cygnet-dt-input-button"
+                        onClick={() => handleFilterToggle(column.id, true)}
+                    >
+                        <XIcon />
+                    </button>
+                  </div>
+                );
+            }
+
+            if (column.type === 'categorical') {
+                const selectedValues = new Set((columnFilters.find(f => f.id === column.id)?.value as string[]) || []);
+                return (
+                  <DataTableFacetedFilter
+                    key={column.id}
+                    columnId={column.id}
+                    title={column.name}
+                    options={column.options}
+                    onSearch={column.onSearch}
+                    onRemove={() => handleFilterToggle(column.id, true)}
+                    selectedValues={selectedValues}
+                    onFilterChange={handleCategoricalFilterChange.bind(null, column.id)}
+                  />
+                )
+            }
+
+            if (column.type === 'date') {
+                const selectedDateRange = columnFilters.find(f => f.id === column.id)?.value as { from: Date, to: Date } | undefined;
+                return (
+                    <DataTableDateFilter
+                        key={column.id}
+                        title={column.name}
+                        selectedDateRange={selectedDateRange}
+                        onFilterChange={(range) => handleDateFilterChange(column.id, range)}
+                        onRemove={() => handleFilterToggle(column.id, true)}
+                    />
+                );
+            }
+
+            return null;
         })}
 
         {isFiltered && (
@@ -543,9 +565,22 @@ export function DataTable<TData extends { [key: string]: any }>({
         columnFilters.forEach(filter => {
             filtered = filtered.filter(row => {
                 const rowValue = row[filter.id];
+                
+                // Handle categorical filters (array of strings)
                 if (Array.isArray(filter.value)) {
                     return filter.value.includes(rowValue);
                 }
+
+                // Handle date range filters (object with from/to)
+                if (typeof filter.value === 'object' && filter.value !== null && 'from' in filter.value && rowValue instanceof Date) {
+                    const { from, to } = filter.value as { from?: Date; to?: Date };
+                    let passes = true;
+                    if (from && rowValue < from) passes = false;
+                    if (to && rowValue > new Date(to.getTime() + 86400000 - 1)) passes = false; // include the whole 'to' day
+                    return passes;
+                }
+                
+                // Handle text filters (string)
                 return String(rowValue).toLowerCase().includes(String(filter.value).toLowerCase());
             });
         });

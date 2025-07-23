@@ -262,14 +262,14 @@ export default function Home() {
         const filter: FilterableColumn = {
             id,
             name: label,
-            type: columnType === 'categorical' ? 'categorical' : 'text',
+            type: columnType === 'categorical' ? 'categorical' : columnType === 'date' ? 'date' : 'text',
         };
 
         if (id === 'AlarmName') {
             // Use the async search function for this specific filter
             filter.onSearch = searchAlarmNames;
-        } else {
-            // Use the static options for all other filters
+        } else if (columnType === 'categorical') {
+            // Use the static options for other categorical filters
             filter.options = options || [];
         }
 
