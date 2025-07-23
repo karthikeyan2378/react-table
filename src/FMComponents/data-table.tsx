@@ -137,7 +137,7 @@ function DataTableToolbar<TData>({
     setActiveFilters([]);
   };
 
-  const handleCategoricalFilterChange = (columnId: string, value: string, isSelected: boolean) => {
+  const handleCategoricalFilterChange = React.useCallback((columnId: string, value: string, isSelected: boolean) => {
     onColumnFiltersChange(prev => {
         const otherFilters = prev.filter(f => f.id !== columnId);
         const existingFilter = prev.find(f => f.id === columnId);
@@ -155,9 +155,9 @@ function DataTableToolbar<TData>({
 
         return [...otherFilters, { id: columnId, value: Array.from(currentValues) }];
     });
-  };
+  }, [onColumnFiltersChange]);
 
-  const handleDateFilterChange = (columnId: string, dateRange: { from: Date; to: Date } | undefined) => {
+  const handleDateFilterChange = React.useCallback((columnId: string, dateRange: { from: Date; to: Date } | undefined) => {
       onColumnFiltersChange(prev => {
           const otherFilters = prev.filter(f => f.id !== columnId);
           if (!dateRange || !dateRange.from) {
@@ -165,7 +165,7 @@ function DataTableToolbar<TData>({
           }
           return [...otherFilters, { id: columnId, value: dateRange }];
       });
-  };
+  }, [onColumnFiltersChange]);
 
   return (
     <div className="cygnet-dt-toolbar">
@@ -244,7 +244,7 @@ function DataTableToolbar<TData>({
                     onSearch={column.onSearch}
                     onRemove={() => handleFilterToggle(column.id, true)}
                     selectedValues={selectedValues}
-                    onFilterChange={handleCategoricalFilterChange.bind(null, column.id)}
+                    onFilterChange={handleCategoricalFilterChange}
                   />
                 )
             }
