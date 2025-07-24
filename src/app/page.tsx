@@ -18,6 +18,7 @@ import { Button } from '@/FMComponents/Button';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import ExcelJS from 'exceljs';
+import { PropertyPage } from '@/FMComponents/PropertyPage';
 
 
 /**
@@ -33,6 +34,11 @@ const PieChartIcon = () => (
 const EditIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
 );
+
+const PropertyIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M12 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+);
+
 
 /**
  * The main page component for the Alarm Dashboard application.
@@ -66,6 +72,8 @@ export default function Home() {
   const { dropdownRef: addChartRef, isOpen: isAddChartOpen, setIsOpen: setIsAddChartOpen } = useDropdown();
   // State to manage delete confirmation modal
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
+  // State for the property page modal
+  const [propertyPageRow, setPropertyPageRow] = React.useState<Alarm | null>(null);
   
   React.useEffect(() => {
     // Generate data on the client side to avoid hydration mismatches
@@ -262,7 +270,7 @@ export default function Home() {
         const filter: FilterableColumn = {
             id,
             name: label,
-            type: columnType === 'categorical' ? 'categorical' : columnType === 'date' ? 'date' : 'text',
+            type: columnType === 'categorical' ? 'categorical' : 'text',
         };
 
         if (id === 'AlarmName') {
@@ -322,6 +330,16 @@ export default function Home() {
         console.log(`Row ID ${recId} copied to clipboard.`);
       }
     },
+    {
+      label: (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <PropertyIcon />
+          Show Properties
+        </div>
+      ),
+      onClick: (row) => setPropertyPageRow(row),
+      separator: true,
+    },
      {
       label: (
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -333,7 +351,6 @@ export default function Home() {
         setRowToUpdate(row);
         setIsUpdateDialogOpen(true);
       },
-      separator: true,
     },
   ], [getRowId]);
 
@@ -562,6 +579,21 @@ export default function Home() {
           }
         >
           <p>Are you sure you want to delete {selectedRows.length} selected row(s)? This action cannot be undone.</p>
+        </Modal>
+
+        {/* Property Page Modal */}
+        <Modal
+          isOpen={!!propertyPageRow}
+          onClose={() => setPropertyPageRow(null)}
+          title="Property Page"
+          position="center"
+          footer={
+            <Button variant="outline" onClick={() => setPropertyPageRow(null)}>
+              Close
+            </Button>
+          }
+        >
+          {propertyPageRow && <PropertyPage rowData={propertyPageRow} />}
         </Modal>
 
       </main>
