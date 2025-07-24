@@ -39,6 +39,59 @@ const PropertyIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M12 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
 );
 
+/**
+ * A wrapper component that displays the PropertyPage and provides a back button.
+ * This component is shown when a `propertyPageRow` is selected.
+ */
+const PropertyPageWrapper = ({
+  rowData,
+  onBack,
+}: {
+  rowData: Alarm;
+  onBack: () => void;
+}) => {
+  return (
+    <div>
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <button
+          onClick={onBack}
+          style={{
+            background: 'none',
+            border: '1px solid #e5e7eb',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            padding: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: '1rem',
+          }}
+          aria-label="Go back to table"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+        </button>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>
+          Property Details
+        </h1>
+      </div>
+      <PropertyPage rowData={rowData} />
+    </div>
+  );
+};
+
 
 /**
  * The main page component for the Alarm Dashboard application.
@@ -72,7 +125,7 @@ export default function Home() {
   const { dropdownRef: addChartRef, isOpen: isAddChartOpen, setIsOpen: setIsAddChartOpen } = useDropdown();
   // State to manage delete confirmation modal
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
-  // State for the property page modal
+  // State for the property page modal. If not null, the property page is shown.
   const [propertyPageRow, setPropertyPageRow] = React.useState<Alarm | null>(null);
   
   React.useEffect(() => {
@@ -414,19 +467,26 @@ export default function Home() {
   return (
     <div className="cygnet-page-container">
       <main className="cygnet-main-content">
-        <div className="cygnet-page-header">
-            <h1>Live Streaming Alarm Dashboard</h1>
-            <p>
-              A high-performance, real-time dashboard for network alarms, built with Next.js and React. 
-              Features a virtualized data table capable of handling thousands of streaming updates per second, 
-              advanced client-side filtering, sorting, and dynamic charting.
-            </p>
-        </div>
-        <div className="cygnet-content-layout">
-          {/* Charts Column */}
-          {showCharts && (
-            <div className="cygnet-charts-column">
-                <div className="cygnet-charts-header">
+        {propertyPageRow ? (
+          <PropertyPageWrapper
+            rowData={propertyPageRow}
+            onBack={() => setPropertyPageRow(null)}
+          />
+        ) : (
+          <>
+            <div className="cygnet-page-header">
+              <h1>Live Streaming Alarm Dashboard</h1>
+              <p>
+                A high-performance, real-time dashboard for network alarms, built with Next.js and React. 
+                Features a virtualized data table capable of handling thousands of streaming updates per second, 
+                advanced client-side filtering, sorting, and dynamic charting.
+              </p>
+            </div>
+            <div className="cygnet-content-layout">
+              {/* Charts Column */}
+              {showCharts && (
+                <div className="cygnet-charts-column">
+                  <div className="cygnet-charts-header">
                     <h2>Charts</h2>
                     <div ref={addChartRef} className="cygnet-dt-dropdown-container">
                       <button className="cygnet-dt-button cygnet-dt-button--outline" onClick={() => setIsAddChartOpen(!isAddChartOpen)}>
@@ -434,43 +494,43 @@ export default function Home() {
                         Add Chart
                       </button>
                       {isAddChartOpen && (
-                          <div className="cygnet-dt-dropdown-content">
-                            {summarizableColumns.map((key) => (
-                              <button
-                                key={key}
-                                className="cygnet-dt-dropdown-item"
-                                disabled={activeCharts.includes(key)}
-                                onClick={() => handleAddChart(key)}
-                              >
-                                {(alarmConfig.fields as any)[key].label}
-                              </button>
-                            ))}
-                          </div>
+                        <div className="cygnet-dt-dropdown-content">
+                          {summarizableColumns.map((key) => (
+                            <button
+                              key={key}
+                              className="cygnet-dt-dropdown-item"
+                              disabled={activeCharts.includes(key)}
+                              onClick={() => handleAddChart(key)}
+                            >
+                              {(alarmConfig.fields as any)[key].label}
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
-                </div>
-                <div className="cygnet-charts-grid">
-                  {activeCharts.map((columnId) => {
+                  </div>
+                  <div className="cygnet-charts-grid">
+                    {activeCharts.map((columnId) => {
                       const activeFilter = columnFilters.find(f => f.id === columnId);
                       return (
-                          <ColumnChart
-                              key={columnId}
-                              columnId={columnId}
-                              label={alarmConfig.fields[columnId].label}
-                              data={data} // Pass full dataset to chart
-                              onRemove={handleRemoveChart}
-                              onFilter={handleChartFilter}
-                              activeFilters={(activeFilter?.value as string[]) || []}
-                          />
+                        <ColumnChart
+                          key={columnId}
+                          columnId={columnId}
+                          label={alarmConfig.fields[columnId].label}
+                          data={data} // Pass full dataset to chart
+                          onRemove={handleRemoveChart}
+                          onFilter={handleChartFilter}
+                          activeFilters={(activeFilter?.value as string[]) || []}
+                        />
                       );
-                  })}
-                 </div>
-            </div>
-          )}
+                    })}
+                  </div>
+                </div>
+              )}
 
-          {/* Data Table Column */}
-          <div className="cygnet-table-card">
-              <DataTable
+              {/* Data Table Column */}
+              <div className="cygnet-table-card">
+                <DataTable
                   tableContainerRef={tableContainerRef}
                   data={data}
                   columns={columns}
@@ -502,15 +562,17 @@ export default function Home() {
                   maxHeightWithoutPagination="80vh"
                   initialRowsPerPage={50}
                   rowsPerPageOptions={[20, 50, 100, 200, 500]}
-                  toolbarVisibility={{ 
+                  toolbarVisibility={{
                     toggleCharts: true,
                     updateRow: true,
                     refreshData: true,
-                   }}
+                  }}
                   frozenColumns={frozenColumns}
-              />
-          </div>
-        </div>
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* View Details Modal */}
         <Modal
@@ -579,21 +641,6 @@ export default function Home() {
           }
         >
           <p>Are you sure you want to delete {selectedRows.length} selected row(s)? This action cannot be undone.</p>
-        </Modal>
-
-        {/* Property Page Modal */}
-        <Modal
-          isOpen={!!propertyPageRow}
-          onClose={() => setPropertyPageRow(null)}
-          title="Property Page"
-          position="center"
-          footer={
-            <Button variant="outline" onClick={() => setPropertyPageRow(null)}>
-              Close
-            </Button>
-          }
-        >
-          {propertyPageRow && <PropertyPage rowData={propertyPageRow} />}
         </Modal>
 
       </main>
