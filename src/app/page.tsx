@@ -43,11 +43,11 @@ const PropertyIcon = () => (
  * A wrapper component that displays the PropertyPage and provides a back button.
  * This component is shown when a `propertyPageRow` is selected.
  */
-const PropertyPageWrapper = ({
+const PropertyPageWrapper = <T extends object>({
   rowData,
   onBack,
 }: {
-  rowData: Alarm;
+  rowData: T;
   onBack: () => void;
 }) => {
   return (
@@ -468,7 +468,7 @@ export default function Home() {
     <div className="cygnet-page-container">
       <main className="cygnet-main-content">
         {propertyPageRow ? (
-          <PropertyPageWrapper
+          <PropertyPageWrapper<Alarm>
             rowData={propertyPageRow}
             onBack={() => setPropertyPageRow(null)}
           />

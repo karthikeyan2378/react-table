@@ -2,116 +2,86 @@
 'use client';
 
 import * as React from 'react';
-import { type Alarm } from '@/config/alarm-config';
 
-// --- Placeholder Components ---
-// These are mock components based on the legacy PropertyPage class provided.
-// You can replace them with your actual component implementations.
+// --- Generic Placeholder Components ---
 
 /**
- * Placeholder for the HeaderInfoPanelBuilder functionality.
- * Displays the main identifier of the alarm.
+ * A generic header panel that displays the first two properties of any data object.
  */
-const HeaderInfoPanel = ({ rowData }: { rowData: Alarm }) => (
-  <div style={{ padding: '1rem', backgroundColor: '#f3f4f6', borderRadius: '0.375rem' }}>
-    <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{rowData.ObjectLabel}</h2>
-    <p style={{ color: '#6b7280' }}>ID: {rowData.AlarmID}</p>
-  </div>
-);
+const HeaderInfoPanel = <T extends object>({ rowData }: { rowData: T }) => {
+  const keys = Object.keys(rowData) as (keyof T)[];
+  const primaryField = keys.length > 0 ? String(rowData[keys[1]]) : 'N/A';
+  const secondaryField = keys.length > 1 ? String(rowData[keys[0]]) : 'N/A';
+
+  return (
+    <div style={{ padding: '1rem', backgroundColor: '#f3f4f6', borderRadius: '0.375rem' }}>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{primaryField}</h2>
+      <p style={{ color: '#6b7280' }}>ID: {secondaryField}</p>
+    </div>
+  );
+};
 
 /**
- * Placeholder for the ContentDivManager functionality.
- * Displays a summary of the alarm.
+ * A generic summary component.
  */
-const ContentSummary = ({ rowData }: { rowData: Alarm }) => (
+const ContentSummary = <T extends object>({ rowData }: { rowData: T }) => (
   <div style={{ marginBottom: '1rem' }}>
-    <p>
-      This is a <strong>{rowData.Severity}</strong> severity alarm named "{rowData.AlarmName}" on the "{rowData.ObjectType}" object type.
-    </p>
+    <p>Detailed properties for the selected item.</p>
   </div>
 );
 
 /**
- * Placeholder for a generic property card.
+ * A generic property card for displaying content with a title.
  */
 const PropertyCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.375rem', backgroundColor: '#ffffff' }}>
     <h3 style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #e5e7eb', fontWeight: 500 }}>{title}</h3>
-    <div style={{ padding: '1rem' }}>{children}</div>
+    <div style={{ padding: '1rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem 1rem' }}>{children}</div>
   </div>
 );
 
-// --- Main PropertyPage Component ---
+// --- Main Generic PropertyPage Component ---
 
-interface PropertyPageProps {
-  rowData: Alarm;
-  // These props are based on the legacy class constructor.
-  // In React, you'd typically pass data or components directly.
-  loadedTabs?: React.ReactNode[];
-  loadingTabs?: ((rowData: Alarm) => React.ReactNode)[];
-  userDefinedTabs?: ((rowData: Alarm) => React.ReactNode)[];
+interface PropertyPageProps<T extends object> {
+  rowData: T;
+  // In a real implementation, you might pass custom tab/card components as children or props.
 }
 
 /**
- * A React component to display detailed properties for a given data row.
- * This component is a conversion of the legacy PropertyPage class.
+ * A generic React component to display detailed properties for a given data row.
  */
-export function PropertyPage({
-  rowData,
-  loadedTabs = [],
-  loadingTabs = [],
-  userDefinedTabs = [],
-}: PropertyPageProps) {
+export function PropertyPage<T extends object>({
+  rowData
+}: PropertyPageProps<T>) {
 
-  // --- Mock Tab/Card Content ---
-  // This simulates the logic from _load...Tabs methods.
-
+  // Dynamically generate property listings from rowData
   const generalInfoCard = (
     <PropertyCard key="general" title="General Information">
-      <p><strong>NE Label:</strong> {rowData.NELabel}</p>
-      <p><strong>State:</strong> {rowData.State}</p>
-      <p><strong>Vendor:</strong> {rowData.Vendor}</p>
+      {Object.entries(rowData).map(([key, value]) => (
+        <React.Fragment key={key}>
+          <strong style={{ textAlign: 'right' }}>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong>
+          <span>{value instanceof Date ? value.toLocaleString() : String(value)}</span>
+        </React.Fragment>
+      ))}
     </PropertyCard>
   );
-
-  const timeInfoCard = (
-    <PropertyCard key="time" title="Timestamps">
-        <p><strong>Raised Time:</strong> {new Date(rowData.NetworkRaisedTimeLong).toLocaleString()}</p>
-        <p><strong>Last Modified:</strong> {new Date(rowData.NetworkLastModifiedTimeLong).toLocaleString()}</p>
-    </PropertyCard>
-  );
-
-  const allLoadedTabs = [generalInfoCard, ...loadedTabs];
-
-  const allLoadingTabs = loadingTabs.map((fn, i) => <React.Fragment key={`loading-${i}`}>{fn(rowData)}</React.Fragment>);
-
-  const allUserDefinedTabs = userDefinedTabs.map((fn, i) => <React.Fragment key={`user-${i}`}>{fn(rowData)}</React.Fragment>);
 
   return (
     <div>
-      {/* Replicates mainHeaderDiv */}
+      {/* Main header displaying the object's primary identifier */}
       <div style={{ width: '100%' }}>
         <HeaderInfoPanel rowData={rowData} />
       </div>
 
-      {/* Replicates the content added by ContentDivManager */}
+      {/* A summary section */}
       <div style={{ marginTop: '1rem' }}>
         <ContentSummary rowData={rowData} />
       </div>
 
-      {/* Replicates propertiesInnerDiv */}
+      {/* The main properties section, dynamically rendered */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginTop: '1rem' }}>
-        {allLoadedTabs}
-        {timeInfoCard}
-        {allLoadingTabs}
+        {generalInfoCard}
       </div>
-
-      {/* Replicates userDefinedInnerDiv */}
-      {allUserDefinedTabs.length > 0 && (
-        <div style={{ marginTop: '1rem' }}>
-          {allUserDefinedTabs}
-        </div>
-      )}
     </div>
   );
 }
