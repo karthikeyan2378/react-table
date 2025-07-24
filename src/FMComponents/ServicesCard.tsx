@@ -2,43 +2,65 @@
 'use client';
 
 import * as React from 'react';
-import { InfoCard } from './InfoCard';
+import { ListCard } from './ListCard';
 
-/**
- * A placeholder component that shows a message indicating no content is available.
- * @param {object} props The props for the component.
- * @param {React.ReactNode} props.icon The icon to display.
- * @param {string} props.message The main message text.
- * @param {string} props.details The detailed sub-message.
- */
-const Placeholder = ({ icon, message, details }: { icon: React.ReactNode, message: string, details: string }) => (
-    <div className="details-placeholder">
-      <div className="details-placeholder-icon">{icon}</div>
-      <span className="details-placeholder-message">{message}</span>
-      <span className="details-placeholder-details">{details}</span>
+export interface Service {
+    id: string;
+    name: string;
+    status: 'Online' | 'Offline' | 'Degraded';
+    type: string;
+}
+
+const statusColors: Record<Service['status'], string> = {
+    Online: '#22C55E',    // green-500
+    Offline: '#EF4444',   // red-500
+    Degraded: '#F97316',  // orange-500
+};
+
+const ServiceItem = ({ item }: { item: Service }) => (
+    <div className="service-item" key={item.id}>
+        <div className="service-item-main">
+            <span className="service-item-name">{item.name}</span>
+            <span className="service-item-type">{item.type}</span>
+        </div>
+        <div className="service-item-aside">
+            <span className="service-item-status" style={{ backgroundColor: statusColors[item.status] }}>
+                {item.status}
+            </span>
+        </div>
     </div>
-  );
-
-/**
- * An icon for the "No Services" placeholder.
- */
-const NoServicesIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 22v-2.1l1.8-1.8c.4-.4.8-.7 1.3-1 .4-.3.9-.6 1.4-.8.5-.2 1.1-.4 1.8-.5 1.3-.3 2.8-.3 4.2 0 .6.1 1.2.3 1.8.5.5.2 1 .5 1.4.8.5.3.9.6 1.3 1l1.8 1.8V22"/><path d="M5.5 2h.1l1.8 1.8c.4.4.8.7 1.3 1 .4.3.9.6 1.4.8.5.2 1.1.4 1.8.5 1.3.3 2.8-.3 4.2 0 .6.1 1.2.3 1.8.5.5.2 1 .5 1.4.8.5.3.9.6 1.3 1L22 7.5V2h-.1"/><path d="M2 16.5v.1l1.8-1.8c.4-.4.8-.7 1.3-1 .4-.3.9-.6 1.4-.8.5-.2 1.1-.4 1.8-.5 1.3-.3 2.8.3 4.2 0 .6-.1 1.2-.3 1.8-.5.5-.2 1-.5 1.4-.8.5-.3.9-.6 1.3-1l1.8-1.8v-.1"/><path d="M22 12.5v-.1l-1.8-1.8c-.4-.4-.8-.7-1.3-1-.4-.3-.9-.6-1.4-.8-.5-.2-1.1-.4-1.8-.5-1.3-.3-2.8.3-4.2 0-.6-.1-1.2-.3-1.8-.5-.5-.2-1-.5-1.4-.8-.5-.3-.9-.6-1.3-1L2 2.5v.1"/><circle cx="12" cy="12" r="3"/></svg>
 );
 
+const SkeletonServiceItem = () => (
+    <div className="service-item animate-pulse">
+        <div className="service-item-main w-2/3">
+            <div className="h-5 bg-gray-300 rounded w-5/6"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mt-2"></div>
+        </div>
+        <div className="service-item-aside w-1/3">
+            <div className="h-6 bg-gray-300 rounded-full w-24 ml-auto"></div>
+        </div>
+    </div>
+);
+
+interface ServicesCardProps {
+    services: Service[];
+    isLoading?: boolean;
+}
 
 /**
  * A specialized card for displaying related services.
- * Currently, it shows a placeholder as there is no service data.
  */
-export function ServicesCard() {
-  return (
-    <InfoCard title="Services">
-        <Placeholder
-          icon={<NoServicesIcon />}
-          message="No Services"
-          details="Services details not available at the moment"
+export function ServicesCard({ services, isLoading }: ServicesCardProps) {
+    return (
+        <ListCard<Service>
+            title="Services"
+            items={services}
+            isLoading={isLoading}
+            renderItem={(item) => <ServiceItem item={item} />}
+            renderSkeleton={() => <SkeletonServiceItem />}
+            searchKeys={['name', 'type']}
+            itemsPerPage={4}
         />
-    </InfoCard>
-  );
+    );
 }
