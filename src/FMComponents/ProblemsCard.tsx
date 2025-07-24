@@ -13,7 +13,7 @@ export interface Problem {
 }
 
 const ProblemItem = ({ item }: { item: Problem }) => (
-    <div className="problem-item" key={item.id}>
+    <div className="problem-item">
         <div className="problem-item-main">
             <span className="problem-item-title">{item.title}</span>
             <span className="problem-item-subtitle">{item.subtitle}</span>
@@ -61,7 +61,7 @@ export function ProblemsCard({ problems, isLoading }: ProblemsCardProps) {
             title="Problems"
             items={problems}
             isLoading={isLoading}
-            renderItem={(item) => <ProblemItem item={item} />}
+            renderItem={(item) => <ProblemItem key={item.id} item={item} />}
             renderSkeleton={() => <SkeletonProblemItem />}
             searchKeys={['title', 'subtitle']}
             onExport={handleExport}

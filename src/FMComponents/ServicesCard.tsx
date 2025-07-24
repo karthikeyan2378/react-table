@@ -18,7 +18,7 @@ const statusColors: Record<Service['status'], string> = {
 };
 
 const ServiceItem = ({ item }: { item: Service }) => (
-    <div className="service-item" key={item.id}>
+    <div className="service-item">
         <div className="service-item-main">
             <span className="service-item-name">{item.name}</span>
             <span className="service-item-type">{item.type}</span>
@@ -57,7 +57,7 @@ export function ServicesCard({ services, isLoading }: ServicesCardProps) {
             title="Services"
             items={services}
             isLoading={isLoading}
-            renderItem={(item) => <ServiceItem item={item} />}
+            renderItem={(item) => <ServiceItem key={item.id} item={item} />}
             renderSkeleton={() => <SkeletonServiceItem />}
             searchKeys={['name', 'type']}
             itemsPerPage={4}
