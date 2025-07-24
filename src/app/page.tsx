@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { makeData, newAlarm } from '../lib/data';
 import { type Alarm, alarmConfig } from '../config/alarm-config';
-import { DataTable, type ContextMenuItem, type ToolbarVisibility } from '../FMComponents/data-table';
+import { DataTable, type ContextMenuItem } from '../FMComponents/data-table';
 import { type FilterableColumn } from '../FMComponents/data-table-faceted-filter';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { type ColumnFiltersState } from './types';
@@ -18,7 +18,7 @@ import { Button } from '@/FMComponents/Button';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import ExcelJS from 'exceljs';
-import { PropertyPage } from '@/FMComponents/PropertyPage';
+import { PropertyPage } from '@/FMComponents/property-page/PropertyPage';
 
 
 /**
