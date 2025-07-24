@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import { InfoCard } from './InfoCard';
+import { highlightText } from '@/lib/utils';
 
 const CardSearchInput = ({
     searchTerm,
@@ -45,7 +46,7 @@ const PageNextIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" he
 interface ListCardProps<T> {
     title: string;
     items: T[];
-    renderItem: (item: T) => React.ReactNode;
+    renderItem: (item: T, searchTerm: string) => React.ReactNode;
     renderSkeleton: () => React.ReactNode;
     isLoading?: boolean;
     onExport?: () => void;
@@ -107,7 +108,7 @@ export function ListCard<T extends object>({
                     {isLoading
                         ? Array.from({ length: 3 }).map((_, i) => <React.Fragment key={i}>{renderSkeleton()}</React.Fragment>)
                         : paginatedItems.length > 0
-                        ? paginatedItems.map(item => renderItem(item))
+                        ? paginatedItems.map(item => renderItem(item, searchTerm))
                         : (
                             <div className="details-placeholder" style={{ minHeight: '150px' }}>
                                 <span className="details-placeholder-message">No Results</span>

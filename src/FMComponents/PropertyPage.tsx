@@ -6,9 +6,31 @@ import { type Alarm } from '@/config/alarm-config';
 import { DetailsHeader } from './DetailsHeader';
 import { KeyValueCard, type PropertyConfig } from './KeyValueCard';
 import { CommentsCard, type Comment } from './CommentsCard';
-import { ProblemsCard, type Problem } from './ProblemsCard';
-import { ServicesCard, type Service } from './ServicesCard';
+import { ListCard } from './ListCard';
+import { highlightText } from '@/lib/utils';
 import './css/details-page.css';
+
+// Mock Data Types
+export interface Problem {
+    id: string;
+    title: string;
+    subtitle: string;
+    date: string;
+    tag: string;
+}
+
+export interface Service {
+    id: string;
+    name: string;
+    status: 'Online' | 'Offline' | 'Degraded';
+    type: string;
+}
+
+const statusColors: Record<Service['status'], string> = {
+    Online: '#22C55E',    // green-500
+    Offline: '#EF4444',   // red-500
+    Degraded: '#F97316',  // orange-500
+};
 
 // Mock Data Fetching
 const getMockComments = (): Promise<Comment[]> => new Promise(resolve => setTimeout(() => resolve([
@@ -30,6 +52,65 @@ const getMockServices = (): Promise<Service[]> => new Promise(resolve => setTime
     { id: 'svc-4', name: 'DARK-FIBER-LEASE-XYZ', type: 'Leased Line', status: 'Offline' },
     { id: 'svc-5', name: 'CLOUD-CONNECT-AWS-USEAST1', type: 'Cloud', status: 'Online' },
 ]), 2500));
+
+
+// --- Reusable Item Renderers ---
+
+const ProblemItem = ({ item, searchTerm }: { item: Problem, searchTerm: string }) => (
+    <div className="problem-item">
+        <div className="problem-item-main">
+            <span className="problem-item-title">{highlightText(item.title, searchTerm)}</span>
+            <span className="problem-item-subtitle">{highlightText(item.subtitle, searchTerm)}</span>
+        </div>
+        <div className="problem-item-aside">
+            <span className="problem-item-tag">{item.tag}</span>
+            <div className="problem-item-date">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+                <span>{item.date}</span>
+            </div>
+        </div>
+    </div>
+);
+
+const SkeletonProblemItem = () => (
+    <div className="problem-item animate-pulse">
+        <div className="problem-item-main w-2/3">
+            <div className="h-5 bg-gray-300 rounded w-5/6"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mt-2"></div>
+        </div>
+        <div className="problem-item-aside w-1/3">
+            <div className="h-5 bg-gray-300 rounded w-20 ml-auto"></div>
+            <div className="h-4 bg-gray-200 rounded w-32 mt-2 ml-auto"></div>
+        </div>
+    </div>
+);
+
+const ServiceItem = ({ item, searchTerm }: { item: Service, searchTerm: string }) => (
+    <div className="service-item">
+        <div className="service-item-main">
+            <span className="service-item-name">{highlightText(item.name, searchTerm)}</span>
+            <span className="service-item-type">{highlightText(item.type, searchTerm)}</span>
+        </div>
+        <div className="service-item-aside">
+            <span className="service-item-status" style={{ backgroundColor: statusColors[item.status] }}>
+                {item.status}
+            </span>
+        </div>
+    </div>
+);
+
+const SkeletonServiceItem = () => (
+    <div className="service-item animate-pulse">
+        <div className="service-item-main w-2/3">
+            <div className="h-5 bg-gray-300 rounded w-5/6"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mt-2"></div>
+        </div>
+        <div className="service-item-aside w-1/3">
+            <div className="h-6 bg-gray-300 rounded-full w-24 ml-auto"></div>
+        </div>
+    </div>
+);
+
 
 interface PropertyPageProps {
   rowData: Alarm;
@@ -68,6 +149,11 @@ export function PropertyPage({ rowData }: PropertyPageProps) {
       setComments(prev => [newComment, ...prev]);
   };
 
+  const handleExportProblems = () => {
+    console.log("Exporting problems:", problems);
+    alert(`Exporting ${problems.length} problems... (Not implemented)`);
+  };
+
   const alarmDetailsConfig: PropertyConfig[] = [
     { key: 'AlarmID', label: 'Alarm ID', icon: 'id' },
     { key: 'NELabel', label: 'NE Label', icon: 'location' },
@@ -103,11 +189,28 @@ export function PropertyPage({ rowData }: PropertyPageProps) {
         </div>
         
         <div className="details-card-large">
-          <ProblemsCard problems={problems} isLoading={isProblemsLoading} />
+            <ListCard<Problem>
+                title="Problems"
+                items={problems}
+                isLoading={isProblemsLoading}
+                renderItem={(item, searchTerm) => <ProblemItem key={item.id} item={item} searchTerm={searchTerm} />}
+                renderSkeleton={SkeletonProblemItem}
+                searchKeys={['title', 'subtitle']}
+                onExport={handleExportProblems}
+                itemsPerPage={3}
+            />
         </div>
         
         <div className="details-card-small">
-          <ServicesCard services={services} isLoading={isServicesLoading} />
+            <ListCard<Service>
+                title="Services"
+                items={services}
+                isLoading={isServicesLoading}
+                renderItem={(item, searchTerm) => <ServiceItem key={item.id} item={item} searchTerm={searchTerm} />}
+                renderSkeleton={SkeletonServiceItem}
+                searchKeys={['name', 'type']}
+                itemsPerPage={4}
+            />
         </div>
       </div>
     </div>
