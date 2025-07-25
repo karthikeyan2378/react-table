@@ -8,13 +8,9 @@ import { DataTable, type ContextMenuItem } from '../FMComponents/data-table';
 import { type FilterableColumn } from '../FMComponents/data-table-faceted-filter';
 import { ColumnChart } from '../FMComponents/status-chart';
 import { type ColumnFiltersState } from './types';
-import { Label } from '../FMComponents/Label';
-import { Input } from '../FMComponents/Input';
 import { getExportableData } from '../lib/export';
 import { getColumns } from './columns';
 import { useDropdown } from '@/hooks/use-dropdown';
-import { Modal } from '@/FMComponents/Modal';
-import { Button } from '@/FMComponents/Button';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import ExcelJS from 'exceljs';
@@ -372,10 +368,6 @@ export default function Home() {
    */
   const contextMenuItems: ContextMenuItem<Alarm>[] = React.useMemo(() => [
     {
-      label: 'View Details',
-      onClick: (row) => setDialogRow(row),
-    },
-    {
       label: 'Copy Alarm ID',
       onClick: (row) => {
         const recId = getRowId(row);
@@ -573,76 +565,6 @@ export default function Home() {
             </div>
           </>
         )}
-
-        {/* View Details Modal */}
-        <Modal
-          isOpen={!!dialogRow}
-          onClose={() => setDialogRow(null)}
-          title="Item Details"
-          position="center"
-          footer={
-            <Button variant="outline" onClick={() => setDialogRow(null)}>
-              Close
-            </Button>
-          }
-        >
-          <div className="max-h-96 overflow-y-auto rounded-md border bg-gray-100 p-4">
-            <pre><code>{JSON.stringify(dialogRow, null, 2)}</code></pre>
-          </div>
-        </Modal>
-
-        {/* Update Row Modal */}
-        <Modal
-          isOpen={isUpdateDialogOpen}
-          onClose={() => setIsUpdateDialogOpen(false)}
-          title="Update Alarm"
-          position="center"
-          footer={
-            <>
-              <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => rowToUpdate && onRowUpdate(rowToUpdate)}>
-                Save Changes
-              </Button>
-            </>
-          }
-        >
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="additionalText" style={{textAlign: 'right'}}>
-                Additional Text
-              </Label>
-              <Input
-                id="additionalText"
-                defaultValue={rowToUpdate?.AdditionalText}
-                onChange={(e) => setRowToUpdate(prev => prev ? { ...prev, AdditionalText: e.target.value } : null)}
-                className="col-span-3"
-              />
-            </div>
-          </div>
-        </Modal>
-
-        {/* Delete Confirmation Modal */}
-        <Modal
-          isOpen={isDeleteConfirmOpen}
-          onClose={() => setIsDeleteConfirmOpen(false)}
-          title="Confirm Deletion"
-          position="center"
-          footer={
-            <>
-              <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleConfirmDelete}>
-                Delete
-              </Button>
-            </>
-          }
-        >
-          <p>Are you sure you want to delete {selectedRows.length} selected row(s)? This action cannot be undone.</p>
-        </Modal>
-
       </main>
     </div>
   );

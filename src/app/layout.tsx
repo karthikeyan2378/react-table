@@ -3,8 +3,6 @@ import type {Metadata} from 'next';
 import { LayoutComponent } from './layout-component';
 import './globals.css';
 import './custom-styles.css';
-import '../FMComponents/css/modal.css';
-import '../FMComponents/css/button.css';
 import '../FMComponents/css/data-table.css';
 import '../FMComponents/css/status-chart.css';
 import '../FMComponents/css/badge.css';
