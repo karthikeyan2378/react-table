@@ -119,6 +119,7 @@ const SkeletonServiceItem = () => (
 
 interface PropertyPageProps {
   rowData: Alarm;
+  onBack: () => void;
 }
 
 /**
@@ -126,7 +127,7 @@ interface PropertyPageProps {
  * It serves as the main layout container for various specialized cards, simulating data fetching
  * with loading skeletons.
  */
-export function PropertyPage({ rowData }: PropertyPageProps) {
+export function PropertyPage({ rowData, onBack }: PropertyPageProps) {
   const [comments, setComments] = React.useState<Comment[]>([]);
   const [problems, setProblems] = React.useState<Problem[]>([]);
   const [services, setServices] = React.useState<Service[]>([]);
@@ -181,7 +182,7 @@ export function PropertyPage({ rowData }: PropertyPageProps) {
 
   return (
     <div className="details-page-container">
-      <DetailsHeader rowData={rowData} />
+      <DetailsHeader rowData={rowData} onBack={onBack} />
 
       <div className="details-page-grid">
         <KeyValueCard

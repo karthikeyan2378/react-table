@@ -36,60 +36,6 @@ const PropertyIcon = () => (
 );
 
 /**
- * A wrapper component that displays the PropertyPage and provides a back button.
- * This component is shown when a `propertyPageRow` is selected.
- */
-const PropertyPageWrapper = ({
-  rowData,
-  onBack,
-}: {
-  rowData: Alarm;
-  onBack: () => void;
-}) => {
-  return (
-    <div>
-      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
-        <button
-          onClick={onBack}
-          style={{
-            background: 'none',
-            border: '1px solid #e5e7eb',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            padding: '0.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: '1rem',
-          }}
-          aria-label="Go back to table"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-        </button>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600 }}>
-          Alarms
-        </h1>
-      </div>
-      <PropertyPage rowData={rowData} />
-    </div>
-  );
-};
-
-
-/**
  * The main page component for the Alarm Dashboard application.
  * It manages the state for the data table, charts, and user interactions.
  */
@@ -104,8 +50,6 @@ export default function Home() {
   const [activeCharts, setActiveCharts] = React.useState<ChartableColumn[]>(['Severity']);
   // React transition for non-blocking UI updates when adding new rows.
   const [isPending, startTransition] = React.useTransition();
-  // State to hold the row data for the details dialog.
-  const [dialogRow, setDialogRow] = React.useState<Alarm | null>(null);
   // State for the global search filter across all columns.
   const [globalFilter, setGlobalFilter] = React.useState('');
   // Ref for the scrollable container of the data table, used by the virtualizer.
@@ -114,13 +58,9 @@ export default function Home() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   // State to manage the visibility of the charts panel.
   const [showCharts, setShowCharts] = React.useState(true);
-  // State to manage the update dialog visibility.
-  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = React.useState(false);
   // State to hold the data of the row being updated.
   const [rowToUpdate, setRowToUpdate] = React.useState<Alarm | null>(null);
   const { dropdownRef: addChartRef, isOpen: isAddChartOpen, setIsOpen: setIsAddChartOpen } = useDropdown();
-  // State to manage delete confirmation modal
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false);
   // State for the property page modal. If not null, the property page is shown.
   const [propertyPageRow, setPropertyPageRow] = React.useState<Alarm | null>(null);
   
@@ -169,7 +109,6 @@ export default function Home() {
       return;
     }
     setRowToUpdate(selectedRows[0]);
-    setIsUpdateDialogOpen(true);
   }, [selectedRows]);
 
   /**
@@ -181,20 +120,8 @@ export default function Home() {
     setData(currentData =>
       currentData.map(row => (getRowId(row) === recId ? updatedRow : row))
     );
-    setIsUpdateDialogOpen(false);
     setRowToUpdate(null);
   }, [getRowId]);
-
-  /**
-   * Opens the delete confirmation modal if rows are selected.
-   */
-  const deleteSelectedRows = React.useCallback(() => {
-    if (selectedRows.length === 0) {
-      console.error("No rows selected to delete.");
-      return;
-    }
-    setIsDeleteConfirmOpen(true);
-  }, [selectedRows.length]);
 
   /**
    * Deletes the currently selected rows from the table after confirmation.
@@ -205,7 +132,6 @@ export default function Home() {
       oldData.filter((row) => !selectedRowIds.has(getRowId(row)))
     );
     setSelectedRows([]);
-    setIsDeleteConfirmOpen(false);
   }, [selectedRows, getRowId]);
 
   /**
@@ -394,7 +320,6 @@ export default function Home() {
       ),
       onClick: (row) => {
         setRowToUpdate(row);
-        setIsUpdateDialogOpen(true);
       },
     },
   ], [getRowId]);
@@ -460,7 +385,7 @@ export default function Home() {
     <div className="cygnet-page-container">
       <main className="cygnet-main-content">
         {propertyPageRow ? (
-          <PropertyPageWrapper
+          <PropertyPage
             rowData={propertyPageRow}
             onBack={() => setPropertyPageRow(null)}
           />
@@ -541,7 +466,7 @@ export default function Home() {
                   onUpdateRow={handleUpdateRow}
                   isStreaming={isStreaming}
                   onToggleStreaming={() => setIsStreaming((prev) => !prev)}
-                  onDeleteSelectedRows={deleteSelectedRows}
+                  onDeleteSelectedRows={handleConfirmDelete}
                   onExportCsv={handleExportCsv}
                   onExportXlsx={handleExportXlsx}
                   onExportPdf={handleExportPdf}
